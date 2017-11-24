@@ -1,0 +1,51 @@
+{
+    "name": "@mattacosta/php-parser",
+    "description": "A cross-platform, error-tolerant PHP parser that provides a complete representation of your source code.",
+    "version": "1.0.0-beta.1",
+    "author": "Matt Acosta",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mattacosta/php-parser.git"
+    },
+    "bugs": {
+        "url": "https://github.com/mattacosta/php-parser/issues"
+    },
+    "files": [
+        "lib/",
+        "typings/",
+        "CONTRIBUTING.md"
+    ],
+    "main": "./lib/main.js",
+    "typings": "./typings/main.d.ts",
+    "dependencies": {
+        "@mattacosta/php-common": "^1.0.0-beta.1"
+    },
+    "devDependencies": {
+        "@types/glob": "^5.0.33",
+        "@types/js-yaml": "^3.10.1",
+        "@types/mocha": "^2.2.44",
+        "@types/node": "^8.0.53",
+        "browserify": "^14.5.0",
+        "event-stream": "^3.3.4",
+        "exorcist": "^1.0.0",
+        "glob": "^7.1.2",
+        "gulp": "^3.9.1",
+        "gulp-filter": "^5.0.1",
+        "gulp-mocha": "^4.3.1",
+        "gulp-typescript": "^3.2.3",
+        "js-yaml": "^3.10.0",
+        "merge2": "^1.2.0",
+        "mocha": "^4.0.1",
+        "rimraf": "^2.6.2",
+        "typescript": "^2.6.1"
+    },
+    "scripts": {
+        "build": "tsc -p ./src",
+        "build:codegen": "tsc -p ./tools/CodeGenerator",
+        "build:validator": "tsc -p ./tools/Validator",
+        "pretest": "tsc -p ./test",
+        "test": "mocha --recursive ./out/test",
+        "browserify": "browserify ./lib/main.js -d -s PhpParser -r ./lib/ErrorCode.json:../ErrorCode.json | exorcist ./lib/php-parser.map.js > ./lib/php-parser.js"
+    }
+}

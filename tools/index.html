@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <script src="http://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="../lib/php-parser.js"></script>
+    <script>
+      $(document).ready(function() {
+        // Disabled for initial benchmarking.
+        // parse();
+
+        $('#code').bind('input onpropertychange', function() {
+          parse();
+        });
+
+        function benchmark(text, iterations) {
+          let average = 0, first = 0, slowest = 0;
+
+          let tree = new Array(iterations);
+          for (let i = 0; i < iterations; i++) {
+            let start = performance.now();
+            tree[i] = PhpParser.PhpSyntaxTree.fromText(text);
+            let end = performance.now();
+
+            let diff = end - start;
+            average += diff;
+            if (i == 0) {
+              first = diff;
+            }
+            if (!slowest || diff > slowest) {
+              slowest = diff;
+            }
+          }
+
+          $('#average').text((average / iterations).toFixed(2));
+          $('#first').text(first.toFixed(2));
+          $('#slowest').text(slowest.toFixed(2));
+
+          printDiagnostics(tree[0]);
+        }
+
+        function parse() {
+          let text = $('#code').val();
+          try {
+            let start = performance.now();
+            let tree = PhpParser.PhpSyntaxTree.fromText(text);
+            let end = performance.now();
+
+            let diff = end - start;
+            $('#time').text(diff.toFixed(2) + ' ms');
+
+            printDiagnostics(tree);
+          }
+          catch (e) {
+            console.error(e);
+          }
+        }
+
+        function printDiagnostics(tree) {
+          let problems = '';
+          let problemCount = 0;
+
+          for (let d of tree.getDiagnostics()) {
+            problemCount++;
+
+            let severity = d.severity == PhpParser.DiagnosticSeverity.Error
+              ? 'E' : (d.severity == PhpParser.DiagnosticSeverity.Warning ? 'W' : 'I');
+            let message = PhpParser.ErrorCodeInfo.getMessage(d.code);
+            let args = d.messageArgs.slice();
+
+            message = message.replace(/%s/g, function() { return args.shift(); });
+            problems += `[${severity}] [PHP${d.code}] ${message}\n`;
+          }
+
+          $('#diagnostics').val(problems);
+          $('#problems').text(`${problemCount} errors`);
+        }
+
+        $('#benchmark').click(function() {
+          setTimeout(() => {
+            let text = $('#code').val();
+            benchmark(text, 100);
+          });
+        });
+      });
+    </script>
+    <style>
+      #code, #diagnostics {
+        box-sizing: border-box;
+        margin-bottom: 1rem;
+        width: 100%
+      }
+      .r-align {
+        text-align: right;
+      }
+      .test-panel {
+        border: 1px solid black;
+        display: inline-block;
+        padding: 0.5rem;
+      }
+      .test-button {
+        display: block;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="editor">
+      <textarea id="code" cols="120" rows="32" spellcheck="false">&lt;?php</textarea>
+      <textarea id="diagnostics" disabled="true" cols="120" rows="6" spellcheck="false"></textarea>
+      <p>Problems: <span id="problems"></span></p>
+      <p>Time: <span id="time"></span></p>
+    </div>
+    <div class="test-panel">
+      <button class="test-button" id="benchmark">Run 100 iterations</button>
+      <table>
+        <thead>
+          <tr><td></td><td class="r-align">Time (ms)</td></tr>
+        </thead>
+        <tbody>
+          <tr><td>Average:</td><td class="r-align" id="average">--</td></tr>
+          <tr><td>First:</td><td class="r-align" id="first">--</td></tr>
+          <tr><td>Slowest:</td><td class="r-align" id="slowest">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

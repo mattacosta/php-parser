@@ -1,0 +1,278 @@
+/**
+ * Copyright 2017 Matt Acosta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+import * as assert from 'assert';
+import * as mocha from 'mocha';
+
+import {
+  DiagnosticTestArgs,
+  ParserTestArgs,
+  Test
+} from '../Test';
+
+import {
+  ConstantSyntaxNode,
+  FullyQualifiedNameSyntaxNode,
+  FunctionDeclarationSyntaxNode,
+  LiteralSyntaxNode,
+  NamedTypeSyntaxNode,
+  ParameterSyntaxNode,
+  PartiallyQualifiedNameSyntaxNode,
+  PredefinedTypeSyntaxNode,
+} from '../../../src/language/syntax/SyntaxNode.Generated';
+
+import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
+import { TokenKind } from '../../../src/language/TokenKind';
+import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+
+function assertFunctionWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+  assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+  assert.strictEqual(funcDecl.ampersand, null);
+  assert.strictEqual(funcDecl.returnType, null);
+  let parameters = funcDecl.parameters ? funcDecl.parameters.childNodes() : [];
+  return parameters;
+}
+
+function assertParameter(node: ISyntaxNode, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
+  let parameter = <ParameterSyntaxNode>node;
+  assert.equal(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  if (!hasType) {
+    assert.strictEqual(parameter.type, null);
+  }
+  if (hasAmpersand) {
+    assert.notStrictEqual(parameter.ampersand, null);
+  }
+  else {
+    assert.strictEqual(parameter.ampersand, null);
+  }
+  if (hasEllipsis) {
+    assert.notStrictEqual(parameter.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(parameter.ellipsis, null);
+  }
+  if (!hasDefaultValue) {
+    assert.strictEqual(parameter.equal, null);
+    assert.strictEqual(parameter.expression, null);
+  }
+  return parameter;
+}
+
+describe('PhpParser', function() {
+
+  // Officially this is `function-definition`.
+  describe('function-declaration', function() {
+    let syntaxTests = [
+      new ParserTestArgs('function a() {}', 'should parse a function', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        assert.strictEqual(funcDecl.returnType, null);
+      }),
+      new ParserTestArgs('function &a() {}', 'should parse a function (byref)', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.notStrictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        assert.strictEqual(funcDecl.returnType, null);
+      }),
+
+      new ParserTestArgs('function a(): B {}', 'should parse a function with return type', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
+        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.strictEqual(returnType.question, null);
+        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+      new ParserTestArgs('function a(): \\B {}', 'should parse a function with return type (fully qualified)', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
+        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.strictEqual(returnType.question, null);
+        assert.equal(returnType.typeName instanceof FullyQualifiedNameSyntaxNode, true);
+      }),
+      new ParserTestArgs('function a(): ? B {}', 'should parse a function with nullable return type', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
+        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.notStrictEqual(returnType.question, null);
+        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+      new ParserTestArgs('function a(): array {}', 'should parse a function with predefined return type (array)', (statements, text) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        let returnType = <PredefinedTypeSyntaxNode>funcDecl.returnType;
+        assert.equal(returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        assert.strictEqual(returnType.question, null);
+        Test.assertSyntaxToken(returnType.keyword, text, TokenKind.Array, 'array');
+      }),
+      new ParserTestArgs('function a(): callable {}', 'should parse a function with predefined return type (callable)', (statements, text) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        let returnType = <PredefinedTypeSyntaxNode>funcDecl.returnType;
+        assert.equal(returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        assert.strictEqual(returnType.question, null);
+        Test.assertSyntaxToken(returnType.keyword, text, TokenKind.Callable, 'callable');
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('function', 'missing ampersand, identifier, or open paren', [ErrorCode.ERR_IncompleteFunctionDeclaration], [8]),
+      new DiagnosticTestArgs('function a()', 'missing colon or open brace', [ErrorCode.ERR_OpenBraceOrColonExpected], [12]),
+      new DiagnosticTestArgs('function a():', 'missing type', [ErrorCode.ERR_TypeExpected], [13]),
+      new DiagnosticTestArgs('function a(): B', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [15]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
+  });
+
+  describe('parameter-list', function() {
+    let syntaxTests = [
+      new ParserTestArgs('function a($b) {}', 'should parse a parameter', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        assertParameter(parameters[0], false, false, false, false);
+      }),
+      new ParserTestArgs('function a(&$b) {}', 'should parse a parameter (byref)', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        assertParameter(parameters[0], false, true, false, false);
+      }),
+      new ParserTestArgs('function a($b, $c) {}', 'should parse multiple parameters', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 2);
+        assertParameter(parameters[0], false, false, false, false);
+        assertParameter(parameters[1], false, false, false, false);
+      }),
+      new ParserTestArgs('function a(B $c) {}', 'should parse a parameter with type', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, false, false);
+        let type = <NamedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type.question, null);
+        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+      new ParserTestArgs('function a(?B $c) {}', 'should parse a parameter with nullable type', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, false, false);
+        let type = <NamedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.notStrictEqual(type.question, null);
+        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+      new ParserTestArgs('function a(array $c) {}', 'should parse a parameter with predefined type (array)', (statements, text) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, false, false);
+        let type = <PredefinedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof PredefinedTypeSyntaxNode, true);
+        assert.strictEqual(type.question, null);
+        Test.assertSyntaxToken(type.keyword, text, TokenKind.Array, 'array');
+      }),
+      new ParserTestArgs('function a(callable $c) {}', 'should parse a parameter with predefined type (callable)', (statements, text) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, false, false);
+        let type = <PredefinedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof PredefinedTypeSyntaxNode, true);
+        assert.strictEqual(type.question, null);
+        Test.assertSyntaxToken(type.keyword, text, TokenKind.Callable, 'callable');
+      }),
+      new ParserTestArgs('function a($b = 1) {}', 'should parse a parameter with default value', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], false, false, false, true);
+        assert.notStrictEqual(param.equal, null);
+        assert.equal(param.expression instanceof LiteralSyntaxNode, true);
+      }),
+      new ParserTestArgs('function a(B $c = null) {}', 'should parse a parameter with type and default value', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, false, true);
+        let type = <NamedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type.question, null);
+        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.notStrictEqual(param.equal, null);
+        assert.equal(param.expression instanceof ConstantSyntaxNode, true);
+      }),
+
+      new ParserTestArgs('function a(...$c) {}', 'should parse a variadic parameter', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        assertParameter(parameters[0], false, false, true, false);
+      }),
+      new ParserTestArgs('function a(&...$c) {}', 'should parse a variadic parameter (byref)', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        assertParameter(parameters[0], false, true, true, false);
+      }),
+      new ParserTestArgs('function a($b, ...$c) {}', 'should parse a variadic parameter after a parameter', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 2);
+        assertParameter(parameters[0], false, false, false, false);
+        assertParameter(parameters[1], false, false, true, false);
+      }),
+      new ParserTestArgs('function a(B ...$c) {}', 'should parse a variadic parameter with type', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, true, false);
+        let type = <NamedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type.question, null);
+        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('function a(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [11]),
+      new DiagnosticTestArgs('function a(&', 'missing ellipsis or variable', [ErrorCode.ERR_VariableOrEllipsisExpected], [12]),
+      new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_TypeExpected], [12]),
+      // @todo Improve error message.
+      new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_VariableExpected], [12]),
+      // @todo Improve error message.
+      new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_CloseParenExpected], [13]),
+      new DiagnosticTestArgs('function a(...', 'missing variable', [ErrorCode.ERR_VariableExpected], [14]),
+      new DiagnosticTestArgs('function a(...$b', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
+
+      new DiagnosticTestArgs('function a(...$b = []) {}', 'should not parse variadic parameter with default value', [ErrorCode.ERR_VariadicHasDefaultValue], [17]),
+      new DiagnosticTestArgs('function a(...$b, $c) {}', 'should not parse parameter after variadic parameter', [ErrorCode.ERR_VariadicIsNotLastParameter], [11]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
+  });
+
+});

@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "../../out/tools/CodeGenerator",
+        "sourceMap": true,
+        "strict": true,
+        "target": "es2015"
+    }
+}

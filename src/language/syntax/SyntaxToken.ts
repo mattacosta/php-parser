@@ -1,0 +1,323 @@
+/**
+ * Copyright 2017 Matt Acosta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+import { Debug } from '@mattacosta/php-common';
+
+import { INode } from '../node/INode';
+import { ISyntaxNode } from './ISyntaxNode';
+import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxTriviaFilter } from './ISyntaxTrivia';
+import { NodeExtensions } from '../node/NodeExtensions';
+import { SyntaxNode } from './SyntaxNode';
+import { ISyntaxTriviaList, SyntaxTriviaList } from './SyntaxTriviaList';
+import { TextSpan } from '../../text/TextSpan';
+import { TokenKind } from '../TokenKind';
+import { TokenNode } from '../node/TokenNode';
+
+/**
+ * Represents a terminal node in a syntax tree.
+ */
+export class SyntaxToken implements ISyntaxToken {
+
+  /**
+   * @todo Experimental.
+   */
+  protected readonly index: number;
+
+  /**
+   * An object containing the metadata for this token.
+   */
+  protected readonly node: INode | null;
+
+  /**
+   * The absolute location of this token in the source text.
+   *
+   * @see SyntaxToken.span
+   * @see SyntaxToken.fullSpan
+   */
+  protected readonly offset: number;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly parent: ISyntaxNode;
+
+  /**
+   * Constructs a `SyntaxToken` object.
+   */
+  constructor(node: INode | null, parent: ISyntaxNode, offset: number, index: number) {
+    Debug.assert(node == null || node.isToken);
+
+    this.node = node;
+    this.parent = parent;
+    this.offset = offset;
+    this.index = index;
+  }
+
+  /**
+   * @todo Unused.
+   */
+  protected get endOffset(): number {
+    return this.node ? this.offset + this.node.fullWidth : 0;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get containsDiagnostics(): boolean {
+    return this.node ? this.node.containsDiagnostics : false;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get fullSpan(): TextSpan {
+    return new TextSpan(this.offset, this.node ? this.node.fullWidth : 0);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get isMissing(): boolean {
+    return this.node ? this.node.isMissing : false;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get isToken(): boolean {
+    return true;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get leadingTrivia(): ISyntaxTriviaList | null {
+    return this.node ? new SyntaxTriviaList(this.node.leadingTrivia, this, this.offset) : null;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get kind(): TokenKind {
+    // @todo This is cheating.
+    return this.node ? (<TokenNode>this.node).kind : TokenKind.Unknown;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get span(): TextSpan {
+    return this.node
+      ? new TextSpan(this.offset + this.node.leadingTriviaWidth, this.node.width)
+      : new TextSpan(this.offset, 0);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public equals(value: SyntaxToken): boolean {
+    if (this === value) {
+      return true;
+    }
+    if (this.offset == value.offset && this.index == value.index && this.parent.equals(value.parent)) {
+      return NodeExtensions.equals(this.node, value.node);
+    }
+    return false;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public nextToken(includeZeroWidth = false): ISyntaxToken | null {
+    if (this.node === null) {
+      return null;
+    }
+    if (!includeZeroWidth) {
+      return SyntaxToken.tryGetNextToken(this, SyntaxToken.hasWidth);
+    }
+    return SyntaxToken.tryGetNextToken(this);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public previousToken(includeZeroWidth = false): ISyntaxToken | null {
+    if (this.node === null) {
+      return null;
+    }
+    if (!includeZeroWidth) {
+      return SyntaxToken.tryGetPreviousToken(this, SyntaxToken.hasWidth);
+    }
+    return SyntaxToken.tryGetPreviousToken(this);
+  }
+
+  /**
+   * Determines if the token has a width (not including trivia).
+   */
+  public static hasWidth(token: ISyntaxToken): boolean {
+    let span = token.span;
+    let width = span ? span.length : 0;
+    return width > 0;
+  }
+
+  /**
+   * Attempts to get the first token matching the given filter(s).
+   *
+   * @param {ISyntaxToken} token
+   *   The token to search.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned. This filter is
+   *   applied to the current token and tokens found within structured
+   *   trivia, if any. If not provided, any token will match.
+   * @param {ISyntaxTriviaFilter=} triviaFilter
+   *   A callback used to limit what structured trivia nodes are searched.
+   *   If not provided, trivia is not searched.
+   */
+  public static tryGetFirstToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+    let leadingTrivia = token.leadingTrivia;
+    if (leadingTrivia && triviaFilter) {
+      let structuredToken = SyntaxTriviaList.tryGetFirstToken(leadingTrivia, triviaFilter, tokenFilter);
+      if (structuredToken !== null) {
+        return structuredToken;
+      }
+    }
+
+    if (!tokenFilter || tokenFilter(token)) {
+      return token;
+    }
+
+    return null;
+  }
+
+  /**
+   * Attempts to get the last token matching the given filter(s).
+   *
+   * @param {ISyntaxToken} token
+   *   The token to search.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned. This filter is
+   *   applied to the current token and tokens found within structured
+   *   trivia, if any. If not provided, any token will match.
+   * @param {ISyntaxTriviaFilter=} triviaFilter
+   *   A callback used to limit what structured trivia nodes are searched.
+   *   If not provided, trivia is not searched.
+   */
+  public static tryGetLastToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+    if (!tokenFilter || tokenFilter(token)) {
+      return token;
+    }
+
+    let leadingTrivia = token.leadingTrivia;
+    if (leadingTrivia && triviaFilter) {
+      let structuredToken = SyntaxTriviaList.tryGetLastToken(leadingTrivia, triviaFilter, tokenFilter);
+      if (structuredToken !== null) {
+        return structuredToken;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Attempts to get the next token matching the given filter(s).
+   *
+   * @param {ISyntaxToken} token
+   *   The token to search.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned. This filter is
+   *   applied to the current token and tokens found within structured
+   *   trivia, if any. If not provided, any token will match.
+   * @param {ISyntaxTriviaFilter=} triviaFilter
+   *   A callback used to limit what structured trivia nodes are searched.
+   *   If not provided, trivia is not searched.
+   */
+  public static tryGetNextToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+    // @todo Instead of changing this method signature, add another method
+    //   that also searches the leading trivia of a token.
+
+    let found = false;
+    for (let child of token.parent.getAllChildren()) {
+      if (found) {
+        if (child.isToken) {
+          let result = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter /*, triviaFilter */);
+          if (result !== null) {
+            return result;
+          }
+        }
+        else {
+          let result = SyntaxNode.tryGetFirstToken(<ISyntaxNode>child, tokenFilter /*, triviaFilter */);
+          if (result !== null) {
+            return result;
+          }
+        }
+      }
+      else if (child.isToken && token.equals(child)) {
+        // Found the current token, so any remaining tokens should be searched.
+        found = true;
+      }
+    }
+
+    // Not found in parent, check the grandparent.
+    return SyntaxNode.tryGetNextToken(token.parent, tokenFilter);
+  }
+
+  /**
+   * Attempts to get the previous token matching the given filter(s).
+   *
+   * @param {ISyntaxToken} token
+   *   The token to search.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned. This filter is
+   *   applied to the current token and tokens found within structured
+   *   trivia, if any. If not provided, any token will match.
+   * @param {ISyntaxTriviaFilter=} triviaFilter
+   *   A callback used to limit what structured trivia nodes are searched.
+   *   If not provided, trivia is not searched.
+   */
+  public static tryGetPreviousToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+    // @todo Instead of changing this method signature, add another method
+    //   that also searches the leading trivia of a token.
+
+    let found = false;
+    for (let child of token.parent.getAllChildrenReversed()) {
+      if (found) {
+        if (child.isToken) {
+          let result = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter /*, triviaFilter */);
+          if (result !== null) {
+            return result;
+          }
+        }
+        else {
+          let result = SyntaxNode.tryGetLastToken(<ISyntaxNode>child, tokenFilter /*, triviaFilter */);
+          if (result !== null) {
+            return result;
+          }
+        }
+      }
+      else if (child.isToken && token.equals(child)) {
+        // Found the current token, so any remaining tokens should be searched.
+        found = true;
+      }
+    }
+
+    // Not found in parent, check the grandparent.
+    return SyntaxNode.tryGetPreviousToken(token.parent, tokenFilter);
+  }
+
+}

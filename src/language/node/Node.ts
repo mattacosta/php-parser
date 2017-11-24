@@ -1,0 +1,106 @@
+/**
+ * Copyright 2017 Matt Acosta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+import { InvalidOperationException } from '@mattacosta/php-common';
+
+import { INode } from './INode';
+import { INodeVisitorAccess } from './NodeVisitorAccess';
+import { NodeBase } from './NodeBase';
+import { NodeFlags } from './NodeFlags';
+import { NodeTransform } from './NodeTransform.Generated';
+import { NodeVisitor } from './NodeVisitor.Generated';
+import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
+
+/**
+ * Provides a base class for all non-terminal nodes in a tree.
+ */
+export abstract class Node extends NodeBase implements INodeVisitorAccess {
+
+  /**
+   * Constructs a `Node` object.
+   *
+   * @param {SyntaxDiagnostic[]=} diagnostics
+   *   A list of diagnostics associated with the token or token collection.
+   */
+  constructor(diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+    // IMPORTANT: This is a performance critical method.
+
+    // Even though this method is essentially empty, internally it allows for
+    // various optimizations, which add up to the single largest parse time
+    // improvement (~2.61 ms) for an issue caused by the JS engine.
+    super(diagnostics);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public abstract accept(visitor: NodeVisitor): void;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract acceptResult<T>(visitor: NodeTransform<T>): T;
+
+  /**
+   * @inheritDoc
+   */
+  public equals(value: Node): boolean {
+    // IMPORTANT: This is a performance critical method.
+
+    // Reference equality, skip everything.
+    if (this == value) {
+      return true;
+    }
+
+    const count = this.count;  // This property is actually a "getter".
+    if (this._flags == value.flags && this._fullWidth == value.fullWidth && count == value.count) {
+      for (let i = 0; i < count; i++) {
+        const child1 = this.childAt(i);
+        const child2 = value.childAt(i);
+        if ((child1 !== null) != (child2 !== null)) {
+          return false;
+        }
+        // Suppress TS2345: Transitive property prevents value(s) from being `null`.
+        if (child1 && !child1.equals(<INode>child2)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected updateFromNodeList(child: NodeBase) {
+    // @todo Merge back into updateFlagsAndWidth()?
+    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + child.fullWidth;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected updateFromTrivia(child: Node) {
+    // Trivia should only be attached to tokens.
+    throw new InvalidOperationException('Unreachable');
+  }
+
+}

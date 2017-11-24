@@ -1,0 +1,916 @@
+/**
+ * Copyright 2017 Matt Acosta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+import { NotImplementedException } from '@mattacosta/php-common';  // @todo Remove.
+
+import {
+  ArgumentOutOfRangeException,
+  Debug,
+  Exception
+} from '@mattacosta/php-common';
+
+import { INode } from '../node/INode';
+import { ISyntaxNode, ISyntaxNodeFilter } from './ISyntaxNode';
+import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxTriviaList } from './SyntaxTriviaList';
+import { NodeExtensions } from '../node/NodeExtensions';
+import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
+import { SyntaxNodeExtensions } from './SyntaxNodeExtensions';
+import { SyntaxToken } from './SyntaxToken';
+import { TextSpan } from '../../text/TextSpan';
+
+/**
+ * Stores the iteration state of a (parent) node.
+ *
+ * @todo Add triviaIndex property?
+ */
+class NodeIteration {
+
+  /**
+   * Constructs a `NodeIteration` object.
+   *
+   * @param {INode} node
+   *   The current node being iterated upon.
+   * @param {number} childIndex
+   *   The index of a child to restart from.
+   */
+  constructor(public readonly node: INode, public readonly childIndex: number) {}
+
+}
+
+/**
+ * Provides a base class for non-terminal nodes in a syntax tree.
+ */
+export abstract class SyntaxNodeBase implements ISyntaxNode {
+
+  /**
+   * An object containing the metadata for this node.
+   */
+  protected readonly node: INode;
+
+  /**
+   * The absolute location of this node in the source text.
+   */
+  protected readonly offset: number;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly parent: ISyntaxNode | null;
+
+  /**
+   * Constructs a `SyntaxNode` object.
+   *
+   * @param {INode} node
+   *   An object containing the metadata for this node.
+   * @param {ISyntaxNode|null} parent
+   *   The syntax node containing this node, if any.
+   * @param {number} offset
+   *   The absolute location of this node in the source text.
+   */
+  constructor(node: INode, parent: ISyntaxNode | null, offset: number) {
+    Debug.assert(offset >= 0);
+
+    this.node = node;
+    this.offset = offset;
+    this.parent = parent;
+  }
+
+  /**
+   * The number of child nodes and tokens.
+   *
+   * @todo Unused.
+   */
+  protected get count(): number {
+    return this.node.count;
+  }
+
+  /**
+   * The width of the node, including trivia.
+   *
+   * This is a performance optimization to avoid the overhead of creating and
+   * using a `TextSpan` object.
+   *
+   * @todo Unused.
+   */
+  protected get fullWidth(): number {
+    return this.node.fullWidth;
+  }
+
+  /**
+   * Determines if the current node contains a list of child nodes and tokens.
+   *
+   * @todo Unused.
+   */
+  protected get isList(): boolean {
+    return this.node.isList;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get isToken(): boolean {
+    return this.node.isToken;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get containsDiagnostics(): boolean {
+    return this.node.containsDiagnostics;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get containsSkippedText(): boolean {
+    return this.node.containsSkippedText;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get fullSpan(): TextSpan {
+    // Reminder: This is unlikely to be called unless the node also contains a
+    // diagnostic. Since the vast majority of nodes are fine, this is not stored
+    // as a property in order to save memory.
+    return new TextSpan(this.offset, this.node.fullWidth);
+  }
+
+  /**
+   * Determines if the node contains a child token with leading trivia.
+   */
+  public get hasLeadingTrivia(): boolean {
+    return this.leadingTrivia ? this.leadingTrivia.count > 0 : false;
+  }
+
+  /**
+   * Determines if the node was present in the parsed source code.
+   *
+   * @todo Unused.
+   */
+  public get isMissing(): boolean {
+    return this.node.isMissing;
+  }
+
+  /**
+   * The leading trivia of the first token within the node.
+   */
+  public get leadingTrivia(): ISyntaxTriviaList | null {
+    let token = this.firstToken(true);
+    if (token) {
+      return token.leadingTrivia;
+    }
+    return null;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get span(): TextSpan {
+    let triviaWidth = this.node.leadingTriviaWidth;
+    return new TextSpan(this.offset + triviaWidth, this.node.fullWidth - triviaWidth);
+  }
+
+  /**
+   * Creates a syntax node for a child at the given index.
+   *
+   * @return {ISyntaxNode|null}
+   *   A child syntax node, or `null` if the child was undefined or not a node.
+   *
+   * @see createFirstChildNode()
+   */
+  protected createChildNode<T extends ISyntaxNode>(index: number): T | null {
+    let node = this.node.childAt(index);
+    if (node) {
+      // Suppress TS2322: Type `SyntaxNodeBase` is a descendant of `ISyntaxNode`.
+      return <T><any>node.createSyntaxNode(this, this.offsetAt(index));
+    }
+    return null;
+  }
+
+  /**
+   * Creates the first child syntax node of the current node.
+   *
+   * This is a slight optimization of `createChildNode()`.
+   *
+   * @return {ISyntaxNode|null}
+   *   A child syntax node, or `null` if the first child was undefined or not a
+   *   node.
+   */
+  protected createFirstChildNode<T extends ISyntaxNode>(): T | null {
+    let node = this.node.childAt(0);
+    if (node) {
+      // Suppress TS2322: Type `SyntaxNodeBase` is a descendant of `ISyntaxNode`.
+      return <T><any>node.createSyntaxNode(this, this.offset);
+    }
+    return null;
+  }
+
+  /**
+   * Gets the child node at the given index, if it has been created.
+   *
+   * @see defineChildAt()
+   */
+  protected abstract childAt(index: number): SyntaxNodeBase | null;
+
+  /**
+   * Gets the child node at the given index, creating it, if necessary.
+   *
+   * @todo Merge into `childAt()` by adding a `createNode` parameter?
+   */
+  protected abstract defineChildAt(index: number): SyntaxNodeBase | null;
+
+  /**
+   * Calculates the offset of the child at the given index.
+   */
+  protected offsetAt(index: number): number {
+    let offset = 0;
+    while (index > 0) {
+      index--;
+
+      // If a syntax node to the left has already been created, try and avoid
+      // the worst case scenario of computing the offset of every child node.
+      let childSyntaxNode = this.childAt(index);
+      if (childSyntaxNode !== null) {
+        return childSyntaxNode.offset + childSyntaxNode.node.fullWidth + offset;
+      }
+
+      let childNode = this.node.childAt(index);
+      if (childNode !== null) {
+        offset += childNode.fullWidth;
+      }
+    }
+    return this.offset + offset;
+  }
+
+  /**
+   * Determines the relative index of a child.
+   */
+  protected relativeIndexAt(index: number): number {
+    let relativeIndex = 0;
+    for (let i = 0; i < index; i++) {
+      let child = this.node.childAt(i);
+      if (child) {
+        relativeIndex += child.isList ? child.count : 1;
+      }
+    }
+    return relativeIndex;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public allChildren(): Array<ISyntaxNode | ISyntaxToken> {
+    let count = NodeExtensions.childCount(this.node);
+    let children = new Array(count);
+    for (let i = 0; i < count; i++) {
+      children[i] = SyntaxNodeBase.relativeChildAt(this, i);
+    }
+    return children;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAllChildren(): IterableIterator<ISyntaxNode | ISyntaxToken> {
+    let count = NodeExtensions.childCount(this.node);
+    for (let i = 0; i < count; i++) {
+      yield SyntaxNodeBase.relativeChildAt(this, i);
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAllChildrenReversed(): IterableIterator<ISyntaxNode | ISyntaxToken> {
+    let count = NodeExtensions.childCount(this.node);
+    for (let i = count - 1; i >= 0; i--) {
+      yield SyntaxNodeBase.relativeChildAt(this, i);
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public ancestors(): ISyntaxNode[] {
+    return this.parent ? this.parent.ancestorsAndSelf() : [];
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAncestors(): IterableIterator<ISyntaxNode> {
+    let node = this.parent;
+    while (node) {
+      yield node;
+      node = node.parent;
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public ancestorsAndSelf(): ISyntaxNode[] {
+    let parents = [];
+    let node = this.parent;
+    while (node) {
+      parents.push(node);
+      node = node.parent;
+    }
+    return parents;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAncestorsAndSelf(): IterableIterator<ISyntaxNode> {
+    let node: ISyntaxNode | null = this;
+    while (node) {
+      yield node;
+      node = node.parent;
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public childNodes(): ISyntaxNode[] {
+    let nodes = [];
+    let count = NodeExtensions.childCount(this.node);
+    for (let i = 0; i < count; i++) {
+      const child = SyntaxNodeBase.relativeChildAt(this, i);
+      if (!child.isToken) {
+        nodes.push(<ISyntaxNode>child);
+      }
+    }
+    return nodes;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getChildNodes(): IterableIterator<ISyntaxNode> {
+    for (let child of this.getAllChildren()) {
+      if (!child.isToken) {
+        yield <ISyntaxNode>child;
+      }
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public childTokens(): ISyntaxToken[] {
+    let tokens = [];
+    let children = this.allChildren();
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child.isToken) {
+        tokens.push(<ISyntaxToken>child);
+      }
+    }
+    return tokens;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getChildTokens(): IterableIterator<ISyntaxToken> {
+    for (let child of this.getAllChildren()) {
+      if (child.isToken) {
+        yield <ISyntaxToken>child;
+      }
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public contains(node: ISyntaxNode | null): boolean {
+    if (!node || !this.fullSpan.contains(node.fullSpan)) {
+      return false;
+    }
+    while (node !== null) {
+      if (this.equals(node)) {
+        return true;
+      }
+      node = node.parent;
+    }
+    return false;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public descendants(): ISyntaxNode[] {
+    throw new NotImplementedException();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getDescendants(): IterableIterator<ISyntaxNode> {
+    throw new NotImplementedException();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public descendantsAndSelf(): ISyntaxNode[] {
+    throw new NotImplementedException();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getDescendantsAndSelf(): IterableIterator<ISyntaxNode> {
+    throw new NotImplementedException();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public equals(value: ISyntaxNode): boolean {
+    // Reference equality should be sufficient since nodes should not be
+    // created multiple times while traversing through a syntax tree.
+    return this === value;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public findChildNodeAt(span: TextSpan, innermostNode = false): ISyntaxNode {
+    let token: ISyntaxToken;
+
+    let end = this.offset + this.node.fullWidth;
+    if (span.start == end && SyntaxNodeExtensions.isSourceTextSyntaxNode(this)) {
+      token = this.eof;
+    }
+    else {
+      if (!this.fullSpan.contains(span.start)) {
+        throw new ArgumentOutOfRangeException();
+      }
+      token = SyntaxNodeBase.findChildTokenAt(this, span.start);
+    }
+
+    let node = token.parent.firstAncestorOrSelf((node) => {
+      return node.fullSpan.contains(span);
+    });
+
+    if (node === null) {
+      throw new Exception('Parent node not found');  // Unreachable.
+    }
+
+    if (!innermostNode) {
+      while (node.parent != null) {
+        // @todo It would be faster to use `fullWidth` instead.
+        if (!node.parent.fullSpan.equals(node.fullSpan)) {
+          break;
+        }
+        if (SyntaxNodeExtensions.isSourceTextSyntaxNode(node.parent)) {
+          break;
+        }
+        node = node.parent;
+      }
+    }
+
+    return node;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public firstToken(includeZeroWidth = false): ISyntaxToken | null {
+    if (!includeZeroWidth) {
+      return SyntaxNodeBase.tryGetFirstToken(this, SyntaxToken.hasWidth);
+    }
+    return SyntaxNodeBase.tryGetFirstToken(this);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter): ISyntaxNode | null {
+    let node: ISyntaxNode | null = this;
+    while (node != null) {
+      if (!nodeFilter || nodeFilter(node)) {
+        return node;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getDiagnostics(): IterableIterator<SyntaxDiagnostic> {
+    if (!this.node.containsDiagnostics) {
+      return;
+    }
+
+    // If leading trivia were appended to missing tokens, the resulting
+    // diagnostics could be in the following positions:
+    //
+    // node #1 |          leading          : node #2 | node #3 | node #4
+    //  token  | trivia | skipped | trivia | missing | missing |  token
+    //   parse error ---^         ^--- expected error on node #3
+    //                    actual error on node #3 ---^
+    //
+    // Instead, the parser delays appending trivia until an actual token is
+    // found, and generates nodes similar to:
+    //
+    // node #1 | node #2 | node #3 |          leading          : node #4
+    //  token  | missing | missing | trivia | skipped | trivia |  token
+    //
+
+    let offset = 0;
+    let iterationStack = [new NodeIteration(this.node, 0)];
+    while (iterationStack.length > 0) {
+      // Suppress TS2532: Result cannot be undefined due to while-condition.
+      let iteration = <NodeIteration>iterationStack.pop();
+      let node = iteration.node;
+
+      // If the child index is not 0, then the node was already processed and
+      // the iterator is restarting from an earlier parent node.
+      if (iteration.childIndex == 0) {
+        // Diagnostics on leading trivia.
+        // @todo Get diagnostics on structured trivia.
+        if (node.leadingTrivia && node.leadingTrivia.containsDiagnostics) {
+          let triviaDiagnostics = this.getTriviaDiagnostics(node.leadingTrivia);
+          for (let i = 0; i < triviaDiagnostics.length; i++) {
+            let start = offset + triviaDiagnostics[i].offset;
+            yield triviaDiagnostics[i].withOffset(start);
+          }
+        }
+
+        // let triviaWidth = node.leadingTriviaWidth;
+
+        // Diagnostics on the node.
+        let diagnostics = node.diagnostics;
+        for (let i = 0; i < diagnostics.length; i++) {
+          let start = offset /*+ triviaWidth*/ + diagnostics[i].offset;
+          // @todo Temporary. SyntaxDiagnostics are not meant to have absolute positions.
+          yield diagnostics[i].withOffset(start);
+        }
+
+        if (node.isToken) {
+          offset += node.fullWidth;
+        }
+      }
+
+      let count = node.count;
+      for (let i = iteration.childIndex; i < count; i++) {
+        let child = node.childAt(i);
+        if (!child) {
+          continue;
+        }
+        if (child.containsDiagnostics) {
+          // Put the current node back. It will need to be finished later.
+          iterationStack.push(new NodeIteration(node, i + 1));
+          // The first child with a diagnostic is now the priority.
+          iterationStack.push(new NodeIteration(child, 0));
+          break;
+        }
+        else {
+          offset += child.fullWidth;
+        }
+      }
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public lastToken(includeZeroWidth = false): ISyntaxToken | null {
+    if (!includeZeroWidth) {
+      return SyntaxNodeBase.tryGetLastToken(this, SyntaxToken.hasWidth);
+    }
+    return SyntaxNodeBase.tryGetLastToken(this);
+  }
+
+  /**
+   * @todo Document getTriviaDiagnostics().
+   */
+  private getTriviaDiagnostics(trivia: INode): SyntaxDiagnostic[] {
+    Debug.assert(trivia.containsDiagnostics);
+
+    let diagnostics: SyntaxDiagnostic[] = [];
+    if (trivia.isList) {
+      let hasSkippedDiagnostic = false;
+      let count = trivia.count;
+      for (let i = 0; i < count; i++) {
+        let child = trivia.childAt(i);
+        if (!child) {
+          continue;
+        }
+
+        Debug.assert(child.isTrivia);
+        if (child.containsDiagnostics) {
+          if (child.containsSkippedText) {
+            if (!hasSkippedDiagnostic) {
+              diagnostics.push(child.diagnostics[0]);
+              hasSkippedDiagnostic = true;
+            }
+          }
+          else {
+            diagnostics = diagnostics.concat(child.diagnostics.slice());
+          }
+        }
+      }
+    }
+    else {
+      Debug.assert(trivia.isTrivia);
+      if (trivia.containsSkippedText) {
+        diagnostics.push(trivia.diagnostics[0]);
+      }
+      else {
+        // BUG: TypeScript should allow `ReadonlyArray` parameters for concat().
+        // @todo https://github.com/Microsoft/TypeScript/issues/17076
+        diagnostics = diagnostics.concat(trivia.diagnostics.slice());
+      }
+    }
+
+    return diagnostics;
+  }
+
+  /**
+   * Finds the child token at the given offset.
+   *
+   * @todo Experimental.
+   */
+  protected static findChildTokenAt(parent: SyntaxNodeBase, targetOffset: number): ISyntaxToken {
+    Debug.assert(parent.fullSpan.contains(targetOffset));
+
+    const root = parent;
+
+    let node = parent.node;
+    let offset = parent.offset;
+
+    let index = 0, relativeIndex = 0;
+    let count = node.count;
+    while (index < count) {
+      let child = node.childAt(index);
+      if (child) {
+        let end = offset + child.fullWidth;
+        if (targetOffset < end) {
+          if (child.isToken) {
+            return new SyntaxToken(child, parent, offset, relativeIndex);
+          }
+
+          // Found a node, search through its children.
+          // @todo Technically this could be done recursively.
+          let syntaxNode = parent.defineChildAt(index);
+          if (!syntaxNode) {
+            throw new Exception('Invalid child index');  // Unreachable.
+          }
+
+          node = child;
+          parent = syntaxNode;
+
+          index = child.indexAtOffset(targetOffset - offset);
+          count = child.count;
+
+          offset += child.offsetAt(index);
+          relativeIndex += NodeExtensions.childCount(child);
+          continue;
+        }
+        else {
+          // Target offset is not within this child.
+          offset = end;
+          relativeIndex += NodeExtensions.childCount(child);
+        }
+      }
+      index++;
+    }
+
+    // Parent did not contain the specified offset.
+    throw new Exception('Token not found');
+  }
+
+  /**
+   * Gets a descendant node or token based on a relative index.
+   *
+   * @param {SyntaxNodeBase} parent
+   *   The parent node.
+   * @param {number} relativeIndex
+   *   The child index relative to any lists contained in the parent.
+   */
+  protected static relativeChildAt(parent: SyntaxNodeBase, relativeIndex: number): SyntaxNodeBase | ISyntaxToken {
+    let child: INode | null = null;
+    let nodeIndex = 0, listIndex = relativeIndex;
+    let offset = parent.offset;
+
+    let count = parent.node.count;
+    while (nodeIndex < count) {
+      child = parent.node.childAt(nodeIndex);
+      if (child) {
+        let size = child.isList ? child.count : 1;
+        if (listIndex < size) {
+          break;
+        }
+        listIndex -= size;
+        offset += child.fullWidth;
+      }
+      nodeIndex++;
+    }
+
+    if (!child) {
+      throw new Exception('Child node not found');
+    }
+
+    let syntaxNode = parent.defineChildAt(nodeIndex);
+    if (syntaxNode) {
+      if (!child.isList) {
+        return syntaxNode;
+      }
+
+      let syntaxListChild = syntaxNode.defineChildAt(listIndex);
+      if (syntaxListChild) {
+        return syntaxListChild;
+      }
+
+      // Found a token in a delimited list.
+      child = child.childAt(listIndex);
+      offset = syntaxNode.offsetAt(listIndex);
+
+      if (!child) {
+        throw new Exception('List nodes cannot contain undefined or null entries');
+      }
+    }
+
+    // The child must be a token.
+    return new SyntaxToken(child, parent, offset, relativeIndex);
+  }
+
+  /**
+   * Attempts to get the first token within the given node.
+   *
+   * @param {ISyntaxNode} node
+   *   The parent node.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
+   */
+  public static tryGetFirstToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
+    // A recursive implementation would be simpler, but trees can be deep and
+    // this method will probably be called quite a few times...
+    let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
+    stack.push(node.getAllChildren());
+
+    while (stack.length > 0) {
+      // Suppress TS2322: Result cannot be undefined due to while condition.
+      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
+      let result = iterator.next();
+      if (result.value) {
+        let child = result.value;
+        if (child.isToken) {
+          let token = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
+          if (token !== null) {
+            return token;
+          }
+        }
+
+        if (!result.done) {
+          stack.push(iterator);
+        }
+
+        if (!child.isToken) {
+          stack.push((<ISyntaxNode>child).getAllChildren());
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Attempts to get the last token within the given node.
+   *
+   * @param {ISyntaxNode} node
+   *   The parent node.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
+   */
+  public static tryGetLastToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
+    let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
+    stack.push(node.getAllChildrenReversed());
+
+    while (stack.length > 0) {
+      // Suppress TS2322: Result cannot be undefined due to while condition.
+      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
+      let result = iterator.next();
+      if (result.value) {
+        let child = result.value;
+        if (child.isToken) {
+          let token = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
+          if (token !== null) {
+            return token;
+          }
+        }
+
+        if (!result.done) {
+          stack.push(iterator);
+        }
+
+        if (!child.isToken) {
+          stack.push((<ISyntaxNode>child).getAllChildrenReversed());
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Attempts to get the first token within the next node.
+   *
+   * So if parent node `A` has two children `B` and `C`, and the given node
+   * is `B`, then this method will return the first token within `C`.
+   *
+   * @param {ISyntaxNode} node
+   *   The current node.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
+   */
+  public static tryGetNextToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+    while (node.parent != null) {
+      let found = false;
+      for (let child of node.parent.getAllChildren()) {
+        if (found) {
+          if (child.isToken) {
+            let result = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+          else {
+            let result = SyntaxNodeBase.tryGetFirstToken(<ISyntaxNode>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+        }
+        else if (!child.isToken && node.equals(child)) {
+          found = true;
+        }
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /**
+   * Attempts to get the last token within the previous node.
+   *
+   * So if parent node `A` has two children `B` and `C`, and the given node
+   * is `C`, then this method will return the last token within `B`.
+   *
+   * @param {ISyntaxNode} node
+   *   The current node.
+   * @param {ISyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
+   */
+  public static tryGetPreviousToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+    while (node.parent != null) {
+      let found = false;
+      for (let child of node.parent.getAllChildrenReversed()) {
+        if (found) {
+          if (child.isToken) {
+            let result = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+          else {
+            let result = SyntaxNodeBase.tryGetLastToken(<ISyntaxNode>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+        }
+        else if (!child.isToken && node.equals(child)) {
+          found = true;
+        }
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+}

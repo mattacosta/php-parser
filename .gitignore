@@ -1,0 +1,24 @@
+## Project files
+
+# Hidden folders
+.*/
+!.github/
+!.vscode/
+
+# Generated files
+*.Generated.ts
+ErrorCode.json
+
+# Generated directories
+node_modules/
+lib/
+out/
+typings/
+
+# Profiling files
+*.asm
+*.cfg
+isolate-*.log
+
+# Third-party files
+tools/util.php

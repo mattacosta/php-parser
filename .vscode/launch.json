@@ -1,0 +1,56 @@
+{
+    // Use IntelliSense to learn about possible Node.js debug attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Quick Launch Mocha Tests",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "${workspaceRoot}/out/test",
+                "--colors",
+                "--recursive",
+                "--timeout=99999"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "outFiles": [
+                "${workspaceRoot}/out/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Code Generator",
+            "program": "${workspaceRoot}/out/tools/CodeGenerator/Program.js",
+            "preLaunchTask": "npm: build:codegen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Mocha Tests",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "${workspaceRoot}/out/test",
+                "--colors",
+                "--recursive",
+                "--timeout=99999"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "outFiles": [
+                "${workspaceRoot}/out/**/*.js"
+            ],
+            "preLaunchTask": "pretest",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true
+        }
+    ]
+}

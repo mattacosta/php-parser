@@ -1,0 +1,11 @@
+{
+    "extends": "../src/tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "outDir": "../out",
+        "sourceMap": true
+    },
+    "exclude": [
+        "benchmarks/**"
+    ]
+}

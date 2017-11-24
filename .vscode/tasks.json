@@ -1,0 +1,40 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "gulp",
+            "task": "compile-parser",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": "$gulp-tsc"
+        },
+        {
+            "type": "gulp",
+            "task": "watch",
+            "isBackground": true,
+            "problemMatcher": "$gulp-tsc"
+        },
+        {
+            "type": "npm",
+            "script": "build:codegen",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": "$tsc"
+        },
+        {
+            "type": "shell",
+            "command": "npm run pretest",
+            "label": "pretest"
+        }
+    ]
+}

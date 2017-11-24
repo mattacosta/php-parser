@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "../../out/tools/Validator",
+        "sourceMap": true,
+        "strict": true,
+        "target": "es2015"
+    }
+}
