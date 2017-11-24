@@ -225,7 +225,7 @@ export class SyntaxNodeGenerator {
         this.text += '  ' + classList[i].name + 'Node,\n';
       }
     }
-    this.text += '} from \'../Node/Node.Generated\';\n';
+    this.text += '} from \'../node/Node.Generated\';\n';
     this.text += 'import { SyntaxList } from \'./SyntaxList\';\n';
     this.text += 'import { SyntaxNode } from \'./SyntaxNode\';\n';
     this.text += 'import { SyntaxNodeBase } from \'./SyntaxNodeBase\';\n';
