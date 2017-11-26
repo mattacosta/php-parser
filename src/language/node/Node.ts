@@ -19,7 +19,7 @@
 import { InvalidOperationException } from '@mattacosta/php-common';
 
 import { INode } from './INode';
-import { INodeVisitorAccess } from './NodeVisitorAccess';
+import { INodeVisitorAccess } from './INodeVisitorAccess';
 import { NodeBase } from './NodeBase';
 import { NodeFlags } from './NodeFlags';
 import { NodeTransform } from './NodeTransform.Generated';
