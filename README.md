@@ -46,7 +46,7 @@ for (let diagnostic of tree.getDiagnostics()) {
 ```
 
 ## Documentation
-- [Design overview][Wiki_Overview]
+- [Design overview][Wiki_DesignOverview]
 - [FAQ][Wiki_FAQ]
 
 ## Contributing
@@ -60,4 +60,4 @@ If you find any bugs, typos, or something that could be improved, submit an
 [File_CONTRIBUTING.md]: https://github.com/mattacosta/php-parser/blob/master/CONTRIBUTING.md
 [Wiki_Benchmarks]: https://github.com/mattacosta/php-parser/wiki/Benchmarks
 [Wiki_FAQ]: https://github.com/mattacosta/php-parser/wiki/FAQ
-[Wiki_Overview]: https://github.com/mattacosta/php-parser/wiki/Overview
+[Wiki_DesignOverview]: https://github.com/mattacosta/php-parser/wiki/Design-overview
