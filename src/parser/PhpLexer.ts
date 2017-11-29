@@ -1799,7 +1799,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Attempts to scan for the opening label or a heredoc string. If not found,
    * nothing is scanned.
    */
-  protected tryScanHeredocStartLabel(): HeredocLabelInfo | null {
+  private tryScanHeredocStartLabel(): HeredocLabelInfo | null {
     const start = this.offset;
 
     this.offset = this.offset + 3;  // "<<<"

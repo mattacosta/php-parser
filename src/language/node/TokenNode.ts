@@ -160,7 +160,7 @@ export class TokenNode extends Node {
   /**
    * Returns a new token with the given leading trivia.
    */
-  public withLeadingTrivia(leadingTrivia: NodeList | null): TokenWithTriviaNode {
+  public withLeadingTrivia(leadingTrivia: NodeList | null): TokenNode {
     return new TokenWithTriviaNode(this.kind, this.width, leadingTrivia, this.diagnostics);
   }
 
@@ -278,14 +278,14 @@ export class TokenWithTriviaNode extends TokenNode {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): TokenWithTriviaNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): TokenNode {
     return new TokenWithTriviaNode(this.kind, this.width, this._leadingTrivia, diagnostics);
   }
 
   /**
    * Returns a new token with the given leading trivia.
    */
-  public withLeadingTrivia(leadingTrivia: NodeList | null): TokenWithTriviaNode {
+  public withLeadingTrivia(leadingTrivia: NodeList | null): TokenNode {
     return new TokenWithTriviaNode(this.kind, this.width, leadingTrivia, this.diagnostics);
   }
 
@@ -317,14 +317,14 @@ export class MissingTokenWithTriviaNode extends TokenWithTriviaNode {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): MissingTokenWithTriviaNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): TokenNode {
     return new MissingTokenWithTriviaNode(this.kind, this._leadingTrivia, diagnostics);
   }
 
   /**
    * Returns a new token with the given leading trivia.
    */
-  public withLeadingTrivia(leadingTrivia: NodeList | null): MissingTokenWithTriviaNode {
+  public withLeadingTrivia(leadingTrivia: NodeList | null): TokenNode {
     return new MissingTokenWithTriviaNode(this.kind, leadingTrivia, this.diagnostics);
   }
 

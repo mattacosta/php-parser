@@ -25,8 +25,6 @@ import { IHashable } from '@mattacosta/php-common';
  * the hash code of the stored value.
  *
  * @template T
- *
- * @internal
  */
 export class ObjectCacheEntry<T> {
 
