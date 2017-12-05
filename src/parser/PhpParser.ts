@@ -5560,7 +5560,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     openQuote = openQuote.withDiagnostics(template.diagnostics);
     openQuote = openQuote.withLeadingTrivia(template.leadingTrivia);
 
-    let nodes = parser.parseStringTemplateElementList(TokenKind.DoubleQuote);
+    let nodes = parser.parseStringTemplateElementList();
 
     // If the closing quote was missing, the lexer already added an error.
     let closeQuote = parser.currentToken.kind == TokenKind.DoubleQuote
@@ -5601,7 +5601,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document parseStringTemplateElementList().
    */
-  protected parseStringTemplateElementList(terminator: TokenKind): NodeList {
+  protected parseStringTemplateElementList(): NodeList {
     let nodes: Array<ExpressionNode | TokenNode> = [];
 
     if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
@@ -5612,7 +5612,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes.push(this.parseStringTemplateElement());
     }
 
-    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != terminator) {
+    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.DoubleQuote) {
       if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
         nodes.push(this.parseStringTemplateLiteral());
       }
@@ -5620,7 +5620,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         nodes.push(this.parseStringTemplateElement());
       }
       else {
-        this.skipBadStringTemplateTokens(terminator);
+        this.skipBadStringTemplateTokens(TokenKind.DoubleQuote);
       }
     }
 
