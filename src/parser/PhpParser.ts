@@ -5466,7 +5466,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Parses a simple variable.
    *
    * Syntax:
-   * - `T_VARIABLE`
+   * - `VARIABLE`
    * - `$ { expression }`
    * - `$ simple-variable`
    */
