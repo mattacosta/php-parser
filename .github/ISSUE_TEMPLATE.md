@@ -1,14 +1,13 @@
 <!--
-
-Add your code sample, description, and/or steps to reproduce to the issue
-summary below. If nothing is provided, your issue may be closed without notice.
-
+Add a description, any steps to reproduce the problem, and/or a code sample to
+the issue summary below. If nothing is provided, your issue may be closed
+without notice.
 -->
 
-### **Issue summary**
+**Issue summary**
 
 
-### **Expected result**
+**Expected result**
 
 
-### **Actual result**
+**Actual result**
