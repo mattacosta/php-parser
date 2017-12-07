@@ -49,15 +49,15 @@ export class NodeExtensions {
     if (a === b) {
       return true;
     }
-    // One has a node, but the other does not.
+    // One is a node, but the other is not.
     if ((a != null) != (b != null)) {
       return false;
     }
-    // Both have nodes, but they are not equal.
+    // Both are nodes, but they are not equal.
     if (a && b && !a.equals(b)) {
       return false;
     }
-    // Neither have nodes, or both have nodes and they are equal.
+    // Neither are nodes, or both are nodes and they are equal.
     return true;
   }
 
