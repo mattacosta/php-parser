@@ -48,13 +48,13 @@ export class PhpSyntaxTree extends SyntaxTreeBase<SourceTextSyntaxNode> {
    * Creates a `PhpSyntaxTree` object.
    *
    * @param {SourceTextSyntaxNode} root
-   *   The root node of the parsed source file.
+   *   The root node of a parsed source file.
    * @param {string} path
    *   The location of the source file.
    * @param {PhpParserOptions} options
    *   Parser configuration options.
    */
-  protected constructor(root: SourceTextSyntaxNode, path: string, options: PhpParserOptions) {
+  constructor(root: SourceTextSyntaxNode, path: string, options: PhpParserOptions) {
     super();
     this.options = options;
     this.path = path;
