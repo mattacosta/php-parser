@@ -42,7 +42,7 @@ export class SyntaxNodeGenerator {
 
   protected text: string;
 
-  constructor() {
+  protected constructor() {
     this.text = this.licenseText +
       '\n' +
       '\n' +
