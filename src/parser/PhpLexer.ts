@@ -1644,6 +1644,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
       ch = this.peek(this.offset);
       if (CharacterInfo.isDigit(ch)) {
+        isDouble = true;
         this.offset++;
         while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
           this.offset++;
