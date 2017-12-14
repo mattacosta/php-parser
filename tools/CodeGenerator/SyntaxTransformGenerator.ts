@@ -73,10 +73,11 @@ export class SyntaxTransformGenerator {
       text += '  ' + list[i].name + 'SyntaxNode,\n';
     }
     text += '} from \'./SyntaxNode.Generated\';\n';
+    text += 'import { ISyntaxNode } from \'./ISyntaxNode\';\n';
+    text += 'import { ISyntaxToken } from \'./ISyntaxToken\';\n';
+    text += 'import { ISyntaxTrivia } from \'./ISyntaxTrivia\';\n';
+    text += 'import { ISyntaxVisitorAccess } from \'./ISyntaxVisitorAccess\';\n';
     text += 'import { SourceTextSyntaxNode } from \'./SourceTextSyntaxNode\';\n';
-    text += 'import { SyntaxNode } from \'./SyntaxNode\';\n';
-    text += 'import { SyntaxToken } from \'./SyntaxToken\';\n';
-    text += 'import { SyntaxTrivia } from \'./SyntaxTrivia\';\n';
     return text;
   }
 
@@ -129,19 +130,19 @@ export class SyntaxTransformGenerator {
     text += '  }\n';
 
     text += '\n';
-    text += '  public defaultVisit(node: SyntaxNode): T {\n';
+    text += '  public defaultVisit(node: ISyntaxNode): T {\n';
     text += '    return this.defaultValue;\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visit(node: SyntaxNode): T {\n';
+    text += '  public visit(node: ISyntaxVisitorAccess): T {\n';
     text += '    return node.acceptResult(this);\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visitToken(token: SyntaxToken): T {\n';
+    text += '  public visitToken(token: ISyntaxToken): T {\n';
     text += '    return this.defaultValue;\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visitTrivia(trivia: SyntaxTrivia): T {\n';
+    text += '  public visitTrivia(trivia: ISyntaxTrivia): T {\n';
     text += '    return this.defaultValue;\n';
     text += '  }\n';
     return text;

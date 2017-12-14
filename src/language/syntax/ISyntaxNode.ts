@@ -18,61 +18,16 @@
 
 import { IEquatable } from '@mattacosta/php-common';
 
+import { ISyntaxNodeQueryable } from './ISyntaxNodeQueryable';
 import { ISyntaxToken } from './ISyntaxToken';
-import { ISyntaxTreeTraversable } from './ISyntaxTreeTraversable';
+import { ISyntaxVisitorAccess } from './ISyntaxVisitorAccess';
+import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 import { TextSpan } from '../../text/TextSpan';
-import { SyntaxDiagnostic } from '../../main';
-
-/**
- * Defines an interface for functions that can be used to filter `ISyntaxNode`
- * objects.
- */
-export interface ISyntaxNodeFilter {
-
-  (node: ISyntaxNode): boolean;
-
-}
-
-/**
- * Defines an interface for nodes that can search for relatives.
- */
-export interface ISyntaxNodeQueryable<T> extends ISyntaxTreeTraversable<T> {
-
-  /**
-   * Gets an iterator that lists all ancestors of the current node.
-   */
-  getAncestors(): IterableIterator<T>;
-
-  /**
-   * Gets an iterator that lists the current node and all of its ancestors.
-   */
-  getAncestorsAndSelf(): IterableIterator<T>;
-
-  /**
-   * Gets an iterator that lists all descendants of the current node.
-   */
-  getDescendants(): IterableIterator<T>;
-
-  /**
-   * Gets an iterator that lists the current node and all of its descendants.
-   */
-  getDescendantsAndSelf(): IterableIterator<T>;
-
-  /**
-   * Finds the first ancestor (which may include the current node) that matches
-   * then given filter.
-   *
-   * @param {ISyntaxNodeFilter=} nodeFilter
-   *   A callback used to limit what nodes are returned.
-   */
-  firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter): T | null;
-
-}
 
 /**
  * Defines an interface for the non-terminal nodes of a syntax tree.
  */
-export interface ISyntaxNode extends IEquatable<ISyntaxNode>, ISyntaxNodeQueryable<ISyntaxNode> {
+export interface ISyntaxNodeOrList extends IEquatable<ISyntaxNodeOrList>, ISyntaxNodeQueryable<ISyntaxNodeOrList> {
 
   /**
    * Determines if a diagnostic was generated for this node, its descendant
@@ -111,28 +66,28 @@ export interface ISyntaxNode extends IEquatable<ISyntaxNode>, ISyntaxNodeQueryab
    *
    * @deprecated
    */
-  ancestors(): ISyntaxNode[];
+  ancestors(): ISyntaxNodeOrList[];
 
   /**
    * Gets the current node and all of its ancestors.
    *
    * @deprecated
    */
-  ancestorsAndSelf(): ISyntaxNode[];
+  ancestorsAndSelf(): ISyntaxNodeOrList[];
 
   /**
    * Gets all descendants of the current node.
    *
    * @deprecated
    */
-  descendants(): ISyntaxNode[];
+  descendants(): ISyntaxNodeOrList[];
 
   /**
    * Gets the current node and all of its descendants.
    *
    * @deprecated
    */
-  descendantsAndSelf(): ISyntaxNode[];
+  descendantsAndSelf(): ISyntaxNodeOrList[];
 
   /**
    * Gets all child nodes belonging to the current node.
@@ -184,7 +139,7 @@ export interface ISyntaxNode extends IEquatable<ISyntaxNode>, ISyntaxNodeQueryab
    *   If `true` and a parent has the same span as a child, the first child
    *   node is returned. Defaults to `false`.
    */
-  findChildNodeAt(span: TextSpan, innermostNode?: boolean): ISyntaxNode;
+  findChildNodeAt(span: TextSpan, innermostNode?: boolean): ISyntaxNodeOrList;
 
   /**
    * Finds the first token within the node.
@@ -203,3 +158,9 @@ export interface ISyntaxNode extends IEquatable<ISyntaxNode>, ISyntaxNodeQueryab
   lastToken(includeZeroWidth?: boolean): ISyntaxToken | null;
 
 }
+
+/**
+ * Defines an interface for the non-terminal nodes of a syntax tree that can be
+ * accessed by visitors.
+ */
+export interface ISyntaxNode extends ISyntaxNodeOrList, ISyntaxVisitorAccess {}

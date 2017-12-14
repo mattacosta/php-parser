@@ -20,7 +20,7 @@ import { IEquatable } from '@mattacosta/php-common';
 
 import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxTreeTraversable } from './ISyntaxTreeTraversable';
-import { ISyntaxTriviaList } from './SyntaxTriviaList';
+import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { TextSpan } from '../../text/TextSpan';
 import { TokenKind } from '../TokenKind';
 

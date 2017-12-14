@@ -73,8 +73,11 @@ export class SyntaxVisitorGenerator {
       text += '  ' + list[i].name + 'SyntaxNode,\n';
     }
     text += '} from \'./SyntaxNode.Generated\';\n';
+    text += 'import { ISyntaxNode } from \'./ISyntaxNode\';\n';
+    text += 'import { ISyntaxToken } from \'./ISyntaxToken\';\n';
+    text += 'import { ISyntaxTrivia } from \'./ISyntaxTrivia\';\n';
+    text += 'import { ISyntaxVisitorAccess } from \'./ISyntaxVisitorAccess\';\n';
     text += 'import { SourceTextSyntaxNode } from \'./SourceTextSyntaxNode\';\n';
-    text += 'import { SyntaxNode } from \'./SyntaxNode\';\n';
     return text;
   }
 
@@ -119,21 +122,21 @@ export class SyntaxVisitorGenerator {
 
   protected addVisitMethods(): string {
     let text = '';
-    text += '  public defaultVisit(node: SyntaxNode) {\n';
+    text += '  public defaultVisit(node: ISyntaxNode) {\n';
     text += '    // Does nothing.\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visit(node: SyntaxNode) {\n';
+    text += '  public visit(node: ISyntaxVisitorAccess) {\n';
     text += '    node.accept(this);\n';
     text += '  }\n';
-    // text += '\n';
-    // text += '  public visitToken(token: SyntaxToken) {\n';
-    // text += '    // this.defaultVisit(token);\n';
-    // text += '  }\n';
-    // text += '\n';
-    // text += '  public visitTrivia(trivia: SyntaxTrivia) {\n';
-    // text += '    // this.defaultVisit(trivia);\n';
-    // text += '  }\n';
+    text += '\n';
+    text += '  public visitToken(token: ISyntaxToken) {\n';
+    text += '    // Does nothing.\n';
+    text += '  }\n';
+    text += '\n';
+    text += '  public visitTrivia(trivia: ISyntaxTrivia) {\n';
+    text += '    // Does nothing.\n';
+    text += '  }\n';
     return text;
   }
 

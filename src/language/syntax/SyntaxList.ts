@@ -38,16 +38,18 @@ export abstract class SyntaxList extends SyntaxNodeBase {
    * Creates a syntax node for a child where its parent is the parent of this
    * list node (normally it would be the current node).
    *
-   * @return {SyntaxNodeBase|null}
+   * @return {ISyntaxNode|null}
    *   The child node, or `null` if the index did not contain a node.
    */
-  protected createChildNodeForList(index: number): SyntaxNodeBase | null {
+  protected createChildNode(index: number): ISyntaxNode | null {
     // Caller is assumed to have validated index range.
     Debug.assert(index >= 0 && index < this.node.count);
 
     let node = this.node.childAt(index);
     if (node !== null && !node.isToken) {
-      return node.createSyntaxNode(this.parent, this.offsetAt(index));
+      // Lists cannot contain other lists, so this should always be a node.
+      // @todo Technically there should be an assertion using a type guard here.
+      return <ISyntaxNode>node.createSyntaxNode(this.parent, this.offsetAt(index));
     }
     return null;
   }
@@ -64,7 +66,7 @@ export class SingleChildSyntaxList extends SyntaxList {
   /**
    * The only child.
    */
-  protected child: SyntaxNodeBase | null;
+  protected child: ISyntaxNode | null;
 
   /**
    * Constructs a `SingleChildSyntaxList` object.
@@ -77,7 +79,7 @@ export class SingleChildSyntaxList extends SyntaxList {
   /**
    * @inheritDoc
    */
-  protected childAt(index: number): SyntaxNodeBase | null {
+  protected childAt(index: number): ISyntaxNode | null {
     switch (index) {
       case 0:
         return this.child;
@@ -89,11 +91,11 @@ export class SingleChildSyntaxList extends SyntaxList {
   /**
    * @inheritDoc
    */
-  protected defineChildAt(index: number): SyntaxNodeBase | null {
+  protected defineChildAt(index: number): ISyntaxNode | null {
     switch (index) {
       case 0:
         if (this.child === void 0) {
-          this.child = this.createChildNodeForList(0);
+          this.child = this.createChildNode(0);
         }
         return this.child;
       default:
@@ -113,12 +115,12 @@ export class TwoChildSyntaxList extends SyntaxList {
   /**
    * The first child node.
    */
-  protected firstChild: SyntaxNodeBase | null;
+  protected firstChild: ISyntaxNode | null;
 
   /**
    * The second child node.
    */
-  protected secondChild: SyntaxNodeBase | null;
+  protected secondChild: ISyntaxNode | null;
 
   /**
    * Constructs a `TwoChildSyntaxList` object.
@@ -130,7 +132,7 @@ export class TwoChildSyntaxList extends SyntaxList {
   /**
    * @inheritDoc
    */
-  protected childAt(index: number): SyntaxNodeBase | null {
+  protected childAt(index: number): ISyntaxNode | null {
     switch (index) {
       case 0:
         return this.firstChild;
@@ -144,16 +146,16 @@ export class TwoChildSyntaxList extends SyntaxList {
   /**
    * @inheritDoc
    */
-  protected defineChildAt(index: number/*, createNode = true*/): SyntaxNodeBase | null {
+  protected defineChildAt(index: number/*, createNode = true*/): ISyntaxNode | null {
     switch (index) {
       case 0:
         if (this.firstChild === void 0) {
-          this.firstChild = this.createChildNodeForList(0);
+          this.firstChild = this.createChildNode(0);
         }
         return this.firstChild;
       case 1:
         if (this.secondChild === void 0) {
-          this.secondChild = this.createChildNodeForList(1);
+          this.secondChild = this.createChildNode(1);
         }
         return this.secondChild;
       default:
@@ -173,7 +175,7 @@ export class ManyChildSyntaxList extends SyntaxList {
   /**
    * A list of child nodes.
    */
-  protected children: Array<SyntaxNodeBase | null>;
+  protected children: Array<ISyntaxNode | null>;
 
   /**
    * Constructs a `ManyChildSyntaxList` object.
@@ -186,7 +188,7 @@ export class ManyChildSyntaxList extends SyntaxList {
   /**
    * @inheritDoc
    */
-  protected childAt(index: number): SyntaxNodeBase | null {
+  protected childAt(index: number): ISyntaxNode | null {
     if (index >= 0 && index < this.children.length) {
       return this.children[index] !== void 0 ? this.children[index] : null;
     }
@@ -196,12 +198,12 @@ export class ManyChildSyntaxList extends SyntaxList {
   /**
    * @inheritDoc
    */
-  protected defineChildAt(index: number): SyntaxNodeBase | null {
+  protected defineChildAt(index: number): ISyntaxNode | null {
     // Caller is assumed to have validated index range.
     Debug.assert(index >= 0 && index < this.children.length);
 
     if (this.children[index] === void 0) {
-      this.children[index] = this.createChildNodeForList(index);
+      this.children[index] = this.createChildNode(index);
     }
     return this.children[index];
   }
@@ -221,7 +223,7 @@ export class DelimitedSyntaxList extends ManyChildSyntaxList {
   /**
    * @inheritDoc
    */
-  protected childAt(index: number): SyntaxNodeBase | null {
+  protected childAt(index: number): ISyntaxNode | null {
     if ((index & 1) == 0) {
       return null;
     }
@@ -231,7 +233,7 @@ export class DelimitedSyntaxList extends ManyChildSyntaxList {
   /**
    * @inheritDoc
    */
-  protected defineChildAt(index: number): SyntaxNodeBase | null {
+  protected defineChildAt(index: number): ISyntaxNode | null {
     if ((index & 1) == 0) {
       return null;
     }

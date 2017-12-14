@@ -16,54 +16,17 @@
 
 'use strict';
 
-import {
-  ICountable,
-  IEquatable,
-  IndexOutOfRangeException
-} from '@mattacosta/php-common';
+import { IndexOutOfRangeException } from '@mattacosta/php-common';
 
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTrivia, ISyntaxTriviaFilter } from './ISyntaxTrivia';
+import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxNode } from './SyntaxNode';
 import { SyntaxTrivia } from './SyntaxTrivia';
 import { TextSpan } from '../../text/TextSpan';
-
-/**
- * Defines an interface for lists of trivia.
- */
-export interface ISyntaxTriviaList extends ICountable, IEquatable<ISyntaxTriviaList>, Iterable<ISyntaxTrivia> {
-
-  /**
-   * The location of the trivia contained in this list, with the leading
-   * trivia of the first element.
-   */
-  readonly fullSpan: TextSpan;
-
-  /**
-   * The location of the trivia contained in this list, without the leading
-   * trivia of the first element.
-   */
-  readonly span: TextSpan;
-
-  /**
-   * The token containing the trivia list.
-   */
-  readonly token: ISyntaxToken;
-
-  /**
-   * Gets an iterator that lists trivia in reversed order.
-   */
-  reversed(): IterableIterator<ISyntaxTrivia>;
-
-  /**
-   * Returns the trivia node at a given index.
-   */
-  triviaAt(index: number): ISyntaxTrivia;
-
-}
 
 /**
  * Represents a collection of trivia nodes.

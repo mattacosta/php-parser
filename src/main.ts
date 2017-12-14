@@ -25,9 +25,11 @@ export * from './diagnostics/SyntaxDiagnostic';
 export * from './language/TokenKind';
 
 export * from './language/syntax/ISyntaxNode';
+export * from './language/syntax/ISyntaxNodeQueryable';
 export * from './language/syntax/ISyntaxToken';
 export * from './language/syntax/ISyntaxTreeTraversable';
 export * from './language/syntax/ISyntaxTrivia';
+export * from './language/syntax/ISyntaxTriviaList';
 export * from './language/syntax/ISyntaxVisitorAccess';
 export * from './language/syntax/SourceTextSyntaxNode';
 export { SyntaxList } from './language/syntax/SyntaxList';

@@ -18,11 +18,10 @@
 
 import { IHashable } from '@mattacosta/php-common';
 
-import { ISyntaxNode } from '../syntax/ISyntaxNode';
+import { ISyntaxNode, ISyntaxNodeOrList } from '../syntax/ISyntaxNode';
 import { ITokenMetadata } from '../TokenMetadata';
 import { ITokenMetadataCollection } from '../TokenMetadataCollection';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
-import { SyntaxNodeBase } from '../syntax/SyntaxNodeBase';
 
 /**
  * Defines an interface for objects that store indexable token metadata in an
@@ -43,17 +42,14 @@ export interface INode extends IHashable<INode>, ITokenMetadata, ITokenMetadataC
   readonly leadingTrivia: INode | null;
 
   /**
-   * Creates a `SyntaxNode` from the token metadata stored by this node.
+   * Creates a syntax node from the token metadata stored by this node.
    *
    * @param {ISyntaxNode|null} parent
    *   The parent of this node, if any.
    * @param {number} offset
    *   The absolute offset of the node in the source text.
-   *
-   * @todo This should use a generic type and remove its dependency on
-   *   `SyntaxNodeBase`, but TypeScript + generics = flaming pile of garbage.
    */
-  createSyntaxNode(parent: ISyntaxNode | null, offset: number): SyntaxNodeBase;
+  createSyntaxNode(parent: ISyntaxNode | null, offset: number): ISyntaxNodeOrList;
 
   /**
    * Finds the index of the child node that contains a given offset.

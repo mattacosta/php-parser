@@ -16,9 +16,9 @@
 
 'use strict';
 
+import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxToken } from './ISyntaxToken';
 import { ISyntaxTrivia } from './ISyntaxTrivia';
-import { SyntaxNode } from './SyntaxNode';
 import { SyntaxVisitor } from './SyntaxVisitor.Generated';
 import { SyntaxWalkerDepth } from './SyntaxWalkerDepth';
 
@@ -48,14 +48,13 @@ export class SyntaxWalker extends SyntaxVisitor {
   /**
    * Visits all children of a node.
    */
-  public defaultVisit(node: SyntaxNode) {
+  public defaultVisit(node: ISyntaxNode) {
     for (let child of node.getAllChildren()) {
       if (child.isToken && this.walkerDepth >= SyntaxWalkerDepth.NodesAndTokens) {
         this.visitToken(<ISyntaxToken>child);
       }
       else {
-        // @todo Technically unsafe.
-        this.visit(<SyntaxNode>child);
+        this.visit(<ISyntaxNode>child);
       }
     }
   }

@@ -16,7 +16,7 @@
 
 'use strict';
 
-import { ISyntaxVisitorAccess } from './ISyntaxVisitorAccess';
+import { ISyntaxNode, ISyntaxNodeOrList } from './ISyntaxNode';
 import { SyntaxNodeBase } from './SyntaxNodeBase';
 import { SyntaxTransform } from './SyntaxTransform.Generated';
 import { SyntaxVisitor } from './SyntaxVisitor.Generated';
@@ -24,7 +24,7 @@ import { SyntaxVisitor } from './SyntaxVisitor.Generated';
 /**
  * A non-terminal node in a syntax tree.
  */
-export abstract class SyntaxNode extends SyntaxNodeBase implements ISyntaxVisitorAccess {
+export abstract class SyntaxNode extends SyntaxNodeBase implements ISyntaxNode {
 
   /**
    * @inheritDoc
@@ -35,5 +35,40 @@ export abstract class SyntaxNode extends SyntaxNodeBase implements ISyntaxVisito
    * @inheritDoc
    */
   public abstract acceptResult<T>(visitor: SyntaxTransform<T>): T;
+
+  /**
+   * Creates a syntax node for a child at the given index.
+   *
+   * @return {T|null}
+   *   A child syntax node, or `null` if the child was undefined or not a node.
+   *
+   * @see createFirstChildNode()
+   */
+  protected createChildNode<T extends ISyntaxNodeOrList>(index: number): T | null {
+    let node = this.node.childAt(index);
+    if (node) {
+      // Suppress TS2322: Type `ISyntaxNodeOrList` is assignable to `ISyntaxNodeOrList`.
+      return <T><any>node.createSyntaxNode(this, this.offsetAt(index));
+    }
+    return null;
+  }
+
+  /**
+   * Creates the first child syntax node of the current node.
+   *
+   * This is a slight optimization of `createChildNode()`.
+   *
+   * @return {T|null}
+   *   A child syntax node, or `null` if the first child was undefined or not a
+   *   node.
+   */
+  protected createFirstChildNode<T extends ISyntaxNodeOrList>(): T | null {
+    let node = this.node.childAt(0);
+    if (node) {
+      // Suppress TS2322: Type `ISyntaxNodeOrList` is assignable to `ISyntaxNodeOrList`.
+      return <T><any>node.createSyntaxNode(this, this.offset);
+    }
+    return null;
+  }
 
 }

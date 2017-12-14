@@ -21,13 +21,16 @@ import { NotImplementedException } from '@mattacosta/php-common';  // @todo Remo
 import {
   ArgumentOutOfRangeException,
   Debug,
-  Exception
+  Exception,
+  InvalidOperationException
 } from '@mattacosta/php-common';
 
 import { INode } from '../node/INode';
-import { ISyntaxNode, ISyntaxNodeFilter } from './ISyntaxNode';
+import { ISyntaxNode } from './ISyntaxNode';
+import { ISyntaxNodeFilter } from './ISyntaxNodeQueryable';
+import { ISyntaxNodeOrList } from './ISyntaxNode';
 import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
-import { ISyntaxTriviaList } from './SyntaxTriviaList';
+import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 import { SyntaxNodeExtensions } from './SyntaxNodeExtensions';
@@ -56,7 +59,7 @@ class NodeIteration {
 /**
  * Provides a base class for non-terminal nodes in a syntax tree.
  */
-export abstract class SyntaxNodeBase implements ISyntaxNode {
+export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
 
   /**
    * An object containing the metadata for this node.
@@ -74,7 +77,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   public readonly parent: ISyntaxNode | null;
 
   /**
-   * Constructs a `SyntaxNode` object.
+   * Constructs a `SyntaxNodeBase` object.
    *
    * @param {INode} node
    *   An object containing the metadata for this node.
@@ -188,53 +191,18 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   }
 
   /**
-   * Creates a syntax node for a child at the given index.
-   *
-   * @return {ISyntaxNode|null}
-   *   A child syntax node, or `null` if the child was undefined or not a node.
-   *
-   * @see createFirstChildNode()
-   */
-  protected createChildNode<T extends ISyntaxNode>(index: number): T | null {
-    let node = this.node.childAt(index);
-    if (node) {
-      // Suppress TS2322: Type `SyntaxNodeBase` is a descendant of `ISyntaxNode`.
-      return <T><any>node.createSyntaxNode(this, this.offsetAt(index));
-    }
-    return null;
-  }
-
-  /**
-   * Creates the first child syntax node of the current node.
-   *
-   * This is a slight optimization of `createChildNode()`.
-   *
-   * @return {ISyntaxNode|null}
-   *   A child syntax node, or `null` if the first child was undefined or not a
-   *   node.
-   */
-  protected createFirstChildNode<T extends ISyntaxNode>(): T | null {
-    let node = this.node.childAt(0);
-    if (node) {
-      // Suppress TS2322: Type `SyntaxNodeBase` is a descendant of `ISyntaxNode`.
-      return <T><any>node.createSyntaxNode(this, this.offset);
-    }
-    return null;
-  }
-
-  /**
    * Gets the child node at the given index, if it has been created.
    *
    * @see defineChildAt()
    */
-  protected abstract childAt(index: number): SyntaxNodeBase | null;
+  protected abstract childAt(index: number): ISyntaxNodeOrList | null;
 
   /**
    * Gets the child node at the given index, creating it, if necessary.
    *
    * @todo Merge into `childAt()` by adding a `createNode` parameter?
    */
-  protected abstract defineChildAt(index: number): SyntaxNodeBase | null;
+  protected abstract defineChildAt(index: number): ISyntaxNodeOrList | null;
 
   /**
    * Calculates the offset of the child at the given index.
@@ -247,7 +215,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
       // If a syntax node to the left has already been created, try and avoid
       // the worst case scenario of computing the offset of every child node.
       let childSyntaxNode = this.childAt(index);
-      if (childSyntaxNode !== null) {
+      if (childSyntaxNode !== null && childSyntaxNode instanceof SyntaxNodeBase) {
         return childSyntaxNode.offset + childSyntaxNode.node.fullWidth + offset;
       }
 
@@ -308,14 +276,14 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * @inheritDoc
    */
-  public ancestors(): ISyntaxNode[] {
+  public ancestors(): ISyntaxNodeOrList[] {
     return this.parent ? this.parent.ancestorsAndSelf() : [];
   }
 
   /**
    * @inheritDoc
    */
-  public *getAncestors(): IterableIterator<ISyntaxNode> {
+  public *getAncestors(): IterableIterator<ISyntaxNodeOrList> {
     let node = this.parent;
     while (node) {
       yield node;
@@ -326,7 +294,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * @inheritDoc
    */
-  public ancestorsAndSelf(): ISyntaxNode[] {
+  public ancestorsAndSelf(): ISyntaxNodeOrList[] {
+    // @todo BUG: This never returns itself.
     let parents = [];
     let node = this.parent;
     while (node) {
@@ -339,8 +308,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * @inheritDoc
    */
-  public *getAncestorsAndSelf(): IterableIterator<ISyntaxNode> {
-    let node: ISyntaxNode | null = this;
+  public *getAncestorsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
+    let node: ISyntaxNodeOrList | null = this;
     while (node) {
       yield node;
       node = node.parent;
@@ -418,35 +387,35 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * @inheritDoc
    */
-  public descendants(): ISyntaxNode[] {
+  public descendants(): ISyntaxNodeOrList[] {
     throw new NotImplementedException();
   }
 
   /**
    * @inheritDoc
    */
-  public *getDescendants(): IterableIterator<ISyntaxNode> {
+  public *getDescendants(): IterableIterator<ISyntaxNodeOrList> {
     throw new NotImplementedException();
   }
 
   /**
    * @inheritDoc
    */
-  public descendantsAndSelf(): ISyntaxNode[] {
+  public descendantsAndSelf(): ISyntaxNodeOrList[] {
     throw new NotImplementedException();
   }
 
   /**
    * @inheritDoc
    */
-  public *getDescendantsAndSelf(): IterableIterator<ISyntaxNode> {
+  public *getDescendantsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
     throw new NotImplementedException();
   }
 
   /**
    * @inheritDoc
    */
-  public equals(value: ISyntaxNode): boolean {
+  public equals(value: ISyntaxNodeOrList): boolean {
     // Reference equality should be sufficient since nodes should not be
     // created multiple times while traversing through a syntax tree.
     return this === value;
@@ -455,7 +424,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * @inheritDoc
    */
-  public findChildNodeAt(span: TextSpan, innermostNode = false): ISyntaxNode {
+  public findChildNodeAt(span: TextSpan, innermostNode = false): ISyntaxNodeOrList {
     let token: ISyntaxToken;
 
     let end = this.offset + this.node.fullWidth;
@@ -506,8 +475,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * @inheritDoc
    */
-  public firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter): ISyntaxNode | null {
-    let node: ISyntaxNode | null = this;
+  public firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
+    let node: ISyntaxNodeOrList | null = this;
     while (node != null) {
       if (!nodeFilter || nodeFilter(node)) {
         return node;
@@ -653,12 +622,15 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * Finds the child token at the given offset.
    *
+   * @param {SyntaxNodeBase} parent
+   *   The parent node.
+   * @param {number} targetOffset
+   *   The offset of the token.
+   *
    * @todo Experimental.
    */
   protected static findChildTokenAt(parent: SyntaxNodeBase, targetOffset: number): ISyntaxToken {
     Debug.assert(parent.fullSpan.contains(targetOffset));
-
-    const root = parent;
 
     let node = parent.node;
     let offset = parent.offset;
@@ -671,14 +643,17 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
         let end = offset + child.fullWidth;
         if (targetOffset < end) {
           if (child.isToken) {
-            return new SyntaxToken(child, parent, offset, relativeIndex);
+            // If the child is a token then the parent must be a node.
+            return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
           }
 
           // Found a node, search through its children.
           // @todo Technically this could be done recursively.
           let syntaxNode = parent.defineChildAt(index);
-          if (!syntaxNode) {
-            throw new Exception('Invalid child index');  // Unreachable.
+          if (!(syntaxNode instanceof SyntaxNodeBase)) {
+            // Either the child did not exist (which shouldn't be possible) or
+            // the parent created a child that didn't derive from its base type.
+            throw new InvalidOperationException();
           }
 
           node = child;
@@ -711,12 +686,16 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
    *   The parent node.
    * @param {number} relativeIndex
    *   The child index relative to any lists contained in the parent.
+   *
+   * @todo Experimental.
    */
-  protected static relativeChildAt(parent: SyntaxNodeBase, relativeIndex: number): SyntaxNodeBase | ISyntaxToken {
+  protected static relativeChildAt(parent: SyntaxNodeBase, relativeIndex: number): ISyntaxNode | ISyntaxToken {
     let child: INode | null = null;
     let nodeIndex = 0, listIndex = relativeIndex;
     let offset = parent.offset;
 
+    // Find the actual index of the child in the current node, its index in the
+    // child list (if any), and its offset.
     let count = parent.node.count;
     while (nodeIndex < count) {
       child = parent.node.childAt(nodeIndex);
@@ -738,12 +717,19 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
     let syntaxNode = parent.defineChildAt(nodeIndex);
     if (syntaxNode) {
       if (!child.isList) {
-        return syntaxNode;
+        // If the node is not a list, then neither is the syntax node.
+        return <ISyntaxNode>syntaxNode;
+      }
+
+      if (!(syntaxNode instanceof SyntaxNodeBase)) {
+        // The parent created a child that didn't derive from its base type.
+        throw new InvalidOperationException();
       }
 
       let syntaxListChild = syntaxNode.defineChildAt(listIndex);
       if (syntaxListChild) {
-        return syntaxListChild;
+        // Lists can only contain nodes.
+        return <ISyntaxNode>syntaxListChild;
       }
 
       // Found a token in a delimited list.
@@ -755,19 +741,19 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
       }
     }
 
-    // The child must be a token.
-    return new SyntaxToken(child, parent, offset, relativeIndex);
+    // The child must be a token (and its parent must be a node).
+    return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
   }
 
   /**
    * Attempts to get the first token within the given node.
    *
-   * @param {ISyntaxNode} node
+   * @param {ISyntaxNodeOrList} node
    *   The parent node.
    * @param {ISyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetFirstToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
+  public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
     // A recursive implementation would be simpler, but trees can be deep and
     // this method will probably be called quite a few times...
     let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
@@ -802,12 +788,12 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
   /**
    * Attempts to get the last token within the given node.
    *
-   * @param {ISyntaxNode} node
+   * @param {ISyntaxNodeOrList} node
    *   The parent node.
    * @param {ISyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetLastToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
+  public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
     let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
     stack.push(node.getAllChildrenReversed());
 
@@ -843,12 +829,12 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
    * So if parent node `A` has two children `B` and `C`, and the given node
    * is `B`, then this method will return the first token within `C`.
    *
-   * @param {ISyntaxNode} node
+   * @param {ISyntaxNodeOrList} node
    *   The current node.
    * @param {ISyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetNextToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+  public static tryGetNextToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
     while (node.parent != null) {
       let found = false;
       for (let child of node.parent.getAllChildren()) {
@@ -881,12 +867,12 @@ export abstract class SyntaxNodeBase implements ISyntaxNode {
    * So if parent node `A` has two children `B` and `C`, and the given node
    * is `C`, then this method will return the last token within `B`.
    *
-   * @param {ISyntaxNode} node
+   * @param {ISyntaxNodeOrList} node
    *   The current node.
    * @param {ISyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetPreviousToken(node: ISyntaxNode, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+  public static tryGetPreviousToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
     while (node.parent != null) {
       let found = false;
       for (let child of node.parent.getAllChildrenReversed()) {

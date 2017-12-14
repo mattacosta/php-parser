@@ -23,7 +23,7 @@ import {
 } from '@mattacosta/php-common';
 
 import { INode } from './INode';
-import { ISyntaxNode } from '../syntax/ISyntaxNode';
+import { ISyntaxNode, ISyntaxNodeOrList } from '../syntax/ISyntaxNode';
 import { NodeFlags } from './NodeFlags';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 import { SyntaxNodeBase } from '../syntax/SyntaxNodeBase';
@@ -286,7 +286,7 @@ export abstract class NodeBase implements INode {
   /**
    * @inheritDoc
    */
-  public abstract createSyntaxNode(parent: ISyntaxNode, offset: number): SyntaxNodeBase;
+  public abstract createSyntaxNode(parent: ISyntaxNode | null, offset: number): ISyntaxNodeOrList;
 
   /**
    * Determines if the current node is equal to a given node.
