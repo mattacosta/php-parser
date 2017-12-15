@@ -149,7 +149,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public get fullSpan(): TextSpan {
-    // Reminder: This is unlikely to be called unless the node also contains a
+    // NOTE: This is unlikely to be called unless the node also contains a
     // diagnostic. Since the vast majority of nodes are fine, this is not stored
     // as a property in order to save memory.
     return new TextSpan(this.offset, this.node.fullWidth);
@@ -193,7 +193,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * Gets the child node at the given index, if it has been created.
    *
-   * @see defineChildAt()
+   * @see SyntaxNodeBase.defineChildAt()
    */
   protected abstract childAt(index: number): ISyntaxNodeOrList | null;
 
@@ -215,7 +215,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       // If a syntax node to the left has already been created, try and avoid
       // the worst case scenario of computing the offset of every child node.
       let childSyntaxNode = this.childAt(index);
-      if (childSyntaxNode !== null && childSyntaxNode instanceof SyntaxNodeBase) {
+      if (childSyntaxNode instanceof SyntaxNodeBase) {
         return childSyntaxNode.offset + childSyntaxNode.node.fullWidth + offset;
       }
 
@@ -295,9 +295,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public ancestorsAndSelf(): ISyntaxNodeOrList[] {
-    // @todo BUG: This never returns itself.
     let parents = [];
-    let node = this.parent;
+    let node: ISyntaxNodeOrList | null = this;
     while (node) {
       parents.push(node);
       node = node.parent;
@@ -427,6 +426,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   public findChildNodeAt(span: TextSpan, innermostNode = false): ISyntaxNodeOrList {
     let token: ISyntaxToken;
 
+    // Find the token at the start of the span.
     let end = this.offset + this.node.fullWidth;
     if (span.start == end && SyntaxNodeExtensions.isSourceTextSyntaxNode(this)) {
       token = this.eof;
@@ -438,6 +438,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       token = SyntaxNodeBase.findChildTokenAt(this, span.start);
     }
 
+    // Then find the first parent that contains the entire span.
     let node = token.parent.firstAncestorOrSelf((node) => {
       return node.fullSpan.contains(span);
     });
