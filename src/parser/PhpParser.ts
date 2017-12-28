@@ -2319,7 +2319,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     //   foreach ($a as [$b, $c]()->d) {}  // Equivalent to `$b::$c()->d`.
     //                  ^-- parser here
     //
-    // In the above scenario, the parser does not know if the opening brace
+    // In the above scenario, the parser does not know if the opening bracket
     // should start a deconstruction or an array initializer and as a result,
     // needs to parse it as either. Sadly, this means that invalid
     // deconstructions AND array initializers are not syntax errors.
