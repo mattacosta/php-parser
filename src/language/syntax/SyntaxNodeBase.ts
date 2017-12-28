@@ -600,7 +600,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
             }
           }
           else {
-            diagnostics = diagnostics.concat(child.diagnostics.slice());
+            diagnostics = diagnostics.concat(child.diagnostics);
           }
         }
       }
@@ -611,9 +611,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
         diagnostics.push(trivia.diagnostics[0]);
       }
       else {
-        // BUG: TypeScript should allow `ReadonlyArray` parameters for concat().
-        // @todo https://github.com/Microsoft/TypeScript/issues/17076
-        diagnostics = diagnostics.concat(trivia.diagnostics.slice());
+        diagnostics = diagnostics.concat(trivia.diagnostics);
       }
     }
 
