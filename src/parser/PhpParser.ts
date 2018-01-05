@@ -198,7 +198,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * parsing a while loop that is inside another while loop, removing the
    * nested loop's context using
    *
-   * `this.currentContext &= ~WhileStatementElements;`
+   * `this.currentContext &= ~ParseContext.WhileBlockElements;`
    *
    * would incorrectly remove the parent context as well. Instead, save the
    * current context, and when the action is complete, restore that context
