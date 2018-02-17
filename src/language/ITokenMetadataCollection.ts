@@ -18,7 +18,7 @@
 
 import { ICountable } from '@mattacosta/php-common';
 
-import { ITokenMetadata } from './TokenMetadata';
+import { ITokenMetadata } from './ITokenMetadata';
 
 /**
  * Defines an interface for a token metadata collection.

@@ -19,8 +19,8 @@
 import { IHashable } from '@mattacosta/php-common';
 
 import { ISyntaxNode, ISyntaxNodeOrList } from '../syntax/ISyntaxNode';
-import { ITokenMetadata } from '../TokenMetadata';
-import { ITokenMetadataCollection } from '../TokenMetadataCollection';
+import { ITokenMetadata } from '../ITokenMetadata';
+import { ITokenMetadataCollection } from '../ITokenMetadataCollection';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 
 /**
