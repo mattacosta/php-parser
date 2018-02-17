@@ -214,7 +214,7 @@ export class CharacterInfo {
    * Determines if a character is a line break (CR or LF).
    */
   public static isLineBreak(ch: number): boolean {
-    // LineSeparator (U+2028), ParagraphSerparator (U+2029)
+    // LineSeparator (U+2028), ParagraphSeparator (U+2029)
     return ch == Character.CarriageReturn || ch == Character.LineFeed;
   }
 
