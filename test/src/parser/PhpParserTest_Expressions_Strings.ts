@@ -43,7 +43,6 @@ import {
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
 import { TokenKind } from '../../../src/language/TokenKind';
-import { LocalVariableNode, LiteralNode } from '../../../src/language/node/Node.Generated';
 
 function assertStringTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];

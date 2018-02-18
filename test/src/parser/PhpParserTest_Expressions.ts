@@ -61,8 +61,6 @@ import {
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
 import { TokenKind } from '../../../src/language/TokenKind';
-import { Diagnostic } from '../../../src/diagnostics/Diagnostic';
-import { ParameterNode } from '../../../src/language/node/Node.Generated';
 
 function assertAnonymousClassDeclaration(statements: ISyntaxNode[], hasArgumentList: boolean, hasBaseType: boolean): AnonymousClassSyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];

@@ -48,7 +48,6 @@ import {
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
-import { PhpSyntaxTree } from '../../../src/parser/PhpSyntaxTree';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstantDeclarationSyntaxNode {

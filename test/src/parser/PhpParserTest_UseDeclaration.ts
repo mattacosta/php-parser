@@ -34,7 +34,6 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
-import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertUseGroupDeclaration(decl: UseGroupDeclarationSyntaxNode, nameTokenCount: number, hasUseType = true): UseElementSyntaxNode[] {

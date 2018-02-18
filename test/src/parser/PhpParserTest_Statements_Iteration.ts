@@ -34,7 +34,6 @@ import {
   ForEachBlockSyntaxNode,
   ForEachSyntaxNode,
   ListDestructureSyntaxNode,
-  LiteralSyntaxNode,
   LocalVariableSyntaxNode,
   WhileBlockSyntaxNode,
   WhileSyntaxNode

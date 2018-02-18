@@ -49,8 +49,6 @@ import {
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
 import { TokenKind } from '../../../src/language/TokenKind';
-import { FunctionInvocationNode } from '../../../src/language/node/Node.Generated';
-import { Diagnostic } from '../../../src/diagnostics/Diagnostic';
 
 function assertClassConstant(statements: ISyntaxNode[], text: string, name: string): ClassConstantSyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];

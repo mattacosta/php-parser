@@ -37,9 +37,8 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
-import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
-import { TokenKind } from '../../../src/language/TokenKind';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertFunctionWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
   let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
