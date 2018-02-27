@@ -71,7 +71,7 @@ export class PhpSyntaxTree extends SyntaxTreeBase<SourceTextSyntaxNode> {
 
     let sourceText = SourceTextFactory.from(text);
     let lexer = new PhpLexer(sourceText, options.version, options.is64Bit);
-    let parser = new PhpParser(lexer /* , options */);
+    let parser = new PhpParser(lexer, options);
 
     let root = parser.parse();
     return new PhpSyntaxTree(root, path, options);

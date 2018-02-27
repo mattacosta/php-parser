@@ -157,6 +157,7 @@ import { NodeList } from '../language/node/NodeList';
 import { ParseContext } from './ParseContext';
 import { PhpLexer } from './PhpLexer';
 import { PhpLexerState } from './PhpLexerState';
+import { PhpParserOptions } from './PhpParserOptions';
 import { Precedence } from './Precedence';
 import { SourceTextNode } from '../language/node/SourceTextNode';
 import { SourceTextSyntaxNode } from '../language/syntax/SourceTextSyntaxNode';
@@ -212,6 +213,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected currentToken: Token;
 
   /**
+   * A factory service for creating tokens, trivia, and node lists.
+   */
+  protected factory: NodeFactory;
+
+  /**
    * A list of trivia nodes that preceed the current token.
    */
   protected leadingTrivia: TriviaNode[] = [];
@@ -232,9 +238,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected lexerState: PhpLexerState;
 
   /**
-   * A factory service for creating tokens, trivia, and node lists.
+   * An object containing configuration options for the parser.
    */
-  protected factory: NodeFactory;
+  protected options: PhpParserOptions;
 
   /**
    * Constructs a `PhpParser` object.
@@ -242,10 +248,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @todo Implement incremental parsing.
    * @todo Implement cancellation token support.
    */
-  constructor(lexer: PhpLexer /* , oldTree?: SourceTextSyntaxNode, changes?: TextChange[], cancellationToken?: any */) {
+  constructor(lexer: PhpLexer, options = PhpParserOptions.Default /*, oldTree?: SourceTextSyntaxNode, changes?: TextChange[], cancellationToken?: any*/) {
     this.factory = new NodeFactory();
     this.lexer = lexer;
     this.lexerState = lexer.currentState;
+    this.options = options;
   }
 
   /**

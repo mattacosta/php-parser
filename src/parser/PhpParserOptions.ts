@@ -41,6 +41,11 @@ export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
   public readonly version: PhpVersion;
 
   /**
+   * A map of enabled parser features.
+   */
+  public readonly features: ReadonlyMap<string, string>;
+
+  /**
    * Constructs a `PhpParserOptions` object.
    *
    * @param {PhpVersion=} version
@@ -49,10 +54,15 @@ export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
    * @param {boolean=} is64Bit
    *   Determines if the parser should scan the text in 64-bit mode. Defaults
    *   to `true`.
+   * @param {*} documentationMode
+   *   Not implemented.
+   * @param {ReadonlyMap<string, string>} features
+   *   A map of enabled parser features.
    */
-  constructor(version = PhpVersion.Latest, is64Bit = true /*, documentationMode */) {
+  constructor(version = PhpVersion.Latest, is64Bit = true, documentationMode?: any, features?: ReadonlyMap<string, string>) {
     this.version = version;
     this.is64Bit = is64Bit;
+    this.features = features ? features : new Map<string, string>();
   }
 
 }
