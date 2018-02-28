@@ -107,7 +107,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * The current lexing state of the scanner.
    */
-  protected state: PhpLexerState;
+  protected state!: PhpLexerState;  // @todo Set in constructor via `setText()`.
 
   /**
    * A pre-defined list containing state transitions for a region of text.
@@ -117,7 +117,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * The text to scan.
    */
-  protected text: ISourceText;
+  protected text!: ISourceText;  // @todo Set in constructor via `setText()`.
 
   /**
    * The kind of token that was scanned.

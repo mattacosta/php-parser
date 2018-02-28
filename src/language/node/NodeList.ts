@@ -610,7 +610,7 @@ export class LongChildListNode extends ManyChildListNode {
   /**
    * A list of pre-computed child offsets.
    */
-  protected offsets: number[];
+  protected offsets!: number[];  // @todo Set in constructor via `updateFromChildren()`.
 
   /**
    * Constructs a `LongChildListNode` object.

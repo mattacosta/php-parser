@@ -38,14 +38,14 @@ export abstract class NodeBase implements INode {
    *
    * IMPORTANT: Do not initialize this property! See constructor.
    */
-  protected _flags: NodeFlags;
+  protected _flags!: NodeFlags;  // @todo Set in constructor of all derived classes.
 
   /**
    * The width of the token or token collection, with trivia.
    *
    * IMPORTANT: Do not initialize this property! See constructor.
    */
-  protected _fullWidth: number;
+  protected _fullWidth!: number;  // @todo Set in constructor of all derived classes.
 
   /**
    * Stores the hash code of the node.
@@ -58,7 +58,7 @@ export abstract class NodeBase implements INode {
    *
    * IMPORTANT: Do not initialize this property! See constructor.
    */
-  protected hash: number;
+  protected hash!: number;  // @todo Set in constructor of all derived classes.
 
   /**
    * A map of all diagnostics attached to nodes.
