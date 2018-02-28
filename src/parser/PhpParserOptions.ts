@@ -20,8 +20,6 @@ import { PhpVersion } from './PhpVersion';
 
 /**
  * A set of options for parsing PHP source code.
- *
- * @todo Eventually this is also where experimental features should be enabled.
  */
 export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
 
