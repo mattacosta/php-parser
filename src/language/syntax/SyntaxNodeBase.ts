@@ -25,6 +25,7 @@ import {
   InvalidOperationException
 } from '@mattacosta/php-common';
 
+import { DiagnosticSeverity } from '../../diagnostics/DiagnosticSeverity';
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxNodeFilter } from './ISyntaxNodeQueryable';
@@ -113,6 +114,21 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   protected get fullWidth(): number {
     return this.node.fullWidth;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public get hasError(): boolean {
+    if (!this.node.containsDiagnostics) {
+      return false;
+    }
+    for (let d of this.getDiagnostics()) {
+      if (d.severity == DiagnosticSeverity.Error) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

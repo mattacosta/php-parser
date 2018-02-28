@@ -47,6 +47,12 @@ export interface ISyntaxNodeOrList extends IEquatable<ISyntaxNodeOrList>, ISynta
   readonly fullSpan: TextSpan;
 
   /**
+   * Determines if an error-level diagnostic was generated for this node or any
+   * of its descendants.
+   */
+  readonly hasError: boolean;
+
+  /**
    * The syntax node containing this node, if any.
    */
   readonly parent: ISyntaxNode | null;
