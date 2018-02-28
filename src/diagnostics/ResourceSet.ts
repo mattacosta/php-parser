@@ -16,6 +16,8 @@
 
 'use strict';
 
+import { Exception } from '@mattacosta/php-common';
+
 declare function require(path: string): any;
 
 /**
@@ -33,7 +35,7 @@ export class ResourceSet<T> {
   /**
    * A key-value store for the resource data.
    */
-  protected resources: { [key: string]: T };
+  protected resources: { [key: string]: T } | null = null;
 
   /**
    * Constructs a `ResourceSet` object.
@@ -46,17 +48,44 @@ export class ResourceSet<T> {
   }
 
   /**
-   * Retrieves data from the external resource.
+   * Gets a value from the resource set.
    *
    * @param {string} key
    *   The identifier of the object in the resource set.
    */
   public get(key: string): T {
-    if (!this.resources) {
-      // NOTE: The type used here is a pretty big assumption...
-      this.resources = require(this.resourcePath);
+    if (this.resources === null) {
+      this.resources = this.loadResource(this.resourcePath);
     }
     return this.resources[key];
+  }
+
+  /**
+   * Loads an external resource.
+   *
+   * @param {string} resourcePath
+   *   The location of the resource.
+   *
+   * @returns {object}
+   *   A key-value store containing the resource set's data.
+   */
+  protected loadResource(path: string): { [key: string]: T } {
+    let resources: any;
+
+    try {
+      resources = require(path);
+    }
+    catch (e) {
+      // Re-throw a standardized error type since the one thrown by `require()`
+      // depends on the JS environment that is being used.
+      throw new Exception(`Unable to load resource at '${this.resourcePath}'`);
+    }
+
+    if (typeof resources !== 'object') {
+      throw new Exception('Invalid resource');
+    }
+
+    return resources;  // @todo Needs validation of property types.
   }
 
 }
