@@ -44,7 +44,7 @@ export interface ISourceTextSyntaxNode extends ISyntaxNode, ISyntaxVisitorAccess
  */
 export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSyntaxNode {
 
-  protected _statements: SyntaxList | null;
+  protected _statements?: SyntaxList | null;
 
   constructor(node: INode) {
     super(node, null, 0);
@@ -52,7 +52,7 @@ export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSynta
 
   public get statements(): SyntaxList | null {
     if (this._statements === void 0) {
-      this._statements = this.createFirstChildNode();
+      this._statements = this.createFirstChildNode<SyntaxList>();
     }
     return this._statements;
   }
@@ -67,7 +67,7 @@ export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSynta
   protected childAt(index: number): SyntaxNodeBase | null {
     switch (index) {
       case 0:
-        return this._statements;
+        return this._statements !== void 0 ? this._statements : null;
       default:
         return null;
     }
@@ -77,7 +77,7 @@ export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSynta
     switch (index) {
       case 0:
         if (typeof this._statements === 'undefined') {
-          this._statements = this.createFirstChildNode();
+          this._statements = this.createFirstChildNode<SyntaxList>();
         }
         return this._statements;
       default:

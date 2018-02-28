@@ -205,12 +205,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * current context, and when the action is complete, restore that context
    * (since the context may not have actually changed).
    */
-  protected currentContext: ParseContext;
+  protected currentContext!: ParseContext;  // @todo Set in only public method via `reset()`.
 
   /**
    * The current token from the lexer.
    */
-  protected currentToken: Token;
+  protected currentToken!: Token;  // @todo Set in only public method via `reset()`.
 
   /**
    * A factory service for creating tokens, trivia, and node lists.

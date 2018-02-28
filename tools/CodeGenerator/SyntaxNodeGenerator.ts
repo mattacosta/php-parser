@@ -144,10 +144,10 @@ export class SyntaxNodeGenerator {
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];
       if (prop.type != 'TokenNode') {
+        let type = this.getSyntaxTypes(prop);
         text += '      case ' + i + ':\n';
         text += '        if (this._' + prop.name + ' === void 0) {\n';
         if (!prop.optional) {
-          let type = this.getSyntaxTypes(prop);
           text += i == 0
             ? '          let node: ' + type + ' | null = this.createFirstChildNode();\n'
             : '          let node: ' + type + ' | null = this.createChildNode(' + i + ');\n';
@@ -158,8 +158,8 @@ export class SyntaxNodeGenerator {
         }
         else {
           text += i == 0
-            ? '          this._' + prop.name + ' = this.createFirstChildNode();\n'
-            : '          this._' + prop.name + ' = this.createChildNode(' + i + ');\n';
+            ? '          this._' + prop.name + ' = this.createFirstChildNode<' + type + '>();\n'
+            : '          this._' + prop.name + ' = this.createChildNode<' + type + '>(' + i + ');\n';
         }
         text += '        }\n';
         text += '        return this._' + prop.name + ';\n';
@@ -191,8 +191,8 @@ export class SyntaxNodeGenerator {
         }
         else {
           text += i == 0
-            ? '      this._' + prop.name + ' = this.createFirstChildNode();\n'
-            : '      this._' + prop.name + ' = this.createChildNode(' + i + ');\n';
+            ? '      this._' + prop.name + ' = this.createFirstChildNode<' + type + '>();\n'
+            : '      this._' + prop.name + ' = this.createChildNode<' + type + '>(' + i + ');\n';
         }
         text += '    }\n';
         text += '    return this._' + prop.name + ';\n';
@@ -243,7 +243,7 @@ export class SyntaxNodeGenerator {
         continue;
       }
       let type = this.getSyntaxTypes(prop);
-      text += '  protected _' + prop.name + ': ' + type + (prop.optional ? ' | null' : '') + ';\n';
+      text += '  protected _' + prop.name + '?: ' + type + (prop.optional ? ' | null' : '') + ';\n';
     }
     return text;
   }

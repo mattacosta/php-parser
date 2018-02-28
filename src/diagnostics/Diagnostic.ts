@@ -83,6 +83,7 @@ export abstract class Diagnostic implements IDiagnostic {
   constructor(code: number, ...messageArgs: any[]) {
     this.code = code;
     this.messageArgs = messageArgs;
+    this.internalSeverity = 0;  // Equivalent to `DiagnosticSeverity.Hint`.
   }
 
   /**
