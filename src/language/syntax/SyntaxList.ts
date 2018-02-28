@@ -66,7 +66,7 @@ export class SingleChildSyntaxList extends SyntaxList {
   /**
    * The only child.
    */
-  protected child: ISyntaxNode | null;
+  protected child?: ISyntaxNode | null;
 
   /**
    * Constructs a `SingleChildSyntaxList` object.
@@ -82,7 +82,7 @@ export class SingleChildSyntaxList extends SyntaxList {
   protected childAt(index: number): ISyntaxNode | null {
     switch (index) {
       case 0:
-        return this.child;
+        return this.child !== void 0 ? this.child : null;
       default:
         return null;
     }
@@ -115,12 +115,12 @@ export class TwoChildSyntaxList extends SyntaxList {
   /**
    * The first child node.
    */
-  protected firstChild: ISyntaxNode | null;
+  protected firstChild?: ISyntaxNode | null;
 
   /**
    * The second child node.
    */
-  protected secondChild: ISyntaxNode | null;
+  protected secondChild?: ISyntaxNode | null;
 
   /**
    * Constructs a `TwoChildSyntaxList` object.
@@ -135,9 +135,9 @@ export class TwoChildSyntaxList extends SyntaxList {
   protected childAt(index: number): ISyntaxNode | null {
     switch (index) {
       case 0:
-        return this.firstChild;
+        return this.firstChild !== void 0 ? this.firstChild : null;
       case 1:
-        return this.secondChild;
+        return this.secondChild !== void 0 ? this.secondChild : null;
       default:
         return null;
     }
