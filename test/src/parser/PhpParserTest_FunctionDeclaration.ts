@@ -152,6 +152,8 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function a()', 'missing colon or open brace', [ErrorCode.ERR_OpenBraceOrColonExpected], [12]),
       new DiagnosticTestArgs('function a():', 'missing type', [ErrorCode.ERR_TypeExpected], [13]),
       new DiagnosticTestArgs('function a(): B', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [15]),
+
+      new DiagnosticTestArgs('function empty() {}', 'should not parse a function with a reserved name', [ErrorCode.ERR_IncompleteFunctionDeclaration], [8]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });

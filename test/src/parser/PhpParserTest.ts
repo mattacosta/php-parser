@@ -19,10 +19,19 @@
 import * as assert from 'assert';
 import * as mocha from 'mocha';
 
+import { ParserTestArgs, Test } from '../Test';
+
+import {
+  FunctionDeclarationSyntaxNode
+} from '../../../src/language/syntax/SyntaxNode.Generated';
+
 import { ModifierFlags } from '../../../src/parser/ModifierFlags';
 import { PhpLexer } from '../../../src/parser/PhpLexer';
 import { PhpParser } from '../../../src/parser/PhpParser';
+import { PhpParserOptions } from '../../../src/parser/PhpParserOptions';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { Precedence } from '../../../src/parser/Precedence';
+import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 /**
@@ -60,6 +69,33 @@ function assertModifiers(args: ModifierTestArgs[]) {
   }
 }
 
+function assertWithOptions(argList: ParserTestArgs[], options: PhpParserOptions) {
+  for (let i = 0; i < argList.length; i++) {
+    const args = argList[i];
+    const desc = args.description || args.text;
+    const testFn = args.testCallback;
+    if (testFn) {
+      it(desc, () => {
+        const text = '<?php ' + args.text;
+        const lexer = new PhpLexer(SourceTextFactory.from(text), options.version, options.is64Bit);
+        const parser = new PhpParser(lexer, options);
+
+        const root = parser.parse();
+        const statements = root.statements;
+        assert.equal(root.containsDiagnostics, false, 'contains diagnostics');
+        assert.notStrictEqual(statements, null, 'statements not found');
+        if (!statements) {
+          return;
+        }
+        testFn(statements.childNodes(), text);
+      });
+    }
+    else {
+      it(desc);
+    }
+  }
+}
+
 describe('PhpParser', function() {
 
   describe('isAbstractAndPrivate()', function() {
@@ -82,6 +118,23 @@ describe('PhpParser', function() {
       new ModifierTestArgs(ModifierFlags.Static, ModifierFlags.Private, false, 'static and private'),
     ];
     assertModifiers(tests);
+  });
+
+  describe('feature: allowReservedNames', function() {
+    const features = new Map<string, string>([['allowReservedNames', '']]);
+    const options = new PhpParserOptions(PhpVersion.Latest, true, null, features);
+
+    let syntaxTests = [
+      new ParserTestArgs('function empty() {}', 'should parse function with reserved name', (statements, text) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        Test.assertSyntaxToken(funcDecl.identifier, text, TokenKind.Empty, 'empty');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        assert.strictEqual(funcDecl.returnType, null);
+      }),
+    ];
+    assertWithOptions(syntaxTests, options);
   });
 
 })

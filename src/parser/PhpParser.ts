@@ -921,6 +921,21 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Determines if a token is a valid identifier for a function.
+   */
+  protected isFunctionIdentifier(kind: TokenKind): boolean {
+    if (kind == TokenKind.Identifier) {
+      return true;
+    }
+    // Also allow functions with reserved names if the parser is being used to
+    // generate metadata about PHP itself.
+    if (TokenKindInfo.isSemiReservedKeyword(kind) && this.options.features.has('allowReservedNames')) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Determines if a token starts an expression or nested list deconstruction.
    */
   protected isListIntrinsicElementStart(kind: TokenKind): boolean {
@@ -2360,7 +2375,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax: `FUNCTION & IDENTIFIER ( parameter-list ) return-type statement-block`
    */
   protected parseFunctionDeclaration(functionKeyword: TokenNode, ampersand: TokenNode | null): FunctionDeclarationNode {
-    let identifier = this.eat(TokenKind.Identifier);
+    // The caller should have checked if the name is valid.
+    Debug.assert(this.isFunctionIdentifier(this.currentToken.kind));
+
+    let identifier = this.eat(this.currentToken.kind);
     let openParen = this.eat(TokenKind.OpenParen);
     let parameters = this.parseParameterList();
     let hasParameter = parameters.length > 0 && !this.isParameterMissing(<ParameterNode>parameters[parameters.length - 1]);
@@ -4844,7 +4862,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let functionKeyword = this.eat(TokenKind.Function);
     let ampersand = this.eatOptional(TokenKind.Ampersand);
 
-    if (isStatementExpected && this.currentToken.kind == TokenKind.Identifier) {
+    if (isStatementExpected && this.isFunctionIdentifier(this.currentToken.kind)) {
       let funcDecl = this.parseFunctionDeclaration(functionKeyword, ampersand);
       return new Expression(funcDecl, ExpressionType.Any);
     }
