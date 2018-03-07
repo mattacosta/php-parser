@@ -177,10 +177,15 @@ export enum TokenKind {
 
   // Keywords (with whitespace)
   ArrayCast,
+  BinaryCast,
   BoolCast,
+  BooleanCast,
   DoubleCast,
+  FloatCast,
   IntCast,
+  IntegerCast,
   ObjectCast,
+  RealCast,
   StringCast,
   UnsetCast,
   YieldFrom,

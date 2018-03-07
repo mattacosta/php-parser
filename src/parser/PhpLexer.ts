@@ -2178,15 +2178,15 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected static readonly CastTokens = new Map<string, TokenKind>([
     ['array', TokenKind.ArrayCast],
-    ['binary', TokenKind.StringCast],
+    ['binary', TokenKind.BinaryCast],
     ['bool', TokenKind.BoolCast],
-    ['boolean', TokenKind.BoolCast],
+    ['boolean', TokenKind.BooleanCast],
     ['double', TokenKind.DoubleCast],
-    ['float', TokenKind.DoubleCast],
+    ['float', TokenKind.FloatCast],
     ['int', TokenKind.IntCast],
-    ['integer', TokenKind.IntCast],
+    ['integer', TokenKind.IntegerCast],
     ['object', TokenKind.ObjectCast],
-    ['real', TokenKind.DoubleCast],
+    ['real', TokenKind.RealCast],
     ['string', TokenKind.StringCast],
     ['unset', TokenKind.UnsetCast]
   ]);

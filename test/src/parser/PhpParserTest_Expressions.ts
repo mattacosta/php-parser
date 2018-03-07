@@ -984,7 +984,15 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.ArrayCast, '(array)');
           assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
-        new ParserTestArgs('(bool)$a;', 'should parse an bool cast', (statements, text) => {
+        new ParserTestArgs('(binary)$a;', 'should parse a binary cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.equal(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.BinaryCast, '(binary)');
+          assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('(bool)$a;', 'should parse a bool cast', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let castNode = <UnarySyntaxNode>exprNode.expression;
@@ -992,12 +1000,28 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.BoolCast, '(bool)');
           assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
-        new ParserTestArgs('(double)$a;', 'should parse an double cast', (statements, text) => {
+        new ParserTestArgs('(boolean)$a;', 'should parse a boolean cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.equal(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.BooleanCast, '(boolean)');
+          assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('(double)$a;', 'should parse a double cast', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let castNode = <UnarySyntaxNode>exprNode.expression;
           assert.equal(castNode instanceof UnarySyntaxNode, true);
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.DoubleCast, '(double)');
+          assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('(float)$a;', 'should parse a float cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.equal(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.FloatCast, '(float)');
           assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('(int)$a;', 'should parse an int cast', (statements, text) => {
@@ -1008,6 +1032,14 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.IntCast, '(int)');
           assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
+        new ParserTestArgs('(integer)$a;', 'should parse an integer cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.equal(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.IntegerCast, '(integer)');
+          assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
         new ParserTestArgs('(object)$a;', 'should parse an object cast', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
@@ -1016,7 +1048,15 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.ObjectCast, '(object)');
           assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
-        new ParserTestArgs('(string)$a;', 'should parse an string cast', (statements, text) => {
+        new ParserTestArgs('(real)$a;', 'should parse a real cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.equal(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.RealCast, '(real)');
+          assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('(string)$a;', 'should parse a string cast', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let castNode = <UnarySyntaxNode>exprNode.expression;
@@ -1029,10 +1069,15 @@ describe('PhpParser', function() {
 
       let diagnosticTests = [
         new DiagnosticTestArgs('(array)', 'missing expression (array)', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
+        new DiagnosticTestArgs('(binary)', 'missing expression (binary)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
         new DiagnosticTestArgs('(bool)', 'missing expression (bool)', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
+        new DiagnosticTestArgs('(boolean)', 'missing expression (boolean)', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
         new DiagnosticTestArgs('(double)', 'missing expression (double)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
+        new DiagnosticTestArgs('(float)', 'missing expression (float)', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
         new DiagnosticTestArgs('(int)', 'missing expression (int)', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
+        new DiagnosticTestArgs('(integer)', 'missing expression (integer)', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
         new DiagnosticTestArgs('(object)', 'missing expression (object)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
+        new DiagnosticTestArgs('(real)', 'missing expression (real)', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
         new DiagnosticTestArgs('(string)', 'missing expression (string)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
 
         new DiagnosticTestArgs('(unset)$a;', 'should warn unset cast is deprecated', [ErrorCode.WRN_UnsetCast], [0]),

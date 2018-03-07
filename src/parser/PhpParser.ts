@@ -898,10 +898,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       // unary-expression > cast-expression
       case TokenKind.ArrayCast:
+      case TokenKind.BinaryCast:
       case TokenKind.BoolCast:
+      case TokenKind.BooleanCast:
       case TokenKind.DoubleCast:
+      case TokenKind.FloatCast:
       case TokenKind.IntCast:
+      case TokenKind.IntegerCast:
       case TokenKind.ObjectCast:
+      case TokenKind.RealCast:
       case TokenKind.StringCast:
       case TokenKind.UnsetCast:
 
@@ -1208,10 +1213,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Tilde:
       // Cast operators.
       case TokenKind.ArrayCast:
+      case TokenKind.BinaryCast:
       case TokenKind.BoolCast:
+      case TokenKind.BooleanCast:
       case TokenKind.DoubleCast:
+      case TokenKind.FloatCast:
       case TokenKind.IntCast:
+      case TokenKind.IntegerCast:
       case TokenKind.ObjectCast:
+      case TokenKind.RealCast:
       case TokenKind.StringCast:
       case TokenKind.UnsetCast:
         return true;
