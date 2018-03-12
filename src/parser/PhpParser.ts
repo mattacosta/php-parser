@@ -1075,8 +1075,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Determines if a token is a semicolon or close tag.
    */
-  protected isStatementEnd(): boolean {
-    return this.currentToken.kind == TokenKind.Semicolon || this.currentToken.kind == TokenKind.CloseTag;
+  protected isStatementEnd(kind: TokenKind): boolean {
+    return kind == TokenKind.Semicolon || kind == TokenKind.CloseTag;
   }
 
   /**
@@ -1474,7 +1474,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     if (this.isExpressionStart(this.currentToken.kind)) {
       depth = this.parseBreakOrContinueDepth(TokenKind.Break);
     }
-    let semicolon = !this.isStatementEnd() && depth === null
+    let semicolon = !this.isStatementEnd(this.currentToken.kind) && depth === null
       ? this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_IterationDepthOrSemicolonExpected)
       : this.parseStatementEnd();
     return new BreakNode(breakKeyword, depth, semicolon);
@@ -1874,7 +1874,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseConstantDeclaration(): ConstantDeclarationNode {
     let constKeyword = this.eat(TokenKind.Const);
     let constants = this.parseDelimitedList(ParseContext.ConstantDeclaration, TokenKind.Comma, TokenKind.Semicolon);
-    let semicolon = this.isStatementEnd()
+    let semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_CommaOrSemicolonExpected);
     return new ConstantDeclarationNode(constKeyword, constants, semicolon);
@@ -1918,7 +1918,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     if (this.isExpressionStart(this.currentToken.kind)) {
       depth = this.parseBreakOrContinueDepth(TokenKind.Continue);
     }
-    let semicolon = !this.isStatementEnd() && depth === null
+    let semicolon = !this.isStatementEnd(this.currentToken.kind) && depth === null
       ? this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_IterationDepthOrSemicolonExpected)
       : this.parseStatementEnd();
     return new ContinueNode(continueKeyword, depth, semicolon);
@@ -2030,7 +2030,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       expressions.push(this.parseExpression());
     }
 
-    semicolon = this.isStatementEnd()
+    semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_CommaOrSemicolonExpected);
     return new EchoNode(echoKeyword, this.factory.createList(expressions), semicolon);
@@ -2129,7 +2129,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // ignored.
 
     let firstSemicolon: TokenNode;
-    if (!this.isStatementEnd()) {
+    if (!this.isStatementEnd(this.currentToken.kind)) {
       // Skip diagnostic if no '('.
       if (openParen.isMissing) {
         firstSemicolon = this.createMissingToken(TokenKind.Semicolon, this.currentToken.kind, false);
@@ -2146,7 +2146,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let conditions = this.parseForExpressionList(TokenKind.Semicolon);
 
     let secondSemicolon: TokenNode;
-    if (!this.isStatementEnd()) {
+    if (!this.isStatementEnd(this.currentToken.kind)) {
       // Skip diagnostic if no '(' or missing first ';'.
       if (openParen.isMissing || firstSemicolon.isMissing) {
         secondSemicolon = this.createMissingToken(TokenKind.Semicolon, this.currentToken.kind, false);
@@ -2439,7 +2439,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       variables.push(this.parseSimpleVariable());
     }
 
-    let semicolon = this.isStatementEnd()
+    let semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_CommaOrSemicolonExpected);
     return new GlobalNode(globalKeyword, this.factory.createList(variables), semicolon);
@@ -2711,7 +2711,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       return new NamespaceGroupDeclarationNode(namespaceKeyword, name, openBrace, statements, closeBrace);
     }
 
-    let semicolon = this.isStatementEnd()
+    let semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_OpenBraceOrSemicolonExpected);
 
@@ -3065,7 +3065,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       variables.push(this.parseStaticElement());
     }
 
-    let semicolon = this.isStatementEnd()
+    let semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_CommaOrSemicolonExpected);
 
@@ -3564,7 +3564,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       return new TraitUseGroupNode(useKeyword, names, openBrace, adaptations, closeBrace);
     }
 
-    let semicolon = this.isStatementEnd()
+    let semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_IncompleteTraitUse);
     return new TraitUseNode(useKeyword, names, semicolon);
@@ -3856,7 +3856,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       ? ErrorCode.ERR_CommaOrSemicolonExpected
       : ErrorCode.ERR_IncompleteUseDeclaration;
 
-    let semicolon = this.isStatementEnd()
+    let semicolon = this.isStatementEnd(this.currentToken.kind)
       ? this.parseStatementEnd()
       : this.createMissingTokenWithError(TokenKind.Semicolon, code);
     return new UseDeclarationNode(useKeyword, useType, this.factory.createList(nodes), semicolon);
