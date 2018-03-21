@@ -16,7 +16,10 @@
 
 'use strict';
 
-import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
+import {
+  ArgumentOutOfRangeException,
+  IEquatable
+} from '@mattacosta/php-common';
 
 import { BomKind } from './BomKind';
 import { TextChange } from './TextChange';
@@ -27,7 +30,7 @@ import { TextSpan } from './TextSpan';
  *
  * @todo Add a parseLines() method?
  */
-export interface ISourceText {
+export interface ISourceText extends IEquatable<ISourceText> {
 
   /**
    * The length of the text.
@@ -86,6 +89,39 @@ export abstract class SourceTextBase implements ISourceText {
   public abstract readonly length: number;
 
   /**
+   * @inheritDoc
+   */
+  public abstract charCodeAt(offset: number): number;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract slice(spanOrPosition: TextSpan | number): ISourceText;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract substring(start: number, length?: number): string;
+
+  /**
+   * @inheritDoc
+   */
+  public equals(value: ISourceText): boolean {
+    if (value === this) {
+      return true;
+    }
+    if (this.length != value.length) {
+      return false;
+    }
+    for (let i = 0; i < this.length; i++) {
+      if (this.charCodeAt(i) != value.charCodeAt(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Attempts to determine if a byte order mark is present in the source text.
    *
    * @todo Experimental.
@@ -112,20 +148,5 @@ export abstract class SourceTextBase implements ISourceText {
 
     return BomKind.Unknown;
   }
-
-  /**
-   * @inheritDoc
-   */
-  public abstract charCodeAt(offset: number): number;
-
-  /**
-   * @inheritDoc
-   */
-  public abstract slice(spanOrPosition: TextSpan | number): ISourceText;
-
-  /**
-   * @inheritDoc
-   */
-  public abstract substring(start: number, length?: number): string;
 
 }
