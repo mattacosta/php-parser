@@ -36,16 +36,40 @@ export interface ISourceText {
 
   /**
    * Returns an integer representing a character at a given location.
+   *
+   * @param {number} offset
+   *   The offset of the character.
+   *
+   * @return {number}
+   *   The integer value of the character.
    */
   charCodeAt(offset: number): number;
 
   /**
-   * Extracts a section of the text as a new source code container.
+   * Creates a copy of the source text containing the given region.
+   *
+   * @param {TextSpan|number} spanOrPosition
+   *   A span containing the region of text to copy, or the starting position
+   *   of the region. If a position is given, all remaining text is included.
+   *
+   * @return {ISourceText}
+   *   A section of the source text.
    */
   slice(spanOrPosition: TextSpan | number): ISourceText;
 
   /**
    * Extracts a section of the text as a string.
+   *
+   * @param {number} start
+   *   The offset of the first character to extract. If this is a negative
+   *   number, the offset will start from the end of the source text.
+   * @param {number|undefined} length
+   *   The number of characters to extract. If not provided, the length will be
+   *   the number of characters from `start` to the end of the string. If the
+   *   length is negative, it will be set to 0.
+   *
+   * @return {string}
+   *   A section of the source text, as a string.
    */
   substring(start: number, length?: number): string;
 
