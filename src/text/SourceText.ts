@@ -149,4 +149,17 @@ export abstract class SourceTextBase implements ISourceText {
     return BomKind.Unknown;
   }
 
+  /**
+   * Determines if the given span is within the source text.
+   *
+   * @param {TextSpan} span
+   *   The span being checked.
+   */
+  protected isSpanInText(span: TextSpan): boolean {
+    if (span.start < 0 || span.start > this.length || span.end > this.length) {
+      return false;
+    }
+    return true;
+  }
+
 }

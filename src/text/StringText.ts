@@ -16,6 +16,8 @@
 
 'use strict';
 
+import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
+
 import { ISourceText, SourceTextBase } from './SourceText';
 import { TextSpan } from './TextSpan';
 
@@ -65,6 +67,9 @@ export class StringText extends SourceTextBase {
     if (typeof spanOrPosition === 'number') {
       spanOrPosition = TextSpan.fromBounds(spanOrPosition, this.text.length);
     }
+    if (!this.isSpanInText(spanOrPosition)) {
+      throw new ArgumentOutOfRangeException();
+    }
     return new StringText(this.text.substr(spanOrPosition.start, spanOrPosition.length) /* , this.encoding */);
   }
 
@@ -72,6 +77,21 @@ export class StringText extends SourceTextBase {
    * @inheritDoc
    */
   public substring(start: number, length?: number): string {
+    if (start < 0) {
+      start = this.length + start;
+    }
+    if (start < 0 || start > this.length) {
+      throw new ArgumentOutOfRangeException();
+    }
+    if (length === void 0) {
+      length = this.length - start;
+    }
+    if (length < 0) {
+      length = 0;
+    }
+    if (length > this.length - start) {
+      throw new ArgumentOutOfRangeException();
+    }
     return this.text.substr(start, length);
   }
 
