@@ -19,6 +19,8 @@
 import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
 import { ISourceText, SourceTextBase } from './SourceText';
+import { SegmentedText } from './SegmentedText';
+import { SourceTextFactory } from './SourceTextFactory';
 import { TextSpan } from './TextSpan';
 
 /**
@@ -70,7 +72,13 @@ export class StringText extends SourceTextBase {
     if (!this.isSpanInText(spanOrPosition)) {
       throw new ArgumentOutOfRangeException();
     }
-    return new StringText(this.text.substr(spanOrPosition.start, spanOrPosition.length) /* , this.encoding */);
+    if (spanOrPosition.length == 0) {
+      return SourceTextFactory.EmptyText;
+    }
+    if (spanOrPosition.start == 0 && spanOrPosition.length == this.text.length) {
+      return new StringText(this.text);  // Always return a new instance.
+    }
+    return new SegmentedText(this, spanOrPosition);
   }
 
   /**
