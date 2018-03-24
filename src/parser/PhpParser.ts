@@ -1085,7 +1085,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected isStatementStart(kind: TokenKind): boolean {
     switch (kind) {
       case TokenKind.Break:
-      case TokenKind.CloseTag:    // Equivalent to a semicolon.
+      case TokenKind.CloseTag:         // Equivalent to a semicolon.
       case TokenKind.Continue:
       case TokenKind.Declare:
       case TokenKind.Do:
@@ -1096,10 +1096,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.GoTo:
       case TokenKind.Identifier:
       case TokenKind.If:
-      case TokenKind.InlineText:  // Echo statement.
+      case TokenKind.InlineText:       // Echo statement.
       case TokenKind.OpenBrace:
+      case TokenKind.OpenTagWithEcho:  // Echo statement.
       case TokenKind.Return:
-      case TokenKind.Semicolon:   // Expression statement.
+      case TokenKind.Semicolon:        // Expression statement.
       case TokenKind.Static:
       case TokenKind.Switch:
       case TokenKind.Throw:
@@ -1428,8 +1429,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return this.parseExpressionOrTopStatement();
       case TokenKind.If:
         return this.parseIf();
-      case TokenKind.InlineText:
-        return this.parseInlineText();
       case TokenKind.Return:
         return this.parseReturn();
       case TokenKind.Static:
@@ -1444,9 +1443,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return this.parseUnset();
       case TokenKind.While:
         return this.parseWhile();
-      // Statements (punctuation).
+      // Statements (other).
+      case TokenKind.InlineText:
+        return this.parseInlineText();
       case TokenKind.OpenBrace:
         return this.parseStatementBlock();
+      case TokenKind.OpenTagWithEcho:
+        return this.parseEcho();
       case TokenKind.CloseTag:
       case TokenKind.Semicolon:
         let semicolon = this.parseStatementEnd();
@@ -2019,7 +2022,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `expr`
    */
   protected parseEcho(): EchoNode {
-    let echoKeyword = this.eat(TokenKind.Echo);
+    // Inline text should not reach this method.
+    Debug.assert(this.currentToken.kind == TokenKind.Echo || this.currentToken.kind == TokenKind.OpenTagWithEcho);
+
+    let echoKeyword = this.eat(this.currentToken.kind);
     let semicolon: TokenNode;
 
     let expressions = [];

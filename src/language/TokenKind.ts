@@ -169,8 +169,10 @@ export enum TokenKind {
   Spaceship,
   XorEqual,
 
-  // Closing tag (which should be trivia, but is treated as a semicolon)
+  // This should be trivia, but is equivalent to `;`.
   CloseTag,
+  // This should be trivia, but is equivalent to `echo`.
+  OpenTagWithEcho,
 
   // End of file (also marks the end of language-defined tokens)
   EOF,
@@ -215,7 +217,6 @@ export enum TokenKind {
   MultipleLineComment,      // Custom "/*"
   NewLine,                  // Custom
   OpenTag,
-  OpenTagWithEcho,
   RegionEnd,                // Custom "//}"
   RegionStart,              // Custom "//{"
   ShortOpenTag,             // Custom "<?"
@@ -516,8 +517,11 @@ export class TokenKindInfo {
         return '<=>';
       case TokenKind.XorEqual:
         return '^=';
+      // Tags
       case TokenKind.CloseTag:
         return '?>';
+      case TokenKind.OpenTagWithEcho:
+        return '<?=';
       default:
         return TokenKind[kind].toUpperCase();
     }

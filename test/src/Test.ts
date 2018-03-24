@@ -55,13 +55,13 @@ export class ParserTestArgs {
 
 export class Test {
 
-  public static assertDiagnostics(argList: DiagnosticTestArgs[]) {
+  public static assertDiagnostics(argList: DiagnosticTestArgs[], openTagWithEcho = false) {
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
       if (args.expectedCodes.length > 0) {
         it(desc, () => {
-          const prefix = '<?php ';
+          const prefix = openTagWithEcho ? '<?= ' : '<?php ';
           const tree = PhpSyntaxTree.fromText(prefix + args.text);
 
           let i = 0;
@@ -90,14 +90,14 @@ export class Test {
     }
   }
 
-  public static assertSyntaxNodes(argList: ParserTestArgs[], assertDiagnostics = true) {
+  public static assertSyntaxNodes(argList: ParserTestArgs[], assertDiagnostics = true, openTagWithEcho = false) {
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
       const testFn = args.testCallback;
       if (testFn) {
         it(desc, () => {
-          const text = '<?php ' + args.text;
+          const text = (openTagWithEcho ? '<?= ' : '<?php ') + args.text;
           const tree = PhpSyntaxTree.fromText(text);
           const statements = tree.root.statements;
           if (assertDiagnostics) {

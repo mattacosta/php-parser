@@ -343,6 +343,39 @@ describe('PhpParser', function() {
     Test.assertDiagnostics(diagnosticTests);
   });
 
+  describe('echo-statement (open tag with echo)', function() {
+    let syntaxTests = [
+      new ParserTestArgs('1;', 'should parse an echo statement', (statements, text) => {
+        let echoNode = <EchoSyntaxNode>statements[0];
+        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        Test.assertSyntaxToken(echoNode.echoKeyword, text, TokenKind.OpenTagWithEcho, '<?=');
+        let expressions = echoNode.expressionList.childNodes();
+        assert.equal(expressions.length, 1);
+        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
+      }),
+      new ParserTestArgs('1, $a;', 'should parse an echo statement with multiple expressions', (statements, text) => {
+        let echoNode = <EchoSyntaxNode>statements[0];
+        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        Test.assertSyntaxToken(echoNode.echoKeyword, text, TokenKind.OpenTagWithEcho, '<?=');
+        let expressions = echoNode.expressionList.childNodes();
+        assert.equal(expressions.length, 2);
+        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
+        assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests, true, true);
+
+    let diagnosticTests = [
+      // Diagnostic locations are asserted using the entire opening tag, which
+      // is "<?= " in this case. Since the diagnostic should be before the
+      // trailing space, using 4 + -1 gets us to the correct offset.
+      new DiagnosticTestArgs('', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [-1]),
+      new DiagnosticTestArgs('$a', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [2]),
+      new DiagnosticTestArgs('$a,', 'missing expression after comma', [ErrorCode.ERR_ExpressionExpectedEOF], [3]),
+    ];
+    Test.assertDiagnostics(diagnosticTests, true);
+  });
+
   describe('unset-statement', function() {
     let syntaxTests = [
       new ParserTestArgs('unset($a);', 'should parse an unset statement', (statements, text) => {
