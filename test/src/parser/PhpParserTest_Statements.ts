@@ -30,6 +30,7 @@ import {
   ConstantElementSyntaxNode,
   DeclareSyntaxNode,
   DeclareBlockSyntaxNode,
+  EchoSyntaxNode,
   ExpressionStatementSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   GlobalSyntaxNode,
@@ -46,6 +47,7 @@ import {
   TryCatchSyntaxNode,
   TryFinallySyntaxNode,
   TrySyntaxNode,
+  UnsetSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
@@ -309,6 +311,70 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('declare(a=1)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [12]),
       new DiagnosticTestArgs('declare(a=1):', 'missing enddeclare', [ErrorCode.ERR_Syntax], [13]),
       new DiagnosticTestArgs('declare(a=1): enddeclare', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [24]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
+  });
+
+  describe('echo-statement', function() {
+    let syntaxTests = [
+      new ParserTestArgs('echo 1;', 'should parse an echo statement', (statements) => {
+        let echoNode = <EchoSyntaxNode>statements[0];
+        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        let expressions = echoNode.expressionList.childNodes();
+        assert.equal(expressions.length, 1);
+        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
+      }),
+      new ParserTestArgs('echo 1, $a;', 'should parse an echo statement with multiple expressions', (statements) => {
+        let echoNode = <EchoSyntaxNode>statements[0];
+        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        let expressions = echoNode.expressionList.childNodes();
+        assert.equal(expressions.length, 2);
+        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
+        assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('echo', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [4]),
+      new DiagnosticTestArgs('echo $a', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [7]),
+      new DiagnosticTestArgs('echo $a,', 'missing expression after comma', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
+  });
+
+  describe('unset-statement', function() {
+    let syntaxTests = [
+      new ParserTestArgs('unset($a);', 'should parse an unset statement', (statements, text) => {
+        let unsetNode = <UnsetSyntaxNode>statements[0];
+        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        let variables = unsetNode.expressionList.childNodes();
+        assert.equal(variables.length, 1);
+        let variable = <LocalVariableSyntaxNode>variables[0];
+        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
+      }),
+      new ParserTestArgs('unset($a, $b);', 'should parse an unset statement with multiple variables', (statements, text) => {
+        let unsetNode = <UnsetSyntaxNode>statements[0];
+        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        let variables = unsetNode.expressionList.childNodes();
+        assert.equal(variables.length, 2);
+        let firstVariable = <LocalVariableSyntaxNode>variables[0];
+        assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
+        let secondVariable = <LocalVariableSyntaxNode>variables[0];
+        assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('unset', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
+      new DiagnosticTestArgs('unset(', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
+      new DiagnosticTestArgs('unset($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
+      new DiagnosticTestArgs('unset($a,', 'missing expression after comma', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
+      new DiagnosticTestArgs('unset(1);', 'should expect an explicit expression', [ErrorCode.ERR_ExpressionNotAddressable], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });

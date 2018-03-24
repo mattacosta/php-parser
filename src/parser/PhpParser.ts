@@ -3741,7 +3741,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       expressions.push(this.parseExpression(ExpressionType.Explicit));
     }
 
-    let closeParen = this.eat(TokenKind.CloseParen);
+    let closeParen = this.currentToken.kind == TokenKind.CloseParen
+      ? this.eat(TokenKind.CloseParen)
+      : this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_CommaOrCloseParenExpected);
     let semicolon = this.parseStatementEnd();
     return new UnsetNode(
       unsetKeyword,
