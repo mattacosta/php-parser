@@ -19,6 +19,7 @@
 import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
 import { ISourceText, SourceTextBase } from './SourceText';
+import { SourceTextFactory } from './SourceTextFactory';
 import { TextSpan } from './TextSpan';
 
 /**
@@ -85,6 +86,9 @@ export class SegmentedText extends SourceTextBase {
     }
     if (!this.isSpanInText(spanOrPosition)) {
       throw new ArgumentOutOfRangeException();
+    }
+    if (spanOrPosition.length == 0) {
+      return SourceTextFactory.EmptyText;
     }
     let segmentSpan = this.createSegmentSpan(spanOrPosition.start, spanOrPosition.length);
     return new SegmentedText(this.text, segmentSpan);
