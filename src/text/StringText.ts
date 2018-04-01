@@ -31,6 +31,26 @@ import { TextSpan } from './TextSpan';
 export class StringText extends SourceTextBase {
 
   /**
+   * @inheritDoc
+   */
+  public readonly length: number;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly sourceKey: ISourceText;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly sourceLength: number;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly sources: ReadonlyArray<ISourceText>;
+
+  /**
    * A string containing the source code.
    */
   protected readonly text: string;
@@ -43,14 +63,11 @@ export class StringText extends SourceTextBase {
    */
   constructor(text: string /* , encoding? = 'utf8' */) {
     super();
+    this.length = text.length;
+    this.sourceKey = this;
+    this.sourceLength = text.length;
+    this.sources = [this];
     this.text = text;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public get length(): number {
-    return this.text.length;
   }
 
   /**

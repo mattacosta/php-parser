@@ -61,6 +61,7 @@ export * from './parser/TemplateSpan';
 export * from './parser/Token';
 
 export * from './text/BomKind';
+export * from './text/ISourceTextContainer';
 export * from './text/SourceText';
 export * from './text/SourceTextFactory';
 export * from './text/TextChange';

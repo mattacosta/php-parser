@@ -22,13 +22,14 @@ import {
 } from '@mattacosta/php-common';
 
 import { BomKind } from './BomKind';
+import { ISourceTextContainer } from './ISourceTextContainer';
 import { TextChange } from './TextChange';
 import { TextSpan } from './TextSpan';
 
 /**
  * Defines an interface for objects containing source code.
  *
- * @todo Add a parseLines() method?
+ * @todo Add a `lines` property?
  */
 export interface ISourceText extends IEquatable<ISourceText> {
 
@@ -81,12 +82,27 @@ export interface ISourceText extends IEquatable<ISourceText> {
 /**
  * Provides a base class for objects that contain source code.
  */
-export abstract class SourceTextBase implements ISourceText {
+export abstract class SourceTextBase implements ISourceText, ISourceTextContainer {
 
   /**
    * @inheritDoc
    */
   public abstract readonly length: number;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract readonly sourceKey: ISourceText;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract readonly sourceLength: number;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract readonly sources: ReadonlyArray<ISourceText>;
 
   /**
    * @inheritDoc

@@ -23,7 +23,7 @@ import { SourceTextFactory } from './SourceTextFactory';
 import { TextSpan } from './TextSpan';
 
 /**
- * Represents a segment of another source text object.
+ * A segment of another source text.
  *
  * @internal
  */
@@ -33,6 +33,21 @@ export class SegmentedText extends SourceTextBase {
    * @inheritDoc
    */
   public readonly length: number;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly sourceKey: ISourceText;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly sourceLength: number;
+
+  /**
+   * @inheritDoc
+   */
+  public readonly sources: ReadonlyArray<ISourceText>;
 
   /**
    * The starting position and length of the segment.
@@ -61,6 +76,9 @@ export class SegmentedText extends SourceTextBase {
       throw new ArgumentOutOfRangeException();
     }
     this.length = span.length;
+    this.sourceKey = text;
+    this.sourceLength = text.length;
+    this.sources = [this];
     this.span = span;
     this.text = text;
   }
