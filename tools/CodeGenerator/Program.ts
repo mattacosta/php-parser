@@ -34,7 +34,7 @@ import { SyntaxVisitorGenerator } from './SyntaxVisitorGenerator';
 try {
   const basePath = './src';
   const nodeText = fs.readFileSync(basePath + '/nodes.yaml', 'utf8');
-  const nodeConfig: NodeConfig = yaml.safeLoad(nodeText);
+  const nodeConfig = <NodeConfig>yaml.safeLoad(nodeText);
 
   fs.writeFileSync(basePath + '/language/node/Node.Generated.ts', NodeGenerator.generate(nodeConfig.nodes));
   fs.writeFileSync(basePath + '/language/node/NodeVisitor.Generated.ts', NodeVisitorGenerator.generate(nodeConfig.nodes));
@@ -47,7 +47,7 @@ try {
   console.log(`Generated ${nodeConfig.nodes.length} nodes`);
 
   const diagnosticText = fs.readFileSync(basePath + '/diagnostics.yaml', 'utf8');
-  const diagConfig: DiagnosticConfig = yaml.safeLoad(diagnosticText);
+  const diagConfig = <DiagnosticConfig>yaml.safeLoad(diagnosticText);
 
   fs.writeFileSync(basePath + '/diagnostics/ErrorCode.Generated.ts', ErrorCodeGenerator.generate(diagConfig.diagnostics));
   fs.writeFileSync(basePath + '/diagnostics/ErrorCodeInfo.Generated.ts', ErrorCodeInfoGenerator.generate(diagConfig.diagnostics));
