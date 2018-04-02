@@ -67,7 +67,7 @@ export interface ISourceText extends IEquatable<ISourceText> {
    * @param {number} start
    *   The offset of the first character to extract. If this is a negative
    *   number, the offset will start from the end of the source text.
-   * @param {number|undefined} length
+   * @param {number=} length
    *   The number of characters to extract. If not provided, the length will be
    *   the number of characters from `start` to the end of the string. If the
    *   length is negative, it will be set to 0.
