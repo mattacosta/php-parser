@@ -16,6 +16,7 @@
 
 'use strict';
 
+import { CompositeText } from './CompositeText';
 import { ISourceText } from './SourceText';
 import { StringText } from './StringText';
 
@@ -39,13 +40,31 @@ export class SourceTextFactory {
   public static readonly EmptyText: ISourceText = new StringText('');
 
   /**
-   * @todo Document SourceTextFactory.from().
+   * Creates a source text object from a string.
+   *
+   * @param {string} text
+   *   A string containing source code.
    */
   public static from(text: string /* , encoding: any */): ISourceText {
     // if (text.length > SourceText.LargeTextLimit) {
     //   return LargeText.decode(text, encoding);
     // }
     return new StringText(text);
+  }
+
+  /**
+   * Creates a source text container from other source texts.
+   *
+   * @param {ReadonlyArray<ISourceText>} sources
+   *   A list of text segments.
+   * @param {number} sourceLength
+   *   The total length of the stored text. This may be greater than the length
+   *   of the text.
+   *
+   * @internal
+   */
+  public static createContainer(sources: ReadonlyArray<ISourceText>, sourceLength: number): ISourceText {
+    return CompositeText.from(sources, sourceLength);
   }
 
 }
