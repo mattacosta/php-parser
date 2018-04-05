@@ -17,12 +17,15 @@
 'use strict';
 
 import {
+  ArgumentException,
   ArgumentOutOfRangeException,
   IEquatable
 } from '@mattacosta/php-common';
 
 import { BomKind } from './BomKind';
 import { ISourceTextContainer } from './ISourceTextContainer';
+import { SourceTextBuilder } from './SourceTextBuilder';
+import { SourceTextFactory } from './SourceTextFactory';
 import { TextChange } from './TextChange';
 import { TextSpan } from './TextSpan';
 
@@ -76,6 +79,14 @@ export interface ISourceText extends IEquatable<ISourceText> {
    *   A section of the source text, as a string.
    */
   substring(start: number, length?: number): string;
+
+  /**
+   * Creates a new source text object with the given changes.
+   *
+   * @param {Iterable<TextChange>} changes
+   *   A series of changes to the text.
+   */
+  withChanges(changes: Iterable<TextChange>): ISourceText;
 
 }
 
@@ -135,6 +146,49 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
       }
     }
     return true;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public withChanges(changes: Iterable<TextChange>): ISourceText {
+    let offset = 0;
+    let hasInsertedText = false;
+    let builder = new SourceTextBuilder();
+
+    for (let change of changes) {
+      if (change.span.start < offset) {
+        throw new ArgumentException('Text changes must be sequential and cannot overlap');
+      }
+
+      // Skip "insert" and "delete" changes that do nothing.
+      if (change.span.length == 0 && change.text.length == 0) {
+        continue;
+      }
+      // Add text between the previous change and this change.
+      if (change.span.start > offset) {
+        builder.append(this.slice(new TextSpan(offset, change.span.start - offset)));
+      }
+      // If this is an "insert" or "replace" change, add its text.
+      if (change.text.length > 0) {
+        builder.append(SourceTextFactory.from(change.text));
+        hasInsertedText = true;
+      }
+
+      offset = change.span.end;
+    }
+
+    // Nothing changed.
+    if (offset == 0 && !hasInsertedText) {
+      return this;
+    }
+
+    // Add the text between the last change and the end of the text.
+    if (offset < this.length) {
+      builder.append(this.slice(new TextSpan(offset, this.length - offset)));
+    }
+
+    return builder.toSourceText();
   }
 
   /**
