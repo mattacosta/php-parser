@@ -30,13 +30,9 @@ class TestSourceTextBuilder extends SourceTextBuilder {
 
   constructor(segments?: ReadonlyArray<ISourceText>) {
     super(segments);
-    // @ts-ignore Suppress TS2540: Override readonly property for testing purposes.
     SourceTextBuilder.MinSegmentLength = 4;
-    // @ts-ignore Suppress TS2540: Override readonly property for testing purposes.
     SourceTextBuilder.MaxSegmentLength = 8;
-    // @ts-ignore Suppress TS2540: Override readonly property for testing purposes.
     SourceTextBuilder.SegmentLimit = 4;
-    // @ts-ignore Suppress TS2540: Override readonly property for testing purposes.
     SourceTextBuilder.SegmentRebuildLimit = 2;
   }
 

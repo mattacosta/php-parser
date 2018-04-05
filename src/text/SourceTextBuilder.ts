@@ -32,14 +32,14 @@ export class SourceTextBuilder {
    *
    * @todo Experimental.
    */
-  protected static readonly MinSegmentLength = 1024;  // 1KB
+  protected static MinSegmentLength = 1024;  // 1KB
 
   /**
    * The maximum length of a rebuilt segment. Defaults to 1 << 24.
    *
    * @todo Experimental.
    */
-  protected static readonly MaxSegmentLength = 1 << 24;  // 16MB, 1<<27 = 128MB
+  protected static MaxSegmentLength = 1 << 24;  // 16MB, 1<<27 = 128MB
 
   /**
    * The maximum number of segments before the text is considered to be too
@@ -47,14 +47,14 @@ export class SourceTextBuilder {
    *
    * @todo Experimental.
    */
-  protected static readonly SegmentLimit = 64;
+  protected static SegmentLimit = 64;
 
   /**
    * The number of segments for an optimized rebuild. Defaults to 16.
    *
    * @todo Experimental.
    */
-  protected static readonly SegmentRebuildLimit = 16;
+  protected static SegmentRebuildLimit = 16;
 
   /**
    * The current length of the source text.
