@@ -27,12 +27,36 @@ import {
 } from '../../../../src/language/syntax/SyntaxNode.Generated';
 
 import { PhpSyntaxTree } from '../../../../src/parser/PhpSyntaxTree';
+import { SourceTextFactory } from '../../../../src/text/SourceTextFactory';
+import { SyntaxToken } from '../../../../src/language/syntax/SyntaxToken';
 import { TextSpan } from '../../../../src/text/TextSpan';
 import { TokenKind } from '../../../../src/language/TokenKind';
 
 describe('SyntaxToken', function() {
 
-  describe('#nextToken', function() {
+  describe('#getText()', function() {
+    const text = SourceTextFactory.from('<?php { ; }');
+    const tree = PhpSyntaxTree.fromText('<?php { ; }');
+
+    it('should get text', function() {
+      let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
+      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.equal(SyntaxToken.getText(node.openBrace, text), '{');
+    });
+    it('should get text at end of source', function() {
+      let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
+      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.equal(SyntaxToken.getText(node.closeBrace, text), '}');
+    });
+    it('should throw exception if token is not in source', function() {
+      let changedText = SourceTextFactory.from('<?php { }');
+      let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
+      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.throws(() => { SyntaxToken.getText(node.closeBrace, changedText); });
+    });
+  });
+
+  describe('#nextToken()', function() {
     it('should get next token in same node', function() {
       let text = '<?php {}';
       let tree = PhpSyntaxTree.fromText(text);
@@ -74,7 +98,7 @@ describe('SyntaxToken', function() {
     });
   });
 
-  describe('#previousToken', function() {
+  describe('#previousToken()', function() {
     it('should get previous token in same node', function() {
       let text = '<?php {}';
       let tree = PhpSyntaxTree.fromText(text);

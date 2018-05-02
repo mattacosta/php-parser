@@ -16,9 +16,10 @@
 
 'use strict';
 
-import { Debug } from '@mattacosta/php-common';
+import { ArgumentException, Debug } from '@mattacosta/php-common';
 
 import { INode } from '../node/INode';
+import { ISourceText } from '../../text/SourceText';
 import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTriviaFilter } from './ISyntaxTrivia';
@@ -175,6 +176,24 @@ export class SyntaxToken implements ISyntaxToken {
     let span = token.span;
     let width = span ? span.length : 0;
     return width > 0;
+  }
+
+  /**
+   * Gets the text of a token.
+   *
+   * @param {ISyntaxToken} token
+   *   A token in a syntax tree.
+   * @param {ISourceText} text
+   *   The text of the syntax tree that contains the token.
+   */
+  public static getText(token: ISyntaxToken, text: ISourceText): string {
+    if (token.span.end > text.length) {
+      throw new ArgumentException('Token is not in source text');
+    }
+    if (token.span.isEmpty) {
+      return '';
+    }
+    return text.substring(token.span.start, token.span.length);
   }
 
   /**
