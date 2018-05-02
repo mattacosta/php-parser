@@ -737,6 +737,16 @@ nodes:
 - name: TypeDeclaration
   extends: Statement
   abstract: true
+  properties:
+  - name: identifier
+    type: TokenNode
+  - name: openBrace
+    type: TokenNode
+  - name: members
+    type: NodeList
+    optional: true
+  - name: closeBrace
+    type: TokenNode
 
 # --- Statement nodes --------------------------------------------------------
 - name: Break
@@ -760,6 +770,7 @@ nodes:
     type: TokenNode
   - name: identifier
     type: TokenNode
+    inherited: true
   - name: extendsKeyword
     type: TokenNode
     optional: true
@@ -774,11 +785,14 @@ nodes:
     optional: true
   - name: openBrace
     type: TokenNode
+    inherited: true
   - name: members
     type: NodeList
     optional: true
+    inherited: true
   - name: closeBrace
     type: TokenNode
+    inherited: true
   visitorName: visitClassDeclaration
 # See also: ClassConstantElement
 - name: ClassConstantDeclaration
@@ -1125,6 +1139,7 @@ nodes:
     type: TokenNode
   - name: identifier
     type: TokenNode
+    inherited: true
   - name: extendsKeyword
     type: TokenNode
     optional: true
@@ -1133,11 +1148,14 @@ nodes:
     optional: true
   - name: openBrace
     type: TokenNode
+    inherited: true
   - name: members
     type: NodeList
     optional: true
+    inherited: true
   - name: closeBrace
     type: TokenNode
+    inherited: true
   visitorName: visitInterfaceDeclaration
 - name: Label
   extends: Statement
@@ -1312,13 +1330,17 @@ nodes:
     type: TokenNode
   - name: identifier
     type: TokenNode
+    inherited: true
   - name: openBrace
     type: TokenNode
+    inherited: true
   - name: members
     type: NodeList
     optional: true
+    inherited: true
   - name: closeBrace
     type: TokenNode
+    inherited: true
   visitorName: visitTraitDeclaration
 - name: TraitUse
   extends: Statement
@@ -1448,6 +1470,9 @@ nodes:
 # Used by fully qualified, partially qualified, and relative names.
 - name: Name
   abstract: true
+  properties:
+  - name: namespaceName
+    type: NodeList
 # Used by named and referenced trait aliases.
 - name: TraitAlias
   abstract: true
@@ -1610,6 +1635,7 @@ nodes:
     type: TokenNode
   - name: namespaceName
     type: NodeList
+    inherited: true
   visitorName: visitFullyQualifiedName
 - name: IncompleteMember
   properties:
@@ -1726,6 +1752,7 @@ nodes:
   properties:
   - name: namespaceName
     type: NodeList
+    inherited: true
   visitorName: visitPartiallyQualifiedName
 # See also: NamedType
 - name: PredefinedType
@@ -1782,6 +1809,7 @@ nodes:
     type: TokenNode
   - name: namespaceName
     type: NodeList
+    inherited: true
   visitorName: visitRelativeName
 # See also: StaticDeclaration
 # @todo Rename to StaticVariableElement?

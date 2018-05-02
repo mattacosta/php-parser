@@ -86,7 +86,7 @@ export class SyntaxNodeGenerator {
     this.text += 'export' + abstract + ' class ' + info.name + 'SyntaxNode extends ' + baseClass + ' {\n';
     this.text += '\n';
     if (info.properties) {
-      let properties = this.addProperties(info.properties);
+      let properties = this.addProperties(info.properties, info.abstract);
       if (properties.length > 0) {
         this.text += properties + '\n';
       }
@@ -235,15 +235,19 @@ export class SyntaxNodeGenerator {
     this.text += '\n';
   }
 
-  protected addProperties(properties: NodeProperty[]): string {
+  protected addProperties(properties: NodeProperty[], isAbstract: boolean): string {
     let text = '';
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];
-      if (prop.inherited || prop.type === 'TokenNode') {
-        continue;
-      }
       let type = this.getSyntaxTypes(prop);
-      text += '  protected _' + prop.name + '?: ' + type + (prop.optional ? ' | null' : '') + ';\n';
+      if (!isAbstract) {
+        if (prop.type !== 'TokenNode') {
+          text += '  protected _' + prop.name + '?: ' + type + (prop.optional ? ' | null' : '') + ';\n';
+        }
+      }
+      else {
+        text += '  public abstract readonly ' + prop.name + ': ' + type + (prop.optional ? ' | null' : '') + ';\n';
+      }
     }
     return text;
   }
