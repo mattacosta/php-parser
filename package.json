@@ -1,7 +1,7 @@
 {
     "name": "@mattacosta/php-parser",
     "description": "A cross-platform, error-tolerant PHP parser that provides a complete representation of your source code.",
-    "version": "1.0.0-beta.2",
+    "version": "1.0.0-beta.3",
     "author": "Matt Acosta",
     "license": "Apache-2.0",
     "repository": {
