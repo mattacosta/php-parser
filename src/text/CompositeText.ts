@@ -174,12 +174,12 @@ export class CompositeText extends SourceTextBase {
     let remainder = length;
 
     while (remainder > 0) {
-      let length = Math.min(remainder, this.sources[index].length - offset);
-      text += this.sources[index].substring(offset, length);
+      let segmentLength = Math.min(remainder, this.sources[index].length - offset);
+      text += this.sources[index].substring(offset, segmentLength);
 
       index++;
       offset = 0;
-      remainder -= length;
+      remainder -= segmentLength;
     }
 
     return text;

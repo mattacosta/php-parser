@@ -455,8 +455,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     }
 
     // Then find the first parent that contains the entire span.
-    let node = token.parent.firstAncestorOrSelf((node) => {
-      return node.fullSpan.contains(span);
+    let node = token.parent.firstAncestorOrSelf((value) => {
+      return value.fullSpan.contains(span);
     });
 
     if (node === null) {
