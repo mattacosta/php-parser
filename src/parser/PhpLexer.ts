@@ -371,7 +371,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.offset++;
 
     while (this.offset < this.end) {
-      if (length = this.tryScanOpenTag(allowShortOpen)) {
+      length = this.tryScanOpenTag(allowShortOpen);
+      if (length > 0) {
         // Do not return the opening tag as part of the inline text.
         this.offset = this.offset - length;
         break;
