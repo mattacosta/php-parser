@@ -27,11 +27,7 @@ import { TokenKind } from '../TokenKind';
  * Defines an interface for functions that can be used to filter `ISyntaxTrivia`
  * objects.
  */
-export interface ISyntaxTriviaFilter {
-
-  (trivia: ISyntaxTrivia): boolean;
-
-}
+export type SyntaxTriviaFilter = (trivia: ISyntaxTrivia) => boolean;
 
 /**
  * Defines an interface for trivia nodes attached to a token.

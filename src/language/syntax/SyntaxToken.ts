@@ -21,11 +21,11 @@ import { ArgumentException, Debug } from '@mattacosta/php-common';
 import { INode } from '../node/INode';
 import { ISourceText } from '../../text/SourceText';
 import { ISyntaxNode } from './ISyntaxNode';
-import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
-import { ISyntaxTriviaFilter } from './ISyntaxTrivia';
+import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxNode } from './SyntaxNode';
+import { SyntaxTriviaFilter } from './ISyntaxTrivia';
 import { SyntaxTriviaList } from './SyntaxTriviaList';
 import { TextSpan } from '../../text/TextSpan';
 import { TokenKind } from '../TokenKind';
@@ -201,15 +201,15 @@ export class SyntaxToken implements ISyntaxToken {
    *
    * @param {ISyntaxToken} token
    *   The token to search.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned. This filter is
    *   applied to the current token and tokens found within structured
    *   trivia, if any. If not provided, any token will match.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
+   * @param {SyntaxTriviaFilter=} triviaFilter
    *   A callback used to limit what structured trivia nodes are searched.
    *   If not provided, trivia is not searched.
    */
-  public static tryGetFirstToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+  public static tryGetFirstToken(token: ISyntaxToken, tokenFilter?: SyntaxTokenFilter, triviaFilter?: SyntaxTriviaFilter): ISyntaxToken | null {
     let leadingTrivia = token.leadingTrivia;
     if (leadingTrivia && triviaFilter) {
       let structuredToken = SyntaxTriviaList.tryGetFirstToken(leadingTrivia, triviaFilter, tokenFilter);
@@ -230,15 +230,15 @@ export class SyntaxToken implements ISyntaxToken {
    *
    * @param {ISyntaxToken} token
    *   The token to search.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned. This filter is
    *   applied to the current token and tokens found within structured
    *   trivia, if any. If not provided, any token will match.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
+   * @param {SyntaxTriviaFilter=} triviaFilter
    *   A callback used to limit what structured trivia nodes are searched.
    *   If not provided, trivia is not searched.
    */
-  public static tryGetLastToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+  public static tryGetLastToken(token: ISyntaxToken, tokenFilter?: SyntaxTokenFilter, triviaFilter?: SyntaxTriviaFilter): ISyntaxToken | null {
     if (!tokenFilter || tokenFilter(token)) {
       return token;
     }
@@ -259,15 +259,15 @@ export class SyntaxToken implements ISyntaxToken {
    *
    * @param {ISyntaxToken} token
    *   The token to search.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned. This filter is
    *   applied to the current token and tokens found within structured
    *   trivia, if any. If not provided, any token will match.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
+   * @param {SyntaxTriviaFilter=} triviaFilter
    *   A callback used to limit what structured trivia nodes are searched.
    *   If not provided, trivia is not searched.
    */
-  public static tryGetNextToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+  public static tryGetNextToken(token: ISyntaxToken, tokenFilter?: SyntaxTokenFilter, triviaFilter?: SyntaxTriviaFilter): ISyntaxToken | null {
     // @todo Instead of changing this method signature, add another method
     //   that also searches the leading trivia of a token.
 
@@ -302,15 +302,15 @@ export class SyntaxToken implements ISyntaxToken {
    *
    * @param {ISyntaxToken} token
    *   The token to search.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned. This filter is
    *   applied to the current token and tokens found within structured
    *   trivia, if any. If not provided, any token will match.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
+   * @param {SyntaxTriviaFilter=} triviaFilter
    *   A callback used to limit what structured trivia nodes are searched.
    *   If not provided, trivia is not searched.
    */
-  public static tryGetPreviousToken(token: ISyntaxToken, tokenFilter?: ISyntaxTokenFilter, triviaFilter?: ISyntaxTriviaFilter): ISyntaxToken | null {
+  public static tryGetPreviousToken(token: ISyntaxToken, tokenFilter?: SyntaxTokenFilter, triviaFilter?: SyntaxTriviaFilter): ISyntaxToken | null {
     // @todo Instead of changing this method signature, add another method
     //   that also searches the leading trivia of a token.
 

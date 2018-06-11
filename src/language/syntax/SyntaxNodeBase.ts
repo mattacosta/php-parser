@@ -28,13 +28,13 @@ import {
 import { DiagnosticSeverity } from '../../diagnostics/DiagnosticSeverity';
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
-import { ISyntaxNodeFilter } from './ISyntaxNodeQueryable';
 import { ISyntaxNodeOrList } from './ISyntaxNode';
-import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 import { SyntaxNodeExtensions } from './SyntaxNodeExtensions';
+import { SyntaxNodeFilter } from './ISyntaxNodeQueryable';
 import { SyntaxToken } from './SyntaxToken';
 import { TextSpan } from '../../text/TextSpan';
 
@@ -492,7 +492,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
+  public firstAncestorOrSelf(nodeFilter?: SyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
     let node: ISyntaxNodeOrList | null = this;
     while (node != null) {
       if (!nodeFilter || nodeFilter(node)) {
@@ -767,10 +767,10 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    *
    * @param {ISyntaxNodeOrList} node
    *   The parent node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
+  public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter /*, triviaFilter?: SyntaxTriviaFilter */): ISyntaxToken | null {
     // A recursive implementation would be simpler, but trees can be deep and
     // this method will probably be called quite a few times...
     let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
@@ -807,10 +807,10 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    *
    * @param {ISyntaxNodeOrList} node
    *   The parent node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
+  public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter /*, triviaFilter?: SyntaxTriviaFilter */): ISyntaxToken | null {
     let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
     stack.push(node.getAllChildrenReversed());
 
@@ -848,10 +848,10 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    *
    * @param {ISyntaxNodeOrList} node
    *   The current node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetNextToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+  public static tryGetNextToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
     while (node.parent != null) {
       let found = false;
       for (let child of node.parent.getAllChildren()) {
@@ -886,10 +886,10 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    *
    * @param {ISyntaxNodeOrList} node
    *   The current node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit what tokens are returned.
    */
-  public static tryGetPreviousToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+  public static tryGetPreviousToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
     while (node.parent != null) {
       let found = false;
       for (let child of node.parent.getAllChildrenReversed()) {

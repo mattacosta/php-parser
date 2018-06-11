@@ -20,8 +20,8 @@ import { IndexOutOfRangeException } from '@mattacosta/php-common';
 
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
-import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
-import { ISyntaxTrivia, ISyntaxTriviaFilter } from './ISyntaxTrivia';
+import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxTrivia, SyntaxTriviaFilter } from './ISyntaxTrivia';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxNode } from './SyntaxNode';
@@ -181,16 +181,16 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    *
    * @param {ISyntaxTriviaList} triviaList
    *   The list of trivia to search.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
+   * @param {SyntaxTriviaFilter=} triviaFilter
    *   A callback used to limit which trivia nodes are searched.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit which structured nodes are returned.
    *
    * @return {ISyntaxToken|null}
    *   The first matching token, or `null` if either a trivia filter was not
    *   provided or no tokens matched the token filter.
    */
-  public static tryGetFirstToken(triviaList: ISyntaxTriviaList, triviaFilter?: ISyntaxTriviaFilter, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+  public static tryGetFirstToken(triviaList: ISyntaxTriviaList, triviaFilter?: SyntaxTriviaFilter, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
     if (!triviaFilter) {
       return null;
     }
@@ -215,16 +215,16 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    *
    * @param {ISyntaxTriviaList} triviaList
    *   The list of trivia to search.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
+   * @param {SyntaxTriviaFilter=} triviaFilter
    *   A callback used to limit which trivia nodes are searched.
-   * @param {ISyntaxTokenFilter=} tokenFilter
+   * @param {SyntaxTokenFilter=} tokenFilter
    *   A callback used to limit which structured nodes are returned.
    *
    * @return {ISyntaxToken|null}
    *   The last matching token, or `null` if either a trivia filter was not
    *   provided or no tokens matched the token filter.
    */
-  public static tryGetLastToken(triviaList: ISyntaxTriviaList, triviaFilter?: ISyntaxTriviaFilter, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
+  public static tryGetLastToken(triviaList: ISyntaxTriviaList, triviaFilter?: SyntaxTriviaFilter, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
     if (!triviaFilter) {
       return null;
     }
