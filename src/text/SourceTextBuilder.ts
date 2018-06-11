@@ -286,7 +286,7 @@ export class SourceTextBuilder {
   private reset() {
     this.length = 0;
     this.segments = [];
-    this.sourceCount = 0
+    this.sourceCount = 0;
     this.sourceLength = 0;
     this.uniqueSources.clear();
   }

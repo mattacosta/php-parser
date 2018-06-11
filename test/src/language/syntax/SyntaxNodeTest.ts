@@ -75,7 +75,7 @@ describe('SyntaxNode', function() {
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
 
-    // ConstantSyntaxNode -> PartiallQualifiedSyntaxNode -> SyntaxList -> SyntaxToken
+    // ConstantSyntaxNode -> PartiallyQualifiedSyntaxNode -> SyntaxList -> SyntaxToken
 
     it('should get outermost node', function() {
       let tree = PhpSyntaxTree.fromText('<?php if(A){}');

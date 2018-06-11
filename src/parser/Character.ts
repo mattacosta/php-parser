@@ -245,7 +245,7 @@ export class CharacterInfo {
    * Determines if a character is whitespace or a line break.
    */
   public static isWhitespaceLike(ch: number): boolean {
-    return CharacterInfo.isLineBreak(ch) || CharacterInfo.isWhitespace(ch)
+    return CharacterInfo.isLineBreak(ch) || CharacterInfo.isWhitespace(ch);
   }
 
 }

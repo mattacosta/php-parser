@@ -16,7 +16,7 @@
 
 'use strict';
 
-import { Debug, Exception } from '@mattacosta/php-common';
+import { Debug } from '@mattacosta/php-common';
 
 import {
   AnonymousClassNode,
@@ -2048,7 +2048,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax: `ELSEIF ( expr ) statement`
    */
   protected parseElseIf(): ElseIfNode {
-    let elseIfKeyword = this.eat(TokenKind.ElseIf)
+    let elseIfKeyword = this.eat(TokenKind.ElseIf);
     let openParen = this.eat(TokenKind.OpenParen);
     let condition = this.parseExpression();
     let closeParen = this.eat(TokenKind.CloseParen);
@@ -3500,7 +3500,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
 
       if (this.isClassMemberIdentifier(this.currentToken.kind)) {
-        alias = this.eat(this.currentToken.kind)
+        alias = this.eat(this.currentToken.kind);
       }
       else if (!modifier) {
         alias = this.createMissingTokenWithError(TokenKind.Identifier, ErrorCode.ERR_MethodNameExpected);

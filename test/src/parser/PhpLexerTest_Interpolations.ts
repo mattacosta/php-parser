@@ -22,7 +22,6 @@ import * as mocha from 'mocha';
 import { LexerTestArgs } from '../Test';
 
 import { PhpLexer } from '../../../src/parser/PhpLexer';
-import { PhpLexerState } from '../../../src/parser/PhpLexerState';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
 import { TokenKindInfo, TokenKind } from '../../../src/language/TokenKind';
 

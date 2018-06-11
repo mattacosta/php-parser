@@ -26,7 +26,6 @@ import { INode } from './INode';
 import { ISyntaxNode, ISyntaxNodeOrList } from '../syntax/ISyntaxNode';
 import { NodeFlags } from './NodeFlags';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
-import { SyntaxNodeBase } from '../syntax/SyntaxNodeBase';
 
 /**
  * Provides a base class for all nodes in a tree (both terminal and non-terminal).
