@@ -773,7 +773,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
     // A recursive implementation would be simpler, but trees can be deep and
     // this method will probably be called quite a few times...
-    let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
+    let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
     stack.push(node.getAllChildren());
 
     while (stack.length > 0) {
@@ -811,7 +811,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    *   A callback used to limit what tokens are returned.
    */
   public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
-    let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
+    let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
     stack.push(node.getAllChildrenReversed());
 
     while (stack.length > 0) {
