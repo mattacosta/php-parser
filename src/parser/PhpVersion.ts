@@ -37,7 +37,7 @@ export class PhpVersionInfo {
   /**
    * Gets a string representation of the specified PHP version.
    */
-  static getText(version: PhpVersion): string {
+  public static getText(version: PhpVersion): string {
     switch (version) {
       case PhpVersion.PHP7_0:
         return '7.0';

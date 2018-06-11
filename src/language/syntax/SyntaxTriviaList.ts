@@ -69,7 +69,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
   /**
    * @todo Experimental.
    */
-  *[Symbol.iterator](): IterableIterator<SyntaxTrivia> {
+  public *[Symbol.iterator](): IterableIterator<SyntaxTrivia> {
     if (!this.node) {
       return;
     }
