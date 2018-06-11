@@ -31,7 +31,8 @@ export class NodeExtensions {
    *   The parent node.
    */
   public static childCount(node: INode): number {
-    let n = 0, count = node.count;
+    let n = 0;
+    let count = node.count;
     for (let i = 0; i < count; i++) {
       let child = node.childAt(i);
       if (child) {

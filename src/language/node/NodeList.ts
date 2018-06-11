@@ -641,7 +641,8 @@ export class LongChildListNode extends ManyChildListNode {
       throw new ArgumentOutOfRangeException();
     }
 
-    let low = 0, high = this.offsets.length;
+    let low = 0;
+    let high = this.offsets.length;
     while (low <= high) {
       let middle = low + ((high - low) >> 1);
       if (this.offsets[middle] > relativeOffset) {

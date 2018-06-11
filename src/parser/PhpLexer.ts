@@ -1616,7 +1616,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected scanNumber(): number {
     const numberStart = this.offset;
 
-    let numberEnd = 0, ch = 0;
+    let ch = 0;
+    let numberEnd = 0;
     let isDouble = false;
 
     while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {

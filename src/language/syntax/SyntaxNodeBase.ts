@@ -650,7 +650,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     let node = parent.node;
     let offset = parent.offset;
 
-    let index = 0, relativeIndex = 0;
+    let index = 0;
+    let relativeIndex = 0;
     let count = node.count;
     while (index < count) {
       let child = node.childAt(index);
@@ -706,7 +707,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   protected static relativeChildAt(parent: SyntaxNodeBase, relativeIndex: number): ISyntaxNode | ISyntaxToken {
     let child: INode | null = null;
-    let nodeIndex = 0, listIndex = relativeIndex;
+    let nodeIndex = 0;
+    let listIndex = relativeIndex;
     let offset = parent.offset;
 
     // Find the actual index of the child in the current node, its index in the
