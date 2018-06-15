@@ -57,6 +57,47 @@ export class NodeGenerator {
       '\n';
   }
 
+  public static generate(list: NodeClass[]): string {
+    let nameSort = list.slice().sort((a, b) => {
+      if (a.name > b.name) {
+        return 1;
+      }
+      if (a.name < b.name) {
+        return -1;
+      }
+      return 0;
+    });
+    // @todo This should really check dependencies, but it works. For now.
+    let abstractSort = list.slice().sort((a, b) => {
+      if (a.extends && !b.extends) {
+        return 1;
+      }
+      if (!a.extends && b.extends) {
+        return -1;
+      }
+      if (a.abstract && !b.abstract) {
+        return -1;
+      }
+      if (!a.abstract && b.abstract) {
+        return 1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      if (a.name < b.name) {
+        return -1;
+      }
+      return 0;
+    });
+
+    let generator = new NodeGenerator();
+    generator.addImports(nameSort);
+    for (let i = 0; i < abstractSort.length; i++) {
+      generator.addClass(abstractSort[i], i);
+    }
+    return generator.text;
+  }
+
   protected addAcceptMethods(visitorName: string, className: string): string {
     if (!visitorName) {
       console.log(className + 'Node: Missing visitorName property.');
@@ -136,7 +177,6 @@ export class NodeGenerator {
       this.text += '\n';
     }
     this.text += '}\n';
-    this.text += '\n';
   }
 
   protected addConstructor(properties: NodeProperty[], className: string): string {
@@ -366,47 +406,6 @@ export class NodeGenerator {
       return type;
     }
     return type + 'Node';
-  }
-
-  public static generate(list: NodeClass[]): string {
-    let nameSort = list.slice().sort((a, b) => {
-      if (a.name > b.name) {
-        return 1;
-      }
-      if (a.name < b.name) {
-        return -1;
-      }
-      return 0;
-    });
-    // @todo This should really check dependencies, but it works. For now.
-    let abstractSort = list.slice().sort((a, b) => {
-      if (a.extends && !b.extends) {
-        return 1;
-      }
-      if (!a.extends && b.extends) {
-        return -1;
-      }
-      if (a.abstract && !b.abstract) {
-        return -1;
-      }
-      if (!a.abstract && b.abstract) {
-        return 1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-      if (a.name < b.name) {
-        return -1;
-      }
-      return 0;
-    });
-
-    let generator = new NodeGenerator();
-    generator.addImports(nameSort);
-    for (let i = 0; i < abstractSort.length; i++) {
-      generator.addClass(abstractSort[i], i);
-    }
-    return generator.text;
   }
 
 }

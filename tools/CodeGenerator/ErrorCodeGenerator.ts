@@ -54,6 +54,12 @@ export class ErrorCodeGenerator {
       '\n';
   }
 
+  public static generate(diagnostics: DiagnosticInfo[]): string {
+    let generator = new ErrorCodeGenerator();
+    generator.addEnum(diagnostics);
+    return generator.text;
+  }
+
   protected addEnum(diagnostics: DiagnosticInfo[]) {
     this.text += 'export enum ErrorCode {\n';
     this.text += '\n';
@@ -87,13 +93,6 @@ export class ErrorCodeGenerator {
 
     this.text += '\n';
     this.text += '}\n';
-    this.text += '\n';
-  }
-
-  public static generate(diagnostics: DiagnosticInfo[]): string {
-    let generator = new ErrorCodeGenerator();
-    generator.addEnum(diagnostics);
-    return generator.text;
   }
 
 }

@@ -54,6 +54,14 @@ export class ErrorCodeInfoGenerator {
       '\n';
   }
 
+  public static generate(diagnostics: DiagnosticInfo[]): string {
+    let generator = new ErrorCodeInfoGenerator();
+    generator.addImports();
+    generator.addErrorCodeDataInterface();
+    generator.addClass(diagnostics);
+    return generator.text;
+  }
+
   protected addClass(diagnostics: DiagnosticInfo[]) {
     this.text += 'export class ErrorCodeInfo {\n';
     this.text += '\n';
@@ -111,7 +119,7 @@ export class ErrorCodeInfoGenerator {
     }
 
     let text = '  public static isInfo(code: ErrorCode): boolean {\n';
-    text += '    switch (code) {\n'
+    text += '    switch (code) {\n';
     if (info.length > 0) {
       text += info.join('\n') + '\n';
       text += '        return true;\n';
@@ -134,7 +142,7 @@ export class ErrorCodeInfoGenerator {
     }
 
     let text = '  public static isWarning(code: ErrorCode): boolean {\n';
-    text += '    switch (code) {\n'
+    text += '    switch (code) {\n';
     if (warnings.length > 0) {
       text += warnings.join('\n') + '\n';
       text += '        return true;\n';
@@ -160,14 +168,6 @@ export class ErrorCodeInfoGenerator {
     text += '    }\n';
     text += '  }\n';
     return text;
-  }
-
-  public static generate(diagnostics: DiagnosticInfo[]): string {
-    let generator = new ErrorCodeInfoGenerator();
-    generator.addImports();
-    generator.addErrorCodeDataInterface();
-    generator.addClass(diagnostics);
-    return generator.text;
   }
 
 }
