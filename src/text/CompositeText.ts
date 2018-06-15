@@ -104,6 +104,14 @@ export class CompositeText extends SourceTextBase {
   }
 
   /**
+   * Compares two offsets and returns the difference.
+   */
+  private static offsetComparer(a: number, b: number): number {
+    // Since offsets are always positive integers, just subtract.
+    return a - b;
+  }
+
+  /**
    * @inheritDoc
    */
   public charCodeAt(offset: number): number {
@@ -198,14 +206,6 @@ export class CompositeText extends SourceTextBase {
     // should be, so the offset must be in the previous segment.
     index = index >= 0 ? index : (~index - 1);
     return new CompositePosition(index, offset - this.segmentOffsets[index]);
-  }
-
-  /**
-   * Compares two offsets and returns the difference.
-   */
-  private static offsetComparer(a: number, b: number): number {
-    // Since offsets are always positive integers, just subtract.
-    return a - b;
   }
 
 }

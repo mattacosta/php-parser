@@ -41,20 +41,6 @@ import { TokenKind, TokenKindInfo } from '../TokenKind';
 export class NodeFactory {
 
   /**
-   * The maximum number of children a node may have before being uncachable.
-   */
-  private static readonly ChildLimit = 3;
-
-  /**
-   * The maximum list size before lists are created with pre-calculated offsets.
-   * A high value, will increase the compute time to find an offset, while a low
-   * value will increase the memory usage of list nodes.
-   *
-   * @todo Determine the ideal limit.
-   */
-  private static readonly ShortListLimit = 8;
-
-  /**
    * A trivia node representing a CRLF token.
    */
   protected static readonly CRLF = new TriviaNode(TokenKind.NewLine, 2);
@@ -92,6 +78,20 @@ export class NodeFactory {
    * @todo Determine the ideal size: 15=32768, 16=65536.
    */
   protected static readonly NodeCache = new ObjectCache<INode>(15);
+
+  /**
+   * The maximum number of children a node may have before being uncachable.
+   */
+  private static readonly ChildLimit = 3;
+
+  /**
+   * The maximum list size before lists are created with pre-calculated offsets.
+   * A high value, will increase the compute time to find an offset, while a low
+   * value will increase the memory usage of list nodes.
+   *
+   * @todo Determine the ideal limit.
+   */
+  private static readonly ShortListLimit = 8;
 
   /**
    * Creates a `NodeFactory` object.

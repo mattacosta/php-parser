@@ -26,6 +26,11 @@ import { StringText } from './StringText';
 export class SourceTextFactory {
 
   /**
+   * An empty source text container.
+   */
+  public static readonly EmptyText: ISourceText = new StringText('');
+
+  /**
    * The maximum length of a string before a more efficient source text
    * container is created.
    *
@@ -33,11 +38,6 @@ export class SourceTextFactory {
    * @todo Unused.
    */
   protected static readonly LargeTextLimit: number = 4 * 1024;  // 4KB
-
-  /**
-   * An empty source text container.
-   */
-  public static readonly EmptyText: ISourceText = new StringText('');
 
   /**
    * Creates a source text object from a string.

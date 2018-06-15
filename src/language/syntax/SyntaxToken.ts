@@ -37,6 +37,11 @@ import { TokenNode } from '../node/TokenNode';
 export class SyntaxToken implements ISyntaxToken {
 
   /**
+   * @inheritDoc
+   */
+  public readonly parent: ISyntaxNode;
+
+  /**
    * @todo Experimental.
    */
   protected readonly index: number;
@@ -53,11 +58,6 @@ export class SyntaxToken implements ISyntaxToken {
    * @see SyntaxToken.fullSpan
    */
   protected readonly offset: number;
-
-  /**
-   * @inheritDoc
-   */
-  public readonly parent: ISyntaxNode;
 
   /**
    * Constructs a `SyntaxToken` object.
@@ -128,45 +128,6 @@ export class SyntaxToken implements ISyntaxToken {
     return this.node
       ? new TextSpan(this.offset + this.node.leadingTriviaWidth, this.node.width)
       : new TextSpan(this.offset, 0);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public equals(value: SyntaxToken): boolean {
-    if (this === value) {
-      return true;
-    }
-    if (this.offset == value.offset && this.index == value.index && this.parent.equals(value.parent)) {
-      return NodeExtensions.equals(this.node, value.node);
-    }
-    return false;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public nextToken(includeZeroWidth = false): ISyntaxToken | null {
-    if (this.node === null) {
-      return null;
-    }
-    if (!includeZeroWidth) {
-      return SyntaxToken.tryGetNextToken(this, SyntaxToken.hasWidth);
-    }
-    return SyntaxToken.tryGetNextToken(this);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public previousToken(includeZeroWidth = false): ISyntaxToken | null {
-    if (this.node === null) {
-      return null;
-    }
-    if (!includeZeroWidth) {
-      return SyntaxToken.tryGetPreviousToken(this, SyntaxToken.hasWidth);
-    }
-    return SyntaxToken.tryGetPreviousToken(this);
   }
 
   /**
@@ -338,6 +299,45 @@ export class SyntaxToken implements ISyntaxToken {
 
     // Not found in parent, check the grandparent.
     return SyntaxNode.tryGetPreviousToken(token.parent, tokenFilter);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public equals(value: SyntaxToken): boolean {
+    if (this === value) {
+      return true;
+    }
+    if (this.offset == value.offset && this.index == value.index && this.parent.equals(value.parent)) {
+      return NodeExtensions.equals(this.node, value.node);
+    }
+    return false;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public nextToken(includeZeroWidth = false): ISyntaxToken | null {
+    if (this.node === null) {
+      return null;
+    }
+    if (!includeZeroWidth) {
+      return SyntaxToken.tryGetNextToken(this, SyntaxToken.hasWidth);
+    }
+    return SyntaxToken.tryGetNextToken(this);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public previousToken(includeZeroWidth = false): ISyntaxToken | null {
+    if (this.node === null) {
+      return null;
+    }
+    if (!includeZeroWidth) {
+      return SyntaxToken.tryGetPreviousToken(this, SyntaxToken.hasWidth);
+    }
+    return SyntaxToken.tryGetPreviousToken(this);
   }
 
 }

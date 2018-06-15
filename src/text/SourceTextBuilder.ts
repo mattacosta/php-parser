@@ -96,6 +96,26 @@ export class SourceTextBuilder {
   }
 
   /**
+   * Merges the specified number of segments into the starting segment.
+   *
+   * @param {number} start
+   *   The first segment to merge.
+   * @param {number} length
+   *   The number of segments to merge.
+   */
+  protected static merge(segments: ISourceText[], start: number, length: number) {
+    if (start < 0 || start + length > segments.length) {
+      throw new ArgumentOutOfRangeException();
+    }
+
+    let text = '';
+    for (let i = start; i < start + length; i++) {
+      text += segments[i].substring(0);
+    }
+    segments.splice(start, length, SourceTextFactory.from(text));
+  }
+
+  /**
    * Appends a text segment to the source text.
    *
    * @param {ISourceText} segment
@@ -173,26 +193,6 @@ export class SourceTextBuilder {
         this.sourceCount++;
       }
     }
-  }
-
-  /**
-   * Merges the specified number of segments into the starting segment.
-   *
-   * @param {number} start
-   *   The first segment to merge.
-   * @param {number} length
-   *   The number of segments to merge.
-   */
-  protected static merge(segments: ISourceText[], start: number, length: number) {
-    if (start < 0 || start + length > segments.length) {
-      throw new ArgumentOutOfRangeException();
-    }
-
-    let text = '';
-    for (let i = start; i < start + length; i++) {
-      text += segments[i].substring(0);
-    }
-    segments.splice(start, length, SourceTextFactory.from(text));
   }
 
   /**
