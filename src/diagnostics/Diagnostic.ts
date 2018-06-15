@@ -53,12 +53,7 @@ export abstract class Diagnostic implements IDiagnostic {
   /**
    * A bit mask used to store and retrieve severity information.
    */
-  private static readonly SEVERITY_MASK = (1 << 3) - 1;  // 0b000111
-
-  /**
-   * An integer that stores the original and current severity of the diagnostic.
-   */
-  protected internalSeverity: number;
+  private static readonly SeverityMask = (1 << 3) - 1;  // 0b000111
 
   /**
    * A list of replacement values for a diagnostic message.
@@ -69,6 +64,11 @@ export abstract class Diagnostic implements IDiagnostic {
    * @inheritDoc
    */
   public readonly code: number;
+
+  /**
+   * An integer that stores the original and current severity of the diagnostic.
+   */
+  protected internalSeverity: number;
 
   /**
    * Constructs a `Diagnostic` object.
@@ -112,21 +112,21 @@ export abstract class Diagnostic implements IDiagnostic {
    * @inheritDoc
    */
   public get severity(): DiagnosticSeverity {
-    return this.internalSeverity & Diagnostic.SEVERITY_MASK;
+    return this.internalSeverity & Diagnostic.SeverityMask;
   }
 
   /**
    * Sets the original severity of the diagnostic.
    */
   protected setOriginalSeverity(severity: DiagnosticSeverity) {
-    this.internalSeverity = (this.internalSeverity & Diagnostic.SEVERITY_MASK) | (severity << 3);
+    this.internalSeverity = (this.internalSeverity & Diagnostic.SeverityMask) | (severity << 3);
   }
 
   /**
    * Sets the current severity of the diagnostic.
    */
   protected setSeverity(severity: DiagnosticSeverity) {
-    this.internalSeverity = (this.internalSeverity & (Diagnostic.SEVERITY_MASK << 3)) | severity;
+    this.internalSeverity = (this.internalSeverity & (Diagnostic.SeverityMask << 3)) | severity;
   }
 
 }
