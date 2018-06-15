@@ -50,7 +50,7 @@ describe('SourceTextBuilder', function() {
 
   let characters = createSourceTextList(
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
   );
 
   describe('#rebuildSegments()', function() {
@@ -62,7 +62,7 @@ describe('SourceTextBuilder', function() {
       assert.equal(text.sources[1].length, 2);
     });
     it('should not merge a large segment', () => {
-      const short = SourceTextFactory.from('AB')
+      const short = SourceTextFactory.from('AB');
       const long = SourceTextFactory.from('1234567');
       // Last 3 elements are just padding to force a rebuild.
       let builder = new TestSourceTextBuilder([long, short, short, short, short]);

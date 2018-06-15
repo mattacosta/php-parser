@@ -29,11 +29,7 @@ import { TextSpan } from '../../src/text/TextSpan';
 import { Token } from '../../src/parser/Token';
 import { TokenKind, TokenKindInfo } from '../../src/language/TokenKind';
 
-interface ITestCallback {
-
-  (children: ISyntaxNode[], text: string): void;
-
-}
+type TestCallback = (children: ISyntaxNode[], text: string) => void;
 
 export class DiagnosticTestArgs {
 
@@ -49,7 +45,7 @@ export class LexerTestArgs {
 
 export class ParserTestArgs {
 
-  constructor(public text: string, public description?: string, public testCallback?: ITestCallback) {}
+  constructor(public text: string, public description?: string, public testCallback?: TestCallback) {}
 
 }
 
@@ -64,24 +60,24 @@ export class Test {
           const prefix = openTagWithEcho ? '<?= ' : '<?php ';
           const tree = PhpSyntaxTree.fromText(prefix + args.text);
 
-          let i = 0;
+          let n = 0;
           for (let d of tree.getDiagnostics()) {
             // All expected diagnostics have been tested, skip the rest.
-            if (i >= args.expectedCodes.length) {
+            if (n >= args.expectedCodes.length) {
               break;
             }
             // The diagnostic at this position can be ignored.
-            if (args.expectedCodes[i] === void 0) {
-              i++;
+            if (args.expectedCodes[n] === void 0) {
+              n++;
               continue;
             }
-            assert.equal(d.code, args.expectedCodes[i], 'diagnostic code');
-            assert.equal(d.offset, args.expectedOffsets[i] + prefix.length, 'diagnostic offset');
-            i++;
+            assert.equal(d.code, args.expectedCodes[n], 'diagnostic code');
+            assert.equal(d.offset, args.expectedOffsets[n] + prefix.length, 'diagnostic offset');
+            n++;
           }
 
           // Finished early...
-          assert.equal(i, args.expectedCodes.length, 'diagnostic not found');
+          assert.equal(n, args.expectedCodes.length, 'diagnostic not found');
         });
       }
       else {
@@ -136,7 +132,8 @@ export class Test {
       let args = tests[i];
       it(args.description || args.text, () => {
         let state = PhpLexerState.InHostLanguage;
-        let token: Token, tokenCount: number = 0;
+        let token: Token;
+        let tokenCount: number = 0;
         let lexer = !customLexer ? new PhpLexer(SourceTextFactory.from(args.text)) : customLexer;
 
         do {

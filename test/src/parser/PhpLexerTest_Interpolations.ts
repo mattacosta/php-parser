@@ -23,7 +23,7 @@ import { LexerTestArgs } from '../Test';
 
 import { PhpLexer } from '../../../src/parser/PhpLexer';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
-import { TokenKindInfo, TokenKind } from '../../../src/language/TokenKind';
+import { TokenKind, TokenKindInfo } from '../../../src/language/TokenKind';
 
 function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) {
   for (let i = 0; i < tests.length; i++) {

@@ -140,7 +140,7 @@ describe('PhpLexer', function() {
       Test.assertTokens(tests);
     });
 
-    describe('string literals', function () {
+    describe('string literals', function() {
       let tests = [
         new LexerTestArgs('<?php \'a\'', 'single quote', [TokenKind.StringLiteral], ['\'a\'']),
         new LexerTestArgs('<?php \'$a\'', 'single quote with variable', [TokenKind.StringLiteral], ['\'$a\'']),
