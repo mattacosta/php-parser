@@ -137,4 +137,4 @@ describe('PhpParser', function() {
     assertWithOptions(syntaxTests, options);
   });
 
-})
+});

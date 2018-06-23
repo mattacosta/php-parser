@@ -28,13 +28,13 @@ import {
 import { DiagnosticSeverity } from '../../diagnostics/DiagnosticSeverity';
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
-import { ISyntaxNodeFilter } from './ISyntaxNodeQueryable';
 import { ISyntaxNodeOrList } from './ISyntaxNode';
-import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 import { SyntaxNodeExtensions } from './SyntaxNodeExtensions';
+import { SyntaxNodeFilter } from './ISyntaxNodeQueryable';
 import { SyntaxToken } from './SyntaxToken';
 import { TextSpan } from '../../text/TextSpan';
 
@@ -63,6 +63,11 @@ class NodeIteration {
 export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
 
   /**
+   * @inheritDoc
+   */
+  public readonly parent: ISyntaxNode | null;
+
+  /**
    * An object containing the metadata for this node.
    */
   protected readonly node: INode;
@@ -71,11 +76,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * The absolute location of this node in the source text.
    */
   protected readonly offset: number;
-
-  /**
-   * @inheritDoc
-   */
-  public readonly parent: ISyntaxNode | null;
 
   /**
    * Constructs a `SyntaxNodeBase` object.
@@ -207,54 +207,285 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   }
 
   /**
-   * Gets the child node at the given index, if it has been created.
+   * Attempts to get the first token within the given node.
    *
-   * @see SyntaxNodeBase.defineChildAt()
+   * @param {ISyntaxNodeOrList} node
+   *   The parent node.
+   * @param {SyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
    */
-  protected abstract childAt(index: number): ISyntaxNodeOrList | null;
+  public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter /*, triviaFilter?: SyntaxTriviaFilter */): ISyntaxToken | null {
+    // A recursive implementation would be simpler, but trees can be deep and
+    // this method will probably be called quite a few times...
+    let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
+    stack.push(node.getAllChildren());
 
-  /**
-   * Gets the child node at the given index, creating it, if necessary.
-   *
-   * @todo Merge into `childAt()` by adding a `createNode` parameter?
-   */
-  protected abstract defineChildAt(index: number): ISyntaxNodeOrList | null;
+    while (stack.length > 0) {
+      // Suppress TS2322: Result cannot be undefined due to while condition.
+      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
+      let result = iterator.next();
+      if (result.value) {
+        let child = result.value;
+        if (child.isToken) {
+          let token = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
+          if (token !== null) {
+            return token;
+          }
+        }
 
-  /**
-   * Calculates the offset of the child at the given index.
-   */
-  protected offsetAt(index: number): number {
-    let offset = 0;
-    while (index > 0) {
-      index--;
+        if (!result.done) {
+          stack.push(iterator);
+        }
 
-      // If a syntax node to the left has already been created, try and avoid
-      // the worst case scenario of computing the offset of every child node.
-      let childSyntaxNode = this.childAt(index);
-      if (childSyntaxNode instanceof SyntaxNodeBase) {
-        return childSyntaxNode.offset + childSyntaxNode.node.fullWidth + offset;
-      }
-
-      let childNode = this.node.childAt(index);
-      if (childNode !== null) {
-        offset += childNode.fullWidth;
+        if (!child.isToken) {
+          stack.push((<ISyntaxNode>child).getAllChildren());
+        }
       }
     }
-    return this.offset + offset;
+
+    return null;
   }
 
   /**
-   * Determines the relative index of a child.
+   * Attempts to get the last token within the given node.
+   *
+   * @param {ISyntaxNodeOrList} node
+   *   The parent node.
+   * @param {SyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
    */
-  protected relativeIndexAt(index: number): number {
-    let relativeIndex = 0;
-    for (let i = 0; i < index; i++) {
-      let child = this.node.childAt(i);
-      if (child) {
-        relativeIndex += child.isList ? child.count : 1;
+  public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter /*, triviaFilter?: SyntaxTriviaFilter */): ISyntaxToken | null {
+    let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
+    stack.push(node.getAllChildrenReversed());
+
+    while (stack.length > 0) {
+      // Suppress TS2322: Result cannot be undefined due to while condition.
+      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
+      let result = iterator.next();
+      if (result.value) {
+        let child = result.value;
+        if (child.isToken) {
+          let token = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
+          if (token !== null) {
+            return token;
+          }
+        }
+
+        if (!result.done) {
+          stack.push(iterator);
+        }
+
+        if (!child.isToken) {
+          stack.push((<ISyntaxNode>child).getAllChildrenReversed());
+        }
       }
     }
-    return relativeIndex;
+
+    return null;
+  }
+
+  /**
+   * Attempts to get the first token within the next node.
+   *
+   * So if parent node `A` has two children `B` and `C`, and the given node
+   * is `B`, then this method will return the first token within `C`.
+   *
+   * @param {ISyntaxNodeOrList} node
+   *   The current node.
+   * @param {SyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
+   */
+  public static tryGetNextToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
+    while (node.parent != null) {
+      let found = false;
+      for (let child of node.parent.getAllChildren()) {
+        if (found) {
+          if (child.isToken) {
+            let result = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+          else {
+            let result = SyntaxNodeBase.tryGetFirstToken(<ISyntaxNode>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+        }
+        else if (!child.isToken && node.equals(child)) {
+          found = true;
+        }
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /**
+   * Attempts to get the last token within the previous node.
+   *
+   * So if parent node `A` has two children `B` and `C`, and the given node
+   * is `C`, then this method will return the last token within `B`.
+   *
+   * @param {ISyntaxNodeOrList} node
+   *   The current node.
+   * @param {SyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit what tokens are returned.
+   */
+  public static tryGetPreviousToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
+    while (node.parent != null) {
+      let found = false;
+      for (let child of node.parent.getAllChildrenReversed()) {
+        if (found) {
+          if (child.isToken) {
+            let result = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+          else {
+            let result = SyntaxNodeBase.tryGetLastToken(<ISyntaxNode>child, tokenFilter);
+            if (result !== null) {
+              return result;
+            }
+          }
+        }
+        else if (!child.isToken && node.equals(child)) {
+          found = true;
+        }
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /**
+   * Finds the child token at the given offset.
+   *
+   * @param {SyntaxNodeBase} parent
+   *   The parent node.
+   * @param {number} targetOffset
+   *   The offset of the token.
+   *
+   * @todo Experimental.
+   */
+  protected static findChildTokenAt(parent: SyntaxNodeBase, targetOffset: number): ISyntaxToken {
+    Debug.assert(parent.fullSpan.contains(targetOffset));
+
+    let node = parent.node;
+    let offset = parent.offset;
+
+    let index = 0;
+    let relativeIndex = 0;
+    let count = node.count;
+    while (index < count) {
+      let child = node.childAt(index);
+      if (child) {
+        let end = offset + child.fullWidth;
+        if (targetOffset < end) {
+          if (child.isToken) {
+            // If the child is a token then the parent must be a node.
+            return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
+          }
+
+          // Found a node, search through its children.
+          // @todo Technically this could be done recursively.
+          let syntaxNode = parent.defineChildAt(index);
+          if (!(syntaxNode instanceof SyntaxNodeBase)) {
+            // Either the child did not exist (which shouldn't be possible) or
+            // the parent created a child that didn't derive from its base type.
+            throw new InvalidOperationException();
+          }
+
+          node = child;
+          parent = syntaxNode;
+
+          index = child.indexAtOffset(targetOffset - offset);
+          count = child.count;
+
+          offset += child.offsetAt(index);
+          relativeIndex += NodeExtensions.childCount(child);
+          continue;
+        }
+        else {
+          // Target offset is not within this child.
+          offset = end;
+          relativeIndex += NodeExtensions.childCount(child);
+        }
+      }
+      index++;
+    }
+
+    // Parent did not contain the specified offset.
+    throw new Exception('Token not found');
+  }
+
+  /**
+   * Gets a descendant node or token based on a relative index.
+   *
+   * @param {SyntaxNodeBase} parent
+   *   The parent node.
+   * @param {number} relativeIndex
+   *   The child index relative to any lists contained in the parent.
+   *
+   * @todo Experimental.
+   */
+  protected static relativeChildAt(parent: SyntaxNodeBase, relativeIndex: number): ISyntaxNode | ISyntaxToken {
+    let child: INode | null = null;
+    let nodeIndex = 0;
+    let listIndex = relativeIndex;
+    let offset = parent.offset;
+
+    // Find the actual index of the child in the current node, its index in the
+    // child list (if any), and its offset.
+    let count = parent.node.count;
+    while (nodeIndex < count) {
+      child = parent.node.childAt(nodeIndex);
+      if (child) {
+        let size = child.isList ? child.count : 1;
+        if (listIndex < size) {
+          break;
+        }
+        listIndex -= size;
+        offset += child.fullWidth;
+      }
+      nodeIndex++;
+    }
+
+    if (!child) {
+      throw new Exception('Child node not found');
+    }
+
+    let syntaxNode = parent.defineChildAt(nodeIndex);
+    if (syntaxNode) {
+      if (!child.isList) {
+        // If the node is not a list, then neither is the syntax node.
+        return <ISyntaxNode>syntaxNode;
+      }
+
+      if (!(syntaxNode instanceof SyntaxNodeBase)) {
+        // The parent created a child that didn't derive from its base type.
+        throw new InvalidOperationException();
+      }
+
+      let syntaxListChild = syntaxNode.defineChildAt(listIndex);
+      if (syntaxListChild) {
+        // Lists can only contain nodes.
+        return <ISyntaxNode>syntaxListChild;
+      }
+
+      // Found a token in a delimited list.
+      child = child.childAt(listIndex);
+      offset = syntaxNode.offsetAt(listIndex);
+
+      if (!child) {
+        throw new Exception('List nodes cannot contain undefined or null entries');
+      }
+    }
+
+    // The child must be a token (and its parent must be a node).
+    return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
   }
 
   /**
@@ -455,8 +686,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     }
 
     // Then find the first parent that contains the entire span.
-    let node = token.parent.firstAncestorOrSelf((node) => {
-      return node.fullSpan.contains(span);
+    let node = token.parent.firstAncestorOrSelf((value) => {
+      return value.fullSpan.contains(span);
     });
 
     if (node === null) {
@@ -492,7 +723,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
+  public firstAncestorOrSelf(nodeFilter?: SyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
     let node: ISyntaxNodeOrList | null = this;
     while (node != null) {
       if (!nodeFilter || nodeFilter(node)) {
@@ -592,6 +823,57 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   }
 
   /**
+   * Gets the child node at the given index, if it has been created.
+   *
+   * @see SyntaxNodeBase.defineChildAt()
+   */
+  protected abstract childAt(index: number): ISyntaxNodeOrList | null;
+
+  /**
+   * Gets the child node at the given index, creating it, if necessary.
+   *
+   * @todo Merge into `childAt()` by adding a `createNode` parameter?
+   */
+  protected abstract defineChildAt(index: number): ISyntaxNodeOrList | null;
+
+  /**
+   * Calculates the offset of the child at the given index.
+   */
+  protected offsetAt(index: number): number {
+    let offset = 0;
+    while (index > 0) {
+      index--;
+
+      // If a syntax node to the left has already been created, try and avoid
+      // the worst case scenario of computing the offset of every child node.
+      let childSyntaxNode = this.childAt(index);
+      if (childSyntaxNode instanceof SyntaxNodeBase) {
+        return childSyntaxNode.offset + childSyntaxNode.node.fullWidth + offset;
+      }
+
+      let childNode = this.node.childAt(index);
+      if (childNode !== null) {
+        offset += childNode.fullWidth;
+      }
+    }
+    return this.offset + offset;
+  }
+
+  /**
+   * Determines the relative index of a child.
+   */
+  protected relativeIndexAt(index: number): number {
+    let relativeIndex = 0;
+    for (let i = 0; i < index; i++) {
+      let child = this.node.childAt(i);
+      if (child) {
+        relativeIndex += child.isList ? child.count : 1;
+      }
+    }
+    return relativeIndex;
+  }
+
+  /**
    * @todo Document getTriviaDiagnostics().
    */
   private getTriviaDiagnostics(trivia: INode): SyntaxDiagnostic[] {
@@ -632,286 +914,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     }
 
     return diagnostics;
-  }
-
-  /**
-   * Finds the child token at the given offset.
-   *
-   * @param {SyntaxNodeBase} parent
-   *   The parent node.
-   * @param {number} targetOffset
-   *   The offset of the token.
-   *
-   * @todo Experimental.
-   */
-  protected static findChildTokenAt(parent: SyntaxNodeBase, targetOffset: number): ISyntaxToken {
-    Debug.assert(parent.fullSpan.contains(targetOffset));
-
-    let node = parent.node;
-    let offset = parent.offset;
-
-    let index = 0, relativeIndex = 0;
-    let count = node.count;
-    while (index < count) {
-      let child = node.childAt(index);
-      if (child) {
-        let end = offset + child.fullWidth;
-        if (targetOffset < end) {
-          if (child.isToken) {
-            // If the child is a token then the parent must be a node.
-            return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
-          }
-
-          // Found a node, search through its children.
-          // @todo Technically this could be done recursively.
-          let syntaxNode = parent.defineChildAt(index);
-          if (!(syntaxNode instanceof SyntaxNodeBase)) {
-            // Either the child did not exist (which shouldn't be possible) or
-            // the parent created a child that didn't derive from its base type.
-            throw new InvalidOperationException();
-          }
-
-          node = child;
-          parent = syntaxNode;
-
-          index = child.indexAtOffset(targetOffset - offset);
-          count = child.count;
-
-          offset += child.offsetAt(index);
-          relativeIndex += NodeExtensions.childCount(child);
-          continue;
-        }
-        else {
-          // Target offset is not within this child.
-          offset = end;
-          relativeIndex += NodeExtensions.childCount(child);
-        }
-      }
-      index++;
-    }
-
-    // Parent did not contain the specified offset.
-    throw new Exception('Token not found');
-  }
-
-  /**
-   * Gets a descendant node or token based on a relative index.
-   *
-   * @param {SyntaxNodeBase} parent
-   *   The parent node.
-   * @param {number} relativeIndex
-   *   The child index relative to any lists contained in the parent.
-   *
-   * @todo Experimental.
-   */
-  protected static relativeChildAt(parent: SyntaxNodeBase, relativeIndex: number): ISyntaxNode | ISyntaxToken {
-    let child: INode | null = null;
-    let nodeIndex = 0, listIndex = relativeIndex;
-    let offset = parent.offset;
-
-    // Find the actual index of the child in the current node, its index in the
-    // child list (if any), and its offset.
-    let count = parent.node.count;
-    while (nodeIndex < count) {
-      child = parent.node.childAt(nodeIndex);
-      if (child) {
-        let size = child.isList ? child.count : 1;
-        if (listIndex < size) {
-          break;
-        }
-        listIndex -= size;
-        offset += child.fullWidth;
-      }
-      nodeIndex++;
-    }
-
-    if (!child) {
-      throw new Exception('Child node not found');
-    }
-
-    let syntaxNode = parent.defineChildAt(nodeIndex);
-    if (syntaxNode) {
-      if (!child.isList) {
-        // If the node is not a list, then neither is the syntax node.
-        return <ISyntaxNode>syntaxNode;
-      }
-
-      if (!(syntaxNode instanceof SyntaxNodeBase)) {
-        // The parent created a child that didn't derive from its base type.
-        throw new InvalidOperationException();
-      }
-
-      let syntaxListChild = syntaxNode.defineChildAt(listIndex);
-      if (syntaxListChild) {
-        // Lists can only contain nodes.
-        return <ISyntaxNode>syntaxListChild;
-      }
-
-      // Found a token in a delimited list.
-      child = child.childAt(listIndex);
-      offset = syntaxNode.offsetAt(listIndex);
-
-      if (!child) {
-        throw new Exception('List nodes cannot contain undefined or null entries');
-      }
-    }
-
-    // The child must be a token (and its parent must be a node).
-    return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
-  }
-
-  /**
-   * Attempts to get the first token within the given node.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The parent node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
-    // A recursive implementation would be simpler, but trees can be deep and
-    // this method will probably be called quite a few times...
-    let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
-    stack.push(node.getAllChildren());
-
-    while (stack.length > 0) {
-      // Suppress TS2322: Result cannot be undefined due to while condition.
-      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
-      let result = iterator.next();
-      if (result.value) {
-        let child = result.value;
-        if (child.isToken) {
-          let token = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
-          if (token !== null) {
-            return token;
-          }
-        }
-
-        if (!result.done) {
-          stack.push(iterator);
-        }
-
-        if (!child.isToken) {
-          stack.push((<ISyntaxNode>child).getAllChildren());
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Attempts to get the last token within the given node.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The parent node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter /*, triviaFilter?: ISyntaxTriviaFilter */): ISyntaxToken | null {
-    let stack: IterableIterator<ISyntaxNode | ISyntaxToken>[] = [];
-    stack.push(node.getAllChildrenReversed());
-
-    while (stack.length > 0) {
-      // Suppress TS2322: Result cannot be undefined due to while condition.
-      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
-      let result = iterator.next();
-      if (result.value) {
-        let child = result.value;
-        if (child.isToken) {
-          let token = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
-          if (token !== null) {
-            return token;
-          }
-        }
-
-        if (!result.done) {
-          stack.push(iterator);
-        }
-
-        if (!child.isToken) {
-          stack.push((<ISyntaxNode>child).getAllChildrenReversed());
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Attempts to get the first token within the next node.
-   *
-   * So if parent node `A` has two children `B` and `C`, and the given node
-   * is `B`, then this method will return the first token within `C`.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The current node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetNextToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
-    while (node.parent != null) {
-      let found = false;
-      for (let child of node.parent.getAllChildren()) {
-        if (found) {
-          if (child.isToken) {
-            let result = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-          else {
-            let result = SyntaxNodeBase.tryGetFirstToken(<ISyntaxNode>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-        }
-        else if (!child.isToken && node.equals(child)) {
-          found = true;
-        }
-      }
-      node = node.parent;
-    }
-    return null;
-  }
-
-  /**
-   * Attempts to get the last token within the previous node.
-   *
-   * So if parent node `A` has two children `B` and `C`, and the given node
-   * is `C`, then this method will return the last token within `B`.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The current node.
-   * @param {ISyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetPreviousToken(node: ISyntaxNodeOrList, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
-    while (node.parent != null) {
-      let found = false;
-      for (let child of node.parent.getAllChildrenReversed()) {
-        if (found) {
-          if (child.isToken) {
-            let result = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-          else {
-            let result = SyntaxNodeBase.tryGetLastToken(<ISyntaxNode>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-        }
-        else if (!child.isToken && node.equals(child)) {
-          found = true;
-        }
-      }
-      node = node.parent;
-    }
-    return null;
   }
 
 }

@@ -539,6 +539,13 @@ export class ShortChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
+  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): ShortChildListNode {
+    return new ShortChildListNode(this.children, diagnostics);
+  }
+
+  /**
+   * @inheritDoc
+   */
   protected updateFromChildren(children: Node[]) {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -585,13 +592,6 @@ export class ShortChildListNode extends ManyChildListNode {
   protected updateFromTrivia(child: Node) {
     this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): ShortChildListNode {
-    return new ShortChildListNode(this.children, diagnostics);
   }
 
 }
@@ -641,7 +641,8 @@ export class LongChildListNode extends ManyChildListNode {
       throw new ArgumentOutOfRangeException();
     }
 
-    let low = 0, high = this.offsets.length;
+    let low = 0;
+    let high = this.offsets.length;
     while (low <= high) {
       let middle = low + ((high - low) >> 1);
       if (this.offsets[middle] > relativeOffset) {

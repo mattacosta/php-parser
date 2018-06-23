@@ -18,7 +18,6 @@
 
 import * as assert from 'assert';
 
-import { SegmentedText } from '../../../src/text/SegmentedText';
 import { StringText } from '../../../src/text/StringText';
 import { TextSpan } from '../../../src/text/TextSpan';
 

@@ -28,11 +28,7 @@ import { TokenKind } from '../TokenKind';
  * Defines an interface for functions that can be used to filter `ISyntaxToken`
  * objects.
  */
-export interface ISyntaxTokenFilter {
-
-  (token: ISyntaxToken): boolean;
-
-}
+export type SyntaxTokenFilter = (token: ISyntaxToken) => boolean;
 
 /**
  * Defines an interface for tokens that can search for adjacent tokens in a

@@ -31,6 +31,11 @@ import { TriviaNode } from '../node/TriviaNode';
 export class SyntaxTrivia implements ISyntaxTrivia {
 
   /**
+   * @inheritDoc
+   */
+  public readonly token: ISyntaxToken;
+
+  /**
    * @todo Experimental.
    */
   protected readonly index: number;
@@ -47,11 +52,6 @@ export class SyntaxTrivia implements ISyntaxTrivia {
    * @see SyntaxToken.fullSpan
    */
   protected readonly offset: number;
-
-  /**
-   * @inheritDoc
-   */
-  public readonly token: ISyntaxToken;
 
   /**
    * Constructs a `SyntaxTrivia` object.
@@ -102,6 +102,13 @@ export class SyntaxTrivia implements ISyntaxTrivia {
   }
 
   /**
+   * Determines if the trivia was created from a skipped token.
+   */
+  public static isSkippedToken(trivia: ISyntaxTrivia): boolean {
+    return trivia.containsSkippedText;
+  }
+
+  /**
    * @inheritDoc
    */
   public equals(value: SyntaxTrivia): boolean {
@@ -119,13 +126,6 @@ export class SyntaxTrivia implements ISyntaxTrivia {
    */
   public getStructure(): ISyntaxNode | null {
     return null;  // @todo Not implemented.
-  }
-
-  /**
-   * Determines if the trivia was created from a skipped token.
-   */
-  public static isSkippedToken(trivia: ISyntaxTrivia): boolean {
-    return trivia.containsSkippedText;
   }
 
 }

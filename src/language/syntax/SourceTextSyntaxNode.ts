@@ -64,6 +64,14 @@ export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSynta
     return 2;
   }
 
+  public accept(visitor: SyntaxVisitor) {
+    visitor.visitSourceText(this);
+  }
+
+  public acceptResult<T>(visitor: SyntaxTransform<T>): T {
+    return visitor.visitSourceText(this);
+  }
+
   protected childAt(index: number): SyntaxNodeBase | null {
     switch (index) {
       case 0:
@@ -83,14 +91,6 @@ export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSynta
       default:
         return null;
     }
-  }
-
-  public accept(visitor: SyntaxVisitor) {
-    visitor.visitSourceText(this);
-  }
-
-  public acceptResult<T>(visitor: SyntaxTransform<T>): T {
-    return visitor.visitSourceText(this);
   }
 
 }

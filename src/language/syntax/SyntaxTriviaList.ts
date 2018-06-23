@@ -20,8 +20,8 @@ import { IndexOutOfRangeException } from '@mattacosta/php-common';
 
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
-import { ISyntaxToken, ISyntaxTokenFilter } from './ISyntaxToken';
-import { ISyntaxTrivia, ISyntaxTriviaFilter } from './ISyntaxTrivia';
+import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxTrivia, SyntaxTriviaFilter } from './ISyntaxTrivia';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxNode } from './SyntaxNode';
@@ -32,6 +32,11 @@ import { TextSpan } from '../../text/TextSpan';
  * Represents a collection of trivia nodes.
  */
 export class SyntaxTriviaList implements ISyntaxTriviaList {
+
+  /**
+   * @inheritDoc
+   */
+  public token: ISyntaxToken;
 
   /**
    * @todo Experimental.
@@ -52,11 +57,6 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
   protected offset: number;
 
   /**
-   * @inheritDoc
-   */
-  public token: ISyntaxToken;
-
-  /**
    * Constructs a `SyntaxTriviaList` object.
    */
   constructor(node: INode | null, token: ISyntaxToken, offset: number, index: number = 0) {
@@ -64,26 +64,6 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
     this.node = node;
     this.offset = offset;
     this.token = token;
-  }
-
-  /**
-   * @todo Experimental.
-   */
-  *[Symbol.iterator](): IterableIterator<SyntaxTrivia> {
-    if (!this.node) {
-      return;
-    }
-    if (this.node.isList) {
-      const length = this.node.count;
-      for (let i = 0; i < length; i++) {
-        let node = this.node.childAt(i);
-        let offset = this.offset + this.node.offsetAt(i);
-        yield new SyntaxTrivia(node, this.token, offset, this.index + i);
-      }
-    }
-    else {
-      yield new SyntaxTrivia(this.node, this.token, this.offset, this.index);
-    }
   }
 
   /**
@@ -107,6 +87,93 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
     return this.node
       ? new TextSpan(this.offset + this.node.leadingTriviaWidth, this.node.width)
       : new TextSpan(this.offset, 0);
+  }
+
+  /**
+   * Attempts to get the first token form a trivia node containing structure.
+   *
+   * @param {ISyntaxTriviaList} triviaList
+   *   The list of trivia to search.
+   * @param {SyntaxTriviaFilter=} triviaFilter
+   *   A callback used to limit which trivia nodes are searched.
+   * @param {SyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit which structured nodes are returned.
+   *
+   * @return {ISyntaxToken|null}
+   *   The first matching token, or `null` if either a trivia filter was not
+   *   provided or no tokens matched the token filter.
+   */
+  public static tryGetFirstToken(triviaList: ISyntaxTriviaList, triviaFilter?: SyntaxTriviaFilter, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
+    if (!triviaFilter) {
+      return null;
+    }
+
+    for (let trivia of triviaList) {
+      if (trivia.containsStructuredTrivia && triviaFilter(trivia)) {
+        // Suppress TS2345: Result cannot be null due to if-condition.
+        const structure = <ISyntaxNode>trivia.getStructure();
+        const token = SyntaxNode.tryGetFirstToken(structure, tokenFilter);
+        if (token !== null) {
+          return token;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Attempts to get the last token from a trivia node containing structure
+   * while searching in reversed order.
+   *
+   * @param {ISyntaxTriviaList} triviaList
+   *   The list of trivia to search.
+   * @param {SyntaxTriviaFilter=} triviaFilter
+   *   A callback used to limit which trivia nodes are searched.
+   * @param {SyntaxTokenFilter=} tokenFilter
+   *   A callback used to limit which structured nodes are returned.
+   *
+   * @return {ISyntaxToken|null}
+   *   The last matching token, or `null` if either a trivia filter was not
+   *   provided or no tokens matched the token filter.
+   */
+  public static tryGetLastToken(triviaList: ISyntaxTriviaList, triviaFilter?: SyntaxTriviaFilter, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
+    if (!triviaFilter) {
+      return null;
+    }
+
+    for (let trivia of triviaList.reversed()) {
+      if (trivia.containsStructuredTrivia && triviaFilter(trivia)) {
+        // Suppress TS2345: Result cannot be null due to if-condition.
+        const structure = <ISyntaxNode>trivia.getStructure();
+        const token = SyntaxNode.tryGetLastToken(structure, tokenFilter);
+        if (token !== null) {
+          return token;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @todo Experimental.
+   */
+  public *[Symbol.iterator](): IterableIterator<SyntaxTrivia> {
+    if (!this.node) {
+      return;
+    }
+    if (this.node.isList) {
+      const length = this.node.count;
+      for (let i = 0; i < length; i++) {
+        let node = this.node.childAt(i);
+        let offset = this.offset + this.node.offsetAt(i);
+        yield new SyntaxTrivia(node, this.token, offset, this.index + i);
+      }
+    }
+    else {
+      yield new SyntaxTrivia(this.node, this.token, this.offset, this.index);
+    }
   }
 
   /**
@@ -174,73 +241,6 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
     }
 
     return list;
-  }
-
-  /**
-   * Attempts to get the first token form a trivia node containing structure.
-   *
-   * @param {ISyntaxTriviaList} triviaList
-   *   The list of trivia to search.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
-   *   A callback used to limit which trivia nodes are searched.
-   * @param {ISyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit which structured nodes are returned.
-   *
-   * @return {ISyntaxToken|null}
-   *   The first matching token, or `null` if either a trivia filter was not
-   *   provided or no tokens matched the token filter.
-   */
-  public static tryGetFirstToken(triviaList: ISyntaxTriviaList, triviaFilter?: ISyntaxTriviaFilter, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
-    if (!triviaFilter) {
-      return null;
-    }
-
-    for (let trivia of triviaList) {
-      if (trivia.containsStructuredTrivia && triviaFilter(trivia)) {
-        // Suppress TS2345: Result cannot be null due to if-condition.
-        const structure = <ISyntaxNode>trivia.getStructure();
-        const token = SyntaxNode.tryGetFirstToken(structure, tokenFilter);
-        if (token !== null) {
-          return token;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Attempts to get the last token from a trivia node containing structure
-   * while searching in reversed order.
-   *
-   * @param {ISyntaxTriviaList} triviaList
-   *   The list of trivia to search.
-   * @param {ISyntaxTriviaFilter=} triviaFilter
-   *   A callback used to limit which trivia nodes are searched.
-   * @param {ISyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit which structured nodes are returned.
-   *
-   * @return {ISyntaxToken|null}
-   *   The last matching token, or `null` if either a trivia filter was not
-   *   provided or no tokens matched the token filter.
-   */
-  public static tryGetLastToken(triviaList: ISyntaxTriviaList, triviaFilter?: ISyntaxTriviaFilter, tokenFilter?: ISyntaxTokenFilter): ISyntaxToken | null {
-    if (!triviaFilter) {
-      return null;
-    }
-
-    for (let trivia of triviaList.reversed()) {
-      if (trivia.containsStructuredTrivia && triviaFilter(trivia)) {
-        // Suppress TS2345: Result cannot be null due to if-condition.
-        const structure = <ISyntaxNode>trivia.getStructure();
-        const token = SyntaxNode.tryGetLastToken(structure, tokenFilter);
-        if (token !== null) {
-          return token;
-        }
-      }
-    }
-
-    return null;
   }
 
 }

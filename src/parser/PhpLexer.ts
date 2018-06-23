@@ -66,9 +66,103 @@ export class HeredocLabelInfo {
 export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
   /**
-   * The size of a `long` used by PHP.
+   * A map of cast types to their associated tokens.
    */
-  private ptrSize: number = 8;
+  protected static readonly CastTokens = new Map<string, TokenKind>([
+    ['array', TokenKind.ArrayCast],
+    ['binary', TokenKind.BinaryCast],
+    ['bool', TokenKind.BoolCast],
+    ['boolean', TokenKind.BooleanCast],
+    ['double', TokenKind.DoubleCast],
+    ['float', TokenKind.FloatCast],
+    ['int', TokenKind.IntCast],
+    ['integer', TokenKind.IntegerCast],
+    ['object', TokenKind.ObjectCast],
+    ['real', TokenKind.RealCast],
+    ['string', TokenKind.StringCast],
+    ['unset', TokenKind.UnsetCast]
+  ]);
+
+  /**
+   * A map of keywords to their associated tokens.
+   */
+  protected static readonly KeywordTokens = new Map<string, TokenKind>([
+    ['__class__', TokenKind.MagicClass],
+    ['__dir__', TokenKind.MagicDirectory],
+    ['__file__', TokenKind.MagicFile],
+    ['__function__', TokenKind.MagicFunction],
+    ['__halt_compiler', TokenKind.HaltCompiler],
+    ['__line__', TokenKind.MagicLine],
+    ['__method__', TokenKind.MagicMethod],
+    ['__namespace__', TokenKind.MagicNamespace],
+    ['__trait__', TokenKind.MagicTrait],
+    ['abstract', TokenKind.Abstract],
+    ['and', TokenKind.LogicalAnd],
+    ['array', TokenKind.Array],
+    ['as', TokenKind.As],
+    ['break', TokenKind.Break],
+    ['callable', TokenKind.Callable],
+    ['case', TokenKind.Case],
+    ['catch', TokenKind.Catch],
+    ['class', TokenKind.Class],
+    ['clone', TokenKind.Clone],
+    ['const', TokenKind.Const],
+    ['continue', TokenKind.Continue],
+    ['declare', TokenKind.Declare],
+    ['default', TokenKind.Default],
+    ['die', TokenKind.Exit],
+    ['do', TokenKind.Do],
+    ['echo', TokenKind.Echo],
+    ['else', TokenKind.Else],
+    ['elseif', TokenKind.ElseIf],
+    ['empty', TokenKind.Empty],
+    ['enddeclare', TokenKind.EndDeclare],
+    ['endfor', TokenKind.EndFor],
+    ['endforeach', TokenKind.EndForEach],
+    ['endif', TokenKind.EndIf],
+    ['endswitch', TokenKind.EndSwitch],
+    ['endwhile', TokenKind.EndWhile],
+    ['eval', TokenKind.Eval],
+    ['exit', TokenKind.Exit],
+    ['extends', TokenKind.Extends],
+    ['final', TokenKind.Final],
+    ['finally', TokenKind.Finally],
+    ['for', TokenKind.For],
+    ['foreach', TokenKind.ForEach],
+    ['function', TokenKind.Function],
+    ['global', TokenKind.Global],
+    ['goto', TokenKind.GoTo],
+    ['if', TokenKind.If],
+    ['implements', TokenKind.Implements],
+    ['include', TokenKind.Include],
+    ['include_once', TokenKind.IncludeOnce],
+    ['instanceof', TokenKind.InstanceOf],
+    ['insteadof', TokenKind.InsteadOf],
+    ['interface', TokenKind.Interface],
+    ['isset', TokenKind.IsSet],
+    ['list', TokenKind.List],
+    ['namespace', TokenKind.Namespace],
+    ['new', TokenKind.New],
+    ['or', TokenKind.LogicalOr],
+    ['print', TokenKind.Print],
+    ['protected', TokenKind.Protected],
+    ['private', TokenKind.Private],
+    ['public', TokenKind.Public],
+    ['require', TokenKind.Require],
+    ['require_once', TokenKind.RequireOnce],
+    ['return', TokenKind.Return],
+    ['static', TokenKind.Static],
+    ['switch', TokenKind.Switch],
+    ['throw', TokenKind.Throw],
+    ['trait', TokenKind.Trait],
+    ['try', TokenKind.Try],
+    ['while', TokenKind.While],
+    ['unset', TokenKind.Unset],
+    ['use', TokenKind.Use],
+    ['var', TokenKind.Var],
+    ['xor', TokenKind.LogicalXor],
+    ['yield', TokenKind.Yield]
+  ]);
 
   /**
    * The default scanning mode when starting to scan text, or when not in a
@@ -128,6 +222,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * The starting offset of the token that was scanned.
    */
   protected tokenStart: number = 0;
+
+  /**
+   * The size of a `long` used by PHP.
+   */
+  private ptrSize: number = 8;
 
   /**
    * Constructs a `PhpLexer` object.
@@ -303,6 +402,51 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Sets the current lexer position.
+   *
+   * The caller is responsible for knowing the proper lexing state at this
+   * position.
+   */
+  public setPosition(offset: number) {
+    if (offset < this.start || offset > this.end) {
+      throw new ArgumentOutOfRangeException('Offset must be within scanning bounds');
+    }
+    this.offset = offset;
+  }
+
+  /**
+   * Sets the source text to tokenize.
+   *
+   * @param {ISourceText} text
+   *   The source text to tokenize.
+   * @param {number=} start
+   *   The offset within the text to start tokenizing. Defaults to 0.
+   * @param {number=} length
+   *   The maximum number of characters to tokenize. Defaults to the length
+   *   of the text.
+   */
+  public setText(text: ISourceText, start?: number, length?: number) {
+    start = typeof start === 'undefined' ? 0 : start;
+    length = typeof length === 'undefined' ? text.length : length;
+
+    if (start < 0 || length < 0) {
+      throw new ArgumentOutOfRangeException();
+    }
+    if (start + length > text.length) {
+      throw new ArgumentOutOfRangeException();
+    }
+
+    // Set scanning bounds.
+    this.start = start;
+    this.end = start + length;
+    // Return to default state.
+    this.state = this.defaultState;
+    // Set text and current position.
+    this.text = text;
+    this.offset = this.start;
+  }
+
+  /**
    * Determines if the given heredoc (or nowdoc) label is present at the
    * lexer's current position.
    *
@@ -371,7 +515,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.offset++;
 
     while (this.offset < this.end) {
-      if (length = this.tryScanOpenTag(allowShortOpen)) {
+      length = this.tryScanOpenTag(allowShortOpen);
+      if (length > 0) {
         // Do not return the opening tag as part of the inline text.
         this.offset = this.offset - length;
         break;
@@ -1616,7 +1761,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected scanNumber(): number {
     const numberStart = this.offset;
 
-    let numberEnd = 0, ch = 0;
+    let ch = 0;
+    let numberEnd = 0;
     let isDouble = false;
 
     while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
@@ -1794,76 +1940,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     return this.offset - start;
-  }
-
-  /**
-   * Attempts to scan for the opening label or a heredoc string. If not found,
-   * nothing is scanned.
-   */
-  private tryScanHeredocStartLabel(): HeredocLabelInfo | null {
-    const start = this.offset;
-
-    this.offset = this.offset + 3;  // "<<<"
-
-    // Skip leading tabs and spaces after the operator.
-    while (this.offset < this.end && CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))) {
-      this.offset++;
-    }
-
-    let quoteCh = 0;
-
-    // Optional opening quote.
-    let ch = this.peek(this.offset);
-    if (ch == Character.DoubleQuote || ch == Character.SingleQuote) {
-      quoteCh = ch;
-      this.offset++;
-    }
-
-    const labelStart = this.offset;
-    let label: string;
-
-    // Label.
-    ch = this.peek(this.offset);
-    if (!CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
-      this.offset = start;
-      return null;
-    }
-
-    this.offset++;
-    this.tryScanIdentifierPart();
-
-    // Closing quote.
-    if (quoteCh) {
-      if (this.peek(this.offset) != quoteCh) {
-        this.offset = start;
-        return null;
-      }
-      label = this.text.substring(labelStart, this.offset - labelStart);
-      this.offset++;
-    }
-    else {
-      label = this.text.substring(labelStart, this.offset - labelStart);
-    }
-
-    // A line break after the label is required as well.
-    ch = this.peek(this.offset);
-    if (ch == Character.CarriageReturn) {
-      this.offset++;
-      // PHP does NOT require a well-formed CRLF here.
-      if (this.peek(this.offset) == Character.LineFeed) {
-        this.offset++;
-      }
-    }
-    else if (ch == Character.LineFeed) {
-      this.offset++;
-    }
-    else {
-      // Missing line break, not a heredoc label.
-      this.offset = start;
-      return null;
-    }
-
-    return new HeredocLabelInfo(label, this.offset - start, quoteCh == Character.SingleQuote);
   }
 
   /**
@@ -2129,147 +2205,73 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Sets the current lexer position.
-   *
-   * The caller is responsible for knowing the proper lexing state at this
-   * position.
+   * Attempts to scan for the opening label or a heredoc string. If not found,
+   * nothing is scanned.
    */
-  public setPosition(offset: number) {
-    if (offset < this.start || offset > this.end) {
-      throw new ArgumentOutOfRangeException('Offset must be within scanning bounds');
+  private tryScanHeredocStartLabel(): HeredocLabelInfo | null {
+    const start = this.offset;
+
+    this.offset = this.offset + 3;  // "<<<"
+
+    // Skip leading tabs and spaces after the operator.
+    while (this.offset < this.end && CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))) {
+      this.offset++;
     }
-    this.offset = offset;
+
+    let quoteCh = 0;
+
+    // Optional opening quote.
+    let ch = this.peek(this.offset);
+    if (ch == Character.DoubleQuote || ch == Character.SingleQuote) {
+      quoteCh = ch;
+      this.offset++;
+    }
+
+    const labelStart = this.offset;
+    let label: string;
+
+    // Label.
+    ch = this.peek(this.offset);
+    if (!CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
+      this.offset = start;
+      return null;
+    }
+
+    this.offset++;
+    this.tryScanIdentifierPart();
+
+    // Closing quote.
+    if (quoteCh) {
+      if (this.peek(this.offset) != quoteCh) {
+        this.offset = start;
+        return null;
+      }
+      label = this.text.substring(labelStart, this.offset - labelStart);
+      this.offset++;
+    }
+    else {
+      label = this.text.substring(labelStart, this.offset - labelStart);
+    }
+
+    // A line break after the label is required as well.
+    ch = this.peek(this.offset);
+    if (ch == Character.CarriageReturn) {
+      this.offset++;
+      // PHP does NOT require a well-formed CRLF here.
+      if (this.peek(this.offset) == Character.LineFeed) {
+        this.offset++;
+      }
+    }
+    else if (ch == Character.LineFeed) {
+      this.offset++;
+    }
+    else {
+      // Missing line break, not a heredoc label.
+      this.offset = start;
+      return null;
+    }
+
+    return new HeredocLabelInfo(label, this.offset - start, quoteCh == Character.SingleQuote);
   }
-
-  /**
-   * Sets the source text to tokenize.
-   *
-   * @param {ISourceText} text
-   *   The source text to tokenize.
-   * @param {number=} start
-   *   The offset within the text to start tokenizing. Defaults to 0.
-   * @param {number=} length
-   *   The maximum number of characters to tokenize. Defaults to the length
-   *   of the text.
-   */
-  public setText(text: ISourceText, start?: number, length?: number) {
-    start = typeof start === 'undefined' ? 0 : start;
-    length = typeof length === 'undefined' ? text.length : length;
-
-    if (start < 0 || length < 0) {
-      throw new ArgumentOutOfRangeException();
-    }
-    if (start + length > text.length) {
-      throw new ArgumentOutOfRangeException();
-    }
-
-    // Set scanning bounds.
-    this.start = start;
-    this.end = start + length;
-    // Return to default state.
-    this.state = this.defaultState;
-    // Set text and current position.
-    this.text = text;
-    this.offset = this.start;
-  }
-
-  /**
-   * A map of cast types to their associated tokens.
-   */
-  protected static readonly CastTokens = new Map<string, TokenKind>([
-    ['array', TokenKind.ArrayCast],
-    ['binary', TokenKind.BinaryCast],
-    ['bool', TokenKind.BoolCast],
-    ['boolean', TokenKind.BooleanCast],
-    ['double', TokenKind.DoubleCast],
-    ['float', TokenKind.FloatCast],
-    ['int', TokenKind.IntCast],
-    ['integer', TokenKind.IntegerCast],
-    ['object', TokenKind.ObjectCast],
-    ['real', TokenKind.RealCast],
-    ['string', TokenKind.StringCast],
-    ['unset', TokenKind.UnsetCast]
-  ]);
-
-  /**
-   * A map of keywords to their associated tokens.
-   */
-  protected static readonly KeywordTokens = new Map<string, TokenKind>([
-    ['__class__', TokenKind.MagicClass],
-    ['__dir__', TokenKind.MagicDirectory],
-    ['__file__', TokenKind.MagicFile],
-    ['__function__', TokenKind.MagicFunction],
-    ['__halt_compiler', TokenKind.HaltCompiler],
-    ['__line__', TokenKind.MagicLine],
-    ['__method__', TokenKind.MagicMethod],
-    ['__namespace__', TokenKind.MagicNamespace],
-    ['__trait__', TokenKind.MagicTrait],
-    ['abstract', TokenKind.Abstract],
-    ['and', TokenKind.LogicalAnd],
-    ['array', TokenKind.Array],
-    ['as', TokenKind.As],
-    ['break', TokenKind.Break],
-    ['callable', TokenKind.Callable],
-    ['case', TokenKind.Case],
-    ['catch', TokenKind.Catch],
-    ['class', TokenKind.Class],
-    ['clone', TokenKind.Clone],
-    ['const', TokenKind.Const],
-    ['continue', TokenKind.Continue],
-    ['declare', TokenKind.Declare],
-    ['default', TokenKind.Default],
-    ['die', TokenKind.Exit],
-    ['do', TokenKind.Do],
-    ['echo', TokenKind.Echo],
-    ['else', TokenKind.Else],
-    ['elseif', TokenKind.ElseIf],
-    ['empty', TokenKind.Empty],
-    ['enddeclare', TokenKind.EndDeclare],
-    ['endfor', TokenKind.EndFor],
-    ['endforeach', TokenKind.EndForEach],
-    ['endif', TokenKind.EndIf],
-    ['endswitch', TokenKind.EndSwitch],
-    ['endwhile', TokenKind.EndWhile],
-    ['eval', TokenKind.Eval],
-    ['exit', TokenKind.Exit],
-    ['extends', TokenKind.Extends],
-    ['final', TokenKind.Final],
-    ['finally', TokenKind.Finally],
-    ['for', TokenKind.For],
-    ['foreach', TokenKind.ForEach],
-    ['function', TokenKind.Function],
-    ['global', TokenKind.Global],
-    ['goto', TokenKind.GoTo],
-    ['if', TokenKind.If],
-    ['implements', TokenKind.Implements],
-    ['include', TokenKind.Include],
-    ['include_once', TokenKind.IncludeOnce],
-    ['instanceof', TokenKind.InstanceOf],
-    ['insteadof', TokenKind.InsteadOf],
-    ['interface', TokenKind.Interface],
-    ['isset', TokenKind.IsSet],
-    ['list', TokenKind.List],
-    ['namespace', TokenKind.Namespace],
-    ['new', TokenKind.New],
-    ['or', TokenKind.LogicalOr],
-    ['print', TokenKind.Print],
-    ['protected', TokenKind.Protected],
-    ['private', TokenKind.Private],
-    ['public', TokenKind.Public],
-    ['require', TokenKind.Require],
-    ['require_once', TokenKind.RequireOnce],
-    ['return', TokenKind.Return],
-    ['static', TokenKind.Static],
-    ['switch', TokenKind.Switch],
-    ['throw', TokenKind.Throw],
-    ['trait', TokenKind.Trait],
-    ['try', TokenKind.Try],
-    ['while', TokenKind.While],
-    ['unset', TokenKind.Unset],
-    ['use', TokenKind.Use],
-    ['var', TokenKind.Var],
-    ['xor', TokenKind.LogicalXor],
-    ['yield', TokenKind.Yield]
-  ]);
 
 }

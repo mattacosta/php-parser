@@ -22,7 +22,7 @@
  * For those familiar with C++, this is similar its `lvalue` and `rvalue`
  * categories (which are actually much more complicated), but instead of
  * being used to handle temporary objects, it is used to determine which
- * action the parser should use.
+ * action the parser should take.
  */
 export enum ExpressionType {
 

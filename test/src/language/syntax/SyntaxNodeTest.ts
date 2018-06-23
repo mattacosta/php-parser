@@ -58,7 +58,6 @@ describe('SyntaxNode', function() {
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
 
-
     it('should get node if span is empty', function() {
       let tree = PhpSyntaxTree.fromText('<?php if($a){}');
       let node = tree.root.findChildNodeAt(new TextSpan(9, 0));  // ""
@@ -75,7 +74,7 @@ describe('SyntaxNode', function() {
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
 
-    // ConstantSyntaxNode -> PartiallQualifiedSyntaxNode -> SyntaxList -> SyntaxToken
+    // ConstantSyntaxNode -> PartiallyQualifiedSyntaxNode -> SyntaxList -> SyntaxToken
 
     it('should get outermost node', function() {
       let tree = PhpSyntaxTree.fromText('<?php if(A){}');

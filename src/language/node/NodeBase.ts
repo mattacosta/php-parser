@@ -26,12 +26,27 @@ import { INode } from './INode';
 import { ISyntaxNode, ISyntaxNodeOrList } from '../syntax/ISyntaxNode';
 import { NodeFlags } from './NodeFlags';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
-import { SyntaxNodeBase } from '../syntax/SyntaxNodeBase';
 
 /**
  * Provides a base class for all nodes in a tree (both terminal and non-terminal).
  */
 export abstract class NodeBase implements INode {
+
+  /**
+   * A map of all diagnostics attached to nodes.
+   *
+   * Since nodes are more likely to not contain any diagnostics, this saves
+   * memory by not adding a diagnostic field to every node. Diagnostics are
+   * instead maintained using a weak reference to the associated node, so that
+   * they can still be reclaimed automatically when the node is no longer
+   * referenced.
+   */
+  protected static readonly DiagnosticWeakMap = new WeakMap<NodeBase, ReadonlyArray<SyntaxDiagnostic>>();
+
+  /**
+   * An empty diagnostic array.
+   */
+  protected static readonly EmptyDiagnosticList: ReadonlyArray<SyntaxDiagnostic> = [];
 
   /**
    * A bit field storing information about this node.
@@ -59,22 +74,6 @@ export abstract class NodeBase implements INode {
    * IMPORTANT: Do not initialize this property! See constructor.
    */
   protected hash!: number;  // @todo Set in constructor of all derived classes.
-
-  /**
-   * A map of all diagnostics attached to nodes.
-   *
-   * Since nodes are more likely to not contain any diagnostics, this saves
-   * memory by not adding a diagnostic field to every node. Diagnostics are
-   * instead maintained using a weak reference to the associated node, so that
-   * they can still be reclaimed automatically when the node is no longer
-   * referenced.
-   */
-  protected static readonly DiagnosticWeakMap = new WeakMap<NodeBase, ReadonlyArray<SyntaxDiagnostic>>();
-
-  /**
-   * An empty diagnostic array.
-   */
-  protected static readonly EmptyDiagnosticList: ReadonlyArray<SyntaxDiagnostic> = [];
 
   /**
    * Constructs a `NodeBase` object.
@@ -189,96 +188,6 @@ export abstract class NodeBase implements INode {
   }
 
   /**
-   * Gets the first node that does not have any children.
-   */
-  private getFirstToken(): INode {
-    let length = this.count;
-    let node: INode | null = this;
-
-    // Terminal nodes (tokens and trivia) should not indirectly call this
-    // method, as that indicates a missing override.
-    Debug.assert(length != 0);
-
-    do {
-      let firstChild: INode | null = null;
-      for (let i = 0; i < length; i++) {
-        const child: INode | null = node.childAt(i);
-        if (child) {
-          firstChild = child;
-          length = child.count;
-          break;
-        }
-      }
-      node = firstChild;
-    } while (node && length > 0);
-
-    if (!node) {
-      // The parser should not have created this node.
-      throw new Exception('Child node expected');
-    }
-
-    return node;
-  }
-
-  /**
-   * Gets the last node that does not have any children.
-   */
-  private getLastToken(): INode {
-    let length = this.count;
-    let node: INode | null = this;
-
-    // Terminal nodes (tokens and trivia) should not indirectly call this
-    // method, as that indicates a missing override.
-    Debug.assert(length != 0);
-
-    do {
-      let lastChild: INode | null = null;
-      for (let i = length - 1; i >= 0; i--) {
-        const child: INode | null = node.childAt(i);
-        if (child) {
-          lastChild = child;
-          length = child.count;
-          break;
-        }
-      }
-      node = lastChild;
-    } while (node && length > 0);
-
-    if (!node) {
-      // The parser should not have created this node.
-      throw new Exception('Child node expected');
-    }
-
-    return node;
-  }
-
-  // Normally these 'updateFrom' methods would be a single method, but
-  // performance is critical and V8 can better optimize each method if only
-  // a subset of each type is given.
-
-  // @todo Determine if this is still necessary once Crankshaft is replaced by TurboFan.
-
-  /**
-   * Updates the flags and width of a parent node from a child node.
-   */
-  protected abstract updateFromNode(child: NodeBase): void;
-
-  /**
-   * Updates the flags and width of a parent node from a list of children.
-   */
-  protected abstract updateFromNodeList(child: NodeBase): void;
-
-  /**
-   * Updates the flags and width of a parent node from a child token.
-   */
-  protected abstract updateFromToken(child: NodeBase): void;
-
-  /**
-   * Updates the flags and width of a parent node from its leading trivia.
-   */
-  protected abstract updateFromTrivia(child: NodeBase): void;
-
-  /**
    * @inheritDoc
    */
   public abstract childAt(index: number): INode | null;
@@ -346,5 +255,95 @@ export abstract class NodeBase implements INode {
    * @inheritDoc
    */
   public abstract withDiagnostics(diagnostics: SyntaxDiagnostic[]): INode;
+
+  // Normally these 'updateFrom' methods would be a single method, but
+  // performance is critical and V8 can better optimize each method if only
+  // a subset of each type is given.
+
+  // @todo Determine if this is still necessary once Crankshaft is replaced by TurboFan.
+
+  /**
+   * Updates the flags and width of a parent node from a child node.
+   */
+  protected abstract updateFromNode(child: NodeBase): void;
+
+  /**
+   * Updates the flags and width of a parent node from a list of children.
+   */
+  protected abstract updateFromNodeList(child: NodeBase): void;
+
+  /**
+   * Updates the flags and width of a parent node from a child token.
+   */
+  protected abstract updateFromToken(child: NodeBase): void;
+
+  /**
+   * Updates the flags and width of a parent node from its leading trivia.
+   */
+  protected abstract updateFromTrivia(child: NodeBase): void;
+
+  /**
+   * Gets the first node that does not have any children.
+   */
+  private getFirstToken(): INode {
+    let length = this.count;
+    let node: INode | null = this;
+
+    // Terminal nodes (tokens and trivia) should not indirectly call this
+    // method, as that indicates a missing override.
+    Debug.assert(length != 0);
+
+    do {
+      let firstChild: INode | null = null;
+      for (let i = 0; i < length; i++) {
+        const child: INode | null = node.childAt(i);
+        if (child) {
+          firstChild = child;
+          length = child.count;
+          break;
+        }
+      }
+      node = firstChild;
+    } while (node && length > 0);
+
+    if (!node) {
+      // The parser should not have created this node.
+      throw new Exception('Child node expected');
+    }
+
+    return node;
+  }
+
+  /**
+   * Gets the last node that does not have any children.
+   */
+  private getLastToken(): INode {
+    let length = this.count;
+    let node: INode | null = this;
+
+    // Terminal nodes (tokens and trivia) should not indirectly call this
+    // method, as that indicates a missing override.
+    Debug.assert(length != 0);
+
+    do {
+      let lastChild: INode | null = null;
+      for (let i = length - 1; i >= 0; i--) {
+        const child: INode | null = node.childAt(i);
+        if (child) {
+          lastChild = child;
+          length = child.count;
+          break;
+        }
+      }
+      node = lastChild;
+    } while (node && length > 0);
+
+    if (!node) {
+      // The parser should not have created this node.
+      throw new Exception('Child node expected');
+    }
+
+    return node;
+  }
 
 }

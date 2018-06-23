@@ -22,11 +22,7 @@ import { ISyntaxTreeTraversable } from './ISyntaxTreeTraversable';
  * Defines an interface for functions that can be used to filter `ISyntaxNode`
  * objects.
  */
-export interface ISyntaxNodeFilter<T> {
-
-  (node: T): boolean;
-
-}
+export type SyntaxNodeFilter<T> = (node: T) => boolean;
 
 /**
  * Defines an interface for nodes that can search for relatives.
@@ -57,9 +53,9 @@ export interface ISyntaxNodeQueryable<T> extends ISyntaxTreeTraversable<T> {
    * Finds the first ancestor (which may include the current node) that matches
    * then given filter.
    *
-   * @param {ISyntaxNodeFilter<T>=} nodeFilter
+   * @param {SyntaxNodeFilter<T>=} nodeFilter
    *   A callback used to limit what nodes are returned.
    */
-  firstAncestorOrSelf(nodeFilter?: ISyntaxNodeFilter<T>): T | null;
+  firstAncestorOrSelf(nodeFilter?: SyntaxNodeFilter<T>): T | null;
 
 }

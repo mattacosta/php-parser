@@ -42,7 +42,7 @@ if (!stat.isDirectory()) {
 
 glob('**/*.php', { cwd: dir }, (error, matches) => {
   if (error) {
-    console.error(error.message)
+    console.error(error.message);
     return;
   }
 
@@ -86,7 +86,7 @@ glob('**/*.php', { cwd: dir }, (error, matches) => {
       //let severity = d.severity == DiagnosticSeverity.Error ? 'E' : 'W';
         let message = ErrorCodeInfo.getMessage(d.code);
         let args = d.messageArgs.slice();
-        message = message.replace(/%s/g, function () { return args.shift(); });
+        message = message.replace(/%s/g, function() { return args.shift(); });
         if (d.severity == DiagnosticSeverity.Error) {
           console.error('[E] [PHP%s] [%s:%s] %s', d.code, d.offset, d.width, message);
           hasErrors = true;

@@ -80,8 +80,6 @@ export class StringText extends SourceTextBase {
   /**
    * @inheritDoc
    */
-  public slice(span: TextSpan): ISourceText
-  public slice(position: number): ISourceText
   public slice(spanOrPosition: TextSpan | number): ISourceText {
     if (typeof spanOrPosition === 'number') {
       spanOrPosition = TextSpan.fromBounds(spanOrPosition, this.text.length);

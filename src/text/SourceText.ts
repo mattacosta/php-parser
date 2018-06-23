@@ -116,6 +116,34 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
   public abstract readonly sources: ReadonlyArray<ISourceText>;
 
   /**
+   * Attempts to determine if a byte order mark is present in the source text.
+   *
+   * @todo Experimental.
+   * @todo Unused.
+   */
+  protected static tryReadByteOrderMark(bytes: Uint8Array, length: number): BomKind {
+    if (length > bytes.length) {
+      throw new ArgumentOutOfRangeException();
+    }
+
+    if (length >= 2) {
+      if (bytes[0] == 0xFE && bytes[1] == 0xFF) {
+        return BomKind.UTF16BE;
+      }
+      if (bytes[0] == 0xFF && bytes[1] == 0xFE) {
+        return BomKind.UTF16LE;
+      }
+      if (bytes[0] == 0xEF) {
+        if (length >= 3 && bytes[1] == 0xBB && bytes[2] == 0xBF) {
+          return BomKind.UTF8;
+        }
+      }
+    }
+
+    return BomKind.Unknown;
+  }
+
+  /**
    * @inheritDoc
    */
   public abstract charCodeAt(offset: number): number;
@@ -189,34 +217,6 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
     }
 
     return builder.toSourceText();
-  }
-
-  /**
-   * Attempts to determine if a byte order mark is present in the source text.
-   *
-   * @todo Experimental.
-   * @todo Unused.
-   */
-  protected static tryReadByteOrderMark(bytes: Uint8Array, length: number): BomKind {
-    if (length > bytes.length) {
-      throw new ArgumentOutOfRangeException();
-    }
-
-    if (length >= 2) {
-      if (bytes[0] == 0xFE && bytes[1] == 0xFF) {
-        return BomKind.UTF16BE;
-      }
-      if (bytes[0] == 0xFF && bytes[1] == 0xFE) {
-        return BomKind.UTF16LE;
-      }
-      if (bytes[0] == 0xEF) {
-        if (length >= 3 && bytes[1] == 0xBB && bytes[2] == 0xBF) {
-          return BomKind.UTF8;
-        }
-      }
-    }
-
-    return BomKind.Unknown;
   }
 
   /**

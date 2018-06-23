@@ -16,7 +16,7 @@
 
 'use strict';
 
-import { Debug, Exception } from '@mattacosta/php-common';
+import { Debug } from '@mattacosta/php-common';
 
 import {
   AnonymousClassNode,
@@ -91,13 +91,13 @@ import {
   MemberInvocationNode,
   MethodDeclarationNode,
   MethodReferenceNode,
-  NameNode,
   NamedMemberAccessNode,
   NamedMethodInvocationNode,
   NamedObjectCreationNode,
   NamedScopedInvocationNode,
   NamedTraitAliasNode,
   NamedTypeNode,
+  NameNode,
   NamespaceDeclarationNode,
   NamespaceGroupDeclarationNode,
   ObjectCreationNode,
@@ -1458,8 +1458,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       default:
         if (this.isExpressionStart(this.currentToken.kind)) {
           let expr = this.parseExpression();
-          let semicolon = this.parseStatementEnd();
-          return new ExpressionStatementNode(expr, semicolon);
+          let exprSemicolon = this.parseStatementEnd();
+          return new ExpressionStatementNode(expr, exprSemicolon);
         }
         // Missing call to isStatementStart()?
         throw new ParserException('Unhandled token while attempting to parse statement');
@@ -2048,7 +2048,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax: `ELSEIF ( expr ) statement`
    */
   protected parseElseIf(): ElseIfNode {
-    let elseIfKeyword = this.eat(TokenKind.ElseIf)
+    let elseIfKeyword = this.eat(TokenKind.ElseIf);
     let openParen = this.eat(TokenKind.OpenParen);
     let condition = this.parseExpression();
     let closeParen = this.eat(TokenKind.CloseParen);
@@ -2510,9 +2510,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       // Suppress TS2365: Current token changed after previous method call.
       if (<TokenKind>this.currentToken.kind == TokenKind.Else) {
         let elseKeyword = this.eat(TokenKind.Else);
-        let colon = this.eat(TokenKind.Colon);
-        let statements = this.parseList(ParseContext.IfElseBlockElements);
-        elseClause = new ElseBlockNode(elseKeyword, colon, statements);
+        let elseColon = this.eat(TokenKind.Colon);
+        let elseStatements = this.parseList(ParseContext.IfElseBlockElements);
+        elseClause = new ElseBlockNode(elseKeyword, elseColon, elseStatements);
       }
 
       let endIf = this.eat(TokenKind.EndIf);
@@ -2541,8 +2541,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let elseClause: ElseNode | null = null;
     if (this.currentToken.kind == TokenKind.Else) {
       let elseKeyword = this.eat(TokenKind.Else);
-      let statement = this.parseEmbeddedStatement(true, ErrorCode.ERR_StatementExpected);
-      elseClause = new ElseNode(elseKeyword, statement);
+      let elseStatement = this.parseEmbeddedStatement(true, ErrorCode.ERR_StatementExpected);
+      elseClause = new ElseNode(elseKeyword, elseStatement);
     }
 
     return new IfNode(
@@ -3500,7 +3500,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
 
       if (this.isClassMemberIdentifier(this.currentToken.kind)) {
-        alias = this.eat(this.currentToken.kind)
+        alias = this.eat(this.currentToken.kind);
       }
       else if (!modifier) {
         alias = this.createMissingTokenWithError(TokenKind.Identifier, ErrorCode.ERR_MethodNameExpected);
@@ -4019,10 +4019,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         unaryType = ExpressionType.Explicit;
       }
 
-      let precedence = kind == TokenKind.Exclamation ? Precedence.LogicalNot : Precedence.Unary;
+      let unaryPrecedence = kind == TokenKind.Exclamation ? Precedence.LogicalNot : Precedence.Unary;
 
       let operator = this.eat(kind);
-      let operand = this.parseExpression(unaryType, precedence);
+      let operand = this.parseExpression(unaryType, unaryPrecedence);
 
       let unaryNode = new UnaryNode(operator, operand);
       if (kind == TokenKind.UnsetCast) {

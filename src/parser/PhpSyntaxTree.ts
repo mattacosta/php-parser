@@ -30,11 +30,6 @@ import { SyntaxTreeBase } from './SyntaxTree';
 export class PhpSyntaxTree extends SyntaxTreeBase<SourceTextSyntaxNode> {
 
   /**
-   * Parser configuration options.
-   */
-  protected readonly options: PhpParserOptions;
-
-  /**
    * @inheritDoc
    */
   public readonly path: string;
@@ -43,6 +38,11 @@ export class PhpSyntaxTree extends SyntaxTreeBase<SourceTextSyntaxNode> {
    * @inheritDoc
    */
   public readonly root: SourceTextSyntaxNode;
+
+  /**
+   * Parser configuration options.
+   */
+  protected readonly options: PhpParserOptions;
 
   /**
    * Creates a `PhpSyntaxTree` object.

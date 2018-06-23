@@ -117,13 +117,11 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
   /**
    * Determines if the position or span is completely within this span.
    */
-  public contains(position: number): boolean
-  public contains(span: TextSpan): boolean
-  public contains(positionOrSpan: number | TextSpan): boolean {
-    if (typeof positionOrSpan === 'number') {
-      return (positionOrSpan - this.start) < this.length;
+  public contains(spanOrPosition: TextSpan | number): boolean {
+    if (typeof spanOrPosition === 'number') {
+      return (spanOrPosition - this.start) < this.length;
     }
-    return positionOrSpan.start >= this.start && positionOrSpan.end <= this.end;
+    return spanOrPosition.start >= this.start && spanOrPosition.end <= this.end;
   }
 
   /**
@@ -149,13 +147,11 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
    * span, or if the span shares a region with this span (including if the end
    * of one span is at the start of the other).
    */
-  public intersectsWith(position: number): boolean
-  public intersectsWith(span: TextSpan): boolean
-  public intersectsWith(positionOrSpan: number | TextSpan): boolean {
-    if (typeof positionOrSpan === 'number') {
-      return (positionOrSpan - this.start) <= this.length;
+  public intersectsWith(spanOrPosition: TextSpan | number): boolean {
+    if (typeof spanOrPosition === 'number') {
+      return (spanOrPosition - this.start) <= this.length;
     }
-    return positionOrSpan.start <= this.end && positionOrSpan.end >= this.start;
+    return spanOrPosition.start <= this.end && spanOrPosition.end >= this.start;
   }
 
   /**

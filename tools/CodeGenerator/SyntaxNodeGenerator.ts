@@ -54,6 +54,47 @@ export class SyntaxNodeGenerator {
       '\n';
   }
 
+  public static generate(list: NodeClass[]): string {
+    let nameSort = list.slice().sort((a, b) => {
+      if (a.name > b.name) {
+        return 1;
+      }
+      if (a.name < b.name) {
+        return -1;
+      }
+      return 0;
+    });
+    // @todo This should really check dependencies, but it works. For now.
+    let abstractSort = list.slice().sort((a, b) => {
+      if (a.extends && !b.extends) {
+        return 1;
+      }
+      if (!a.extends && b.extends) {
+        return -1;
+      }
+      if (a.abstract && !b.abstract) {
+        return -1;
+      }
+      if (!a.abstract && b.abstract) {
+        return 1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      if (a.name < b.name) {
+        return -1;
+      }
+      return 0;
+    });
+
+    let generator = new SyntaxNodeGenerator();
+    generator.addImports(nameSort);
+    for (let i = 0; i < abstractSort.length; i++) {
+      generator.addClass(abstractSort[i]);
+    }
+    return generator.text;
+  }
+
   protected addAcceptMethods(visitorName: string, className: string): string {
     if (!visitorName) {
       console.log(className + 'SyntaxNode: Missing visitorName property.');
@@ -97,16 +138,15 @@ export class SyntaxNodeGenerator {
         }
         this.text += this.addCountGetter(info.properties.length),
         this.text += '\n';
+        this.text += this.addAcceptMethods(info.visitorName, info.name),
+        this.text += '\n';
         this.text += this.addChildAtMethod(info.properties),
         this.text += '\n';
         this.text += this.addDefineChildAtMethod(info.properties),
         this.text += '\n';
-        this.text += this.addAcceptMethods(info.visitorName, info.name),
-        this.text += '\n';
       }
     }
     this.text += '}\n';
-    this.text += '\n';
   }
 
   protected addCountGetter(count: number): string {
@@ -187,7 +227,7 @@ export class SyntaxNodeGenerator {
           text += '      if (!node) {\n';
           text += '        throw new InvalidOperationException(\'Unable to create child node\');\n';
           text += '      }\n';
-          text += '      this._' + prop.name + ' = node;\n'
+          text += '      this._' + prop.name + ' = node;\n';
         }
         else {
           text += i == 0
@@ -229,9 +269,9 @@ export class SyntaxNodeGenerator {
     this.text += 'import { SyntaxList } from \'./SyntaxList\';\n';
     this.text += 'import { SyntaxNode } from \'./SyntaxNode\';\n';
     this.text += 'import { SyntaxNodeBase } from \'./SyntaxNodeBase\';\n';
-    this.text += 'import { SyntaxToken } from \'./SyntaxToken\';\n'
-    this.text += 'import { SyntaxTransform } from \'./SyntaxTransform.Generated\';\n'
-    this.text += 'import { SyntaxVisitor } from \'./SyntaxVisitor.Generated\';\n'
+    this.text += 'import { SyntaxToken } from \'./SyntaxToken\';\n';
+    this.text += 'import { SyntaxTransform } from \'./SyntaxTransform.Generated\';\n';
+    this.text += 'import { SyntaxVisitor } from \'./SyntaxVisitor.Generated\';\n';
     this.text += '\n';
   }
 
@@ -274,47 +314,6 @@ export class SyntaxNodeGenerator {
       default:
         return type + 'SyntaxNode';
     }
-  }
-
-  public static generate(list: NodeClass[]): string {
-    let nameSort = list.slice().sort((a, b) => {
-      if (a.name > b.name) {
-        return 1;
-      }
-      if (a.name < b.name) {
-        return -1;
-      }
-      return 0;
-    });
-    // @todo This should really check dependencies, but it works. For now.
-    let abstractSort = list.slice().sort((a, b) => {
-      if (a.extends && !b.extends) {
-        return 1;
-      }
-      if (!a.extends && b.extends) {
-        return -1;
-      }
-      if (a.abstract && !b.abstract) {
-        return -1;
-      }
-      if (!a.abstract && b.abstract) {
-        return 1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-      if (a.name < b.name) {
-        return -1;
-      }
-      return 0;
-    });
-
-    let generator = new SyntaxNodeGenerator();
-    generator.addImports(nameSort);
-    for (let i = 0; i < abstractSort.length; i++) {
-      generator.addClass(abstractSort[i]);
-    }
-    return generator.text;
   }
 
 }

@@ -54,6 +54,21 @@ export class SyntaxVisitorGenerator {
       '\n';
   }
 
+  public static generate(list: NodeClass[]): string {
+    let generator = new SyntaxVisitorGenerator();
+    let sortedList = list.slice().sort((a, b) => {
+      if (a.name > b.name) {
+        return 1;
+      }
+      if (a.name < b.name) {
+        return -1;
+      }
+      return 0;
+    });
+    generator.generateClass(sortedList);
+    return generator.text;
+  }
+
   protected generateClass(list: NodeClass[]) {
     this.text += this.addImports(list);
     this.text += '\n';
@@ -138,21 +153,6 @@ export class SyntaxVisitorGenerator {
     text += '    // Does nothing.\n';
     text += '  }\n';
     return text;
-  }
-
-  public static generate(list: NodeClass[]): string {
-    let generator = new SyntaxVisitorGenerator();
-    let sortedList = list.slice().sort((a, b) => {
-      if (a.name > b.name) {
-        return 1;
-      }
-      if (a.name < b.name) {
-        return -1;
-      }
-      return 0;
-    });
-    generator.generateClass(sortedList);
-    return generator.text;
   }
 
 }

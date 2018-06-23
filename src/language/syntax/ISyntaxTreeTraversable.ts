@@ -22,8 +22,8 @@
 export interface ISyntaxTreeTraversable<T> {
 
   /**
-  * Determines if the current position in the tree is a token (i.e. a leaf).
-  */
+   * Determines if the current position in the tree is a token (i.e. a leaf).
+   */
   readonly isToken: boolean;
 
   /**
