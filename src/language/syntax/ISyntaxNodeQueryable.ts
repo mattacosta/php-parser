@@ -19,8 +19,7 @@
 import { ISyntaxTreeTraversable } from './ISyntaxTreeTraversable';
 
 /**
- * Defines an interface for functions that can be used to filter `ISyntaxNode`
- * objects.
+ * A function that can be used to filter `ISyntaxNode` objects.
  */
 export type SyntaxNodeFilter<T> = (node: T) => boolean;
 

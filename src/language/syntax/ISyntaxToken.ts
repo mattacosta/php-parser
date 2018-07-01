@@ -25,8 +25,7 @@ import { TextSpan } from '../../text/TextSpan';
 import { TokenKind } from '../TokenKind';
 
 /**
- * Defines an interface for functions that can be used to filter `ISyntaxToken`
- * objects.
+ * A function that can be used to filter `ISyntaxToken` objects.
  */
 export type SyntaxTokenFilter = (token: ISyntaxToken) => boolean;
 

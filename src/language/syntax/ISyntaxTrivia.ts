@@ -24,8 +24,7 @@ import { TextSpan } from '../../text/TextSpan';
 import { TokenKind } from '../TokenKind';
 
 /**
- * Defines an interface for functions that can be used to filter `ISyntaxTrivia`
- * objects.
+ * A function that can be used to filter `ISyntaxTrivia` objects.
  */
 export type SyntaxTriviaFilter = (trivia: ISyntaxTrivia) => boolean;
 
