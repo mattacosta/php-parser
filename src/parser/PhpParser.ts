@@ -3049,7 +3049,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseReturn(): ReturnNode {
     let returnKeyword = this.eat(TokenKind.Return);
     let expression = this.isExpressionStart(this.currentToken.kind) ? this.parseExpression() : null;
-    let semicolon = this.parseStatementEnd();
+    let semicolon = expression === null && !this.isStatementEnd(this.currentToken.kind)
+      ? this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_ExpressionOrSemicolonExpected)
+      : this.parseStatementEnd();
     return new ReturnNode(returnKeyword, expression, semicolon);
   }
 

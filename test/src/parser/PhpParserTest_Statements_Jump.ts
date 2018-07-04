@@ -142,8 +142,7 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(tests);
 
       let diagnosticTests = [
-        // @todo "Expression or ';' expected"
-        new DiagnosticTestArgs('return', 'missing expression or semicolon', [ErrorCode.ERR_SemicolonExpected], [6]),
+        new DiagnosticTestArgs('return', 'missing expression or semicolon', [ErrorCode.ERR_ExpressionOrSemicolonExpected], [6]),
         new DiagnosticTestArgs('return 1', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [8]),
       ];
       Test.assertDiagnostics(diagnosticTests);
