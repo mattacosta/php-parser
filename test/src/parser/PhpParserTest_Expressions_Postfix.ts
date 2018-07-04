@@ -26,6 +26,7 @@ import {
 } from '../Test';
 
 import {
+  ArgumentSyntaxNode,
   ArraySyntaxNode,
   ClassConstantSyntaxNode,
   ConstantSyntaxNode,
@@ -41,6 +42,7 @@ import {
   NamedMemberAccessSyntaxNode,
   NamedMethodInvocationSyntaxNode,
   NamedScopedInvocationSyntaxNode,
+  NameSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PostfixUnarySyntaxNode,
   StaticPropertySyntaxNode,
@@ -71,6 +73,20 @@ function assertElementAccess(statements: ISyntaxNode[], hasOffset: boolean): Ele
     assert.strictEqual(elementAccess.index, null);
   }
   return elementAccess;
+}
+
+function assertFunctionArgument(argument: ISyntaxNode, hasEllipsis = false): LocalVariableSyntaxNode {
+  let argumentNode = <ArgumentSyntaxNode>argument;
+  assert.equal(argumentNode instanceof ArgumentSyntaxNode, true, 'ArgumentSyntaxNode');
+  if (hasEllipsis) {
+    assert.notStrictEqual(argumentNode.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(argumentNode.ellipsis, null);
+  }
+  let variable = <LocalVariableSyntaxNode>argumentNode.value;
+  assert.equal(variable instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  return variable;
 }
 
 function assertFunctionInvocation(statements: ISyntaxNode[]): FunctionInvocationSyntaxNode {
@@ -650,6 +666,78 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('[]::B;', 'should not parse scoped access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+    });
+
+    // @todo Parenthesis are currently implemented independently. If the parser
+    //   is not changed, then each type of invocation needs its own tests.
+    describe('argument-list', function() {
+      // NOTE: Empty argument lists are tested above.
+      let syntaxTests = [
+        new ParserTestArgs('a($b);', 'should parse an argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 1);
+          let firstArgument = assertFunctionArgument(args[0], false);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+        }),
+        new ParserTestArgs('a($b, $c);', 'should parse multiple arguments', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 2);
+          let firstArgument = assertFunctionArgument(args[0], false);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+          let secondArgument = assertFunctionArgument(args[1], false);
+          Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
+        }),
+        new ParserTestArgs('a(...$b);', 'should parse an unpacked argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 1);
+          let firstArgument = assertFunctionArgument(args[0], true);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+        }),
+        new ParserTestArgs('a(...$b, ...$c);', 'should parse multiple unpacked arguments', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 2);
+          let firstArgument = assertFunctionArgument(args[0], true);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+          let secondArgument = assertFunctionArgument(args[1], true);
+          Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
+        }),
+        new ParserTestArgs('a($b, ...$c);', 'should parse an unpacked argument after a positional argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 2);
+          let firstArgument = assertFunctionArgument(args[0], false);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+          let secondArgument = assertFunctionArgument(args[1], true);
+          Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticsTests = [
+        // @todo Improve error message.
+        new DiagnosticTestArgs('a(', 'missing expression, ellipsis, or close paren', [ErrorCode.ERR_CloseParenExpected], [2]),
+        // @todo Improve error message.
+        new DiagnosticTestArgs('a($b', 'missing comma or close paren', [ErrorCode.ERR_CloseParenExpected], [4]),
+        // @todo Improve error message.
+        new DiagnosticTestArgs('a($b,', 'missing expression or ellipsis', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
+        new DiagnosticTestArgs('a(...', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
+        // @todo Improve error message.
+        new DiagnosticTestArgs('a(...$b', 'missing comma or close paren (after unpacked argument)', [ErrorCode.ERR_CloseParenExpected], [7]),
+        // @todo Fix this error message.
+        new DiagnosticTestArgs('a(...$b,', 'missing ellipsis', [ErrorCode.ERR_ArgumentAfterUnpack], [8]),
+
+        new DiagnosticTestArgs('a(...$b, $c);', 'should not parse a positional argument after an unpacked argument', [ErrorCode.ERR_ArgumentAfterUnpack], [9]),
+      ];
+      Test.assertDiagnostics(diagnosticsTests);
     });
 
   });
