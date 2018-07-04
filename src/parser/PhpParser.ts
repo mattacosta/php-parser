@@ -3734,8 +3734,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax: `UNSET ( unset-list ) ;`
    *
    * Where `unset-list` is:
-   * - `unset-list , VARIABLE`
-   * - `VARIABLE`
+   * - `unset-list , expr`
+   * - `expr`
    */
   protected parseUnset(): UnsetNode {
     let unsetKeyword = this.eat(TokenKind.Unset);
@@ -4570,6 +4570,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     // An array is implicit if there is no dereference.
     let type = ExpressionType.Implicit;
+
     // NOTE: While PHP does allow an object operator after an array, it always
     // leads to an error. Additionally, while arrays cannot normally be used
     // with an argument list there is one exception:
