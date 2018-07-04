@@ -5078,12 +5078,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     while (this.currentToken.kind == TokenKind.Comma) {
       expressions.push(this.eat(TokenKind.Comma));
+      if (!this.isExpressionStart(this.currentToken.kind)) {
+        break;  // @todo Requires PHP 7.3 or later.
+      }
       expressions.push(this.parseExpression());
     }
 
     let closeParen = this.currentToken.kind == TokenKind.CloseParen
       ? this.eat(TokenKind.CloseParen)
-      : this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_CommaOrCloseParenExpected);
+      : expressions.length & 1
+        ? this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_CommaOrCloseParenExpected)
+        : this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_ExpressionOrCloseParenExpected);
     return new IsSetIntrinsicNode(isSetKeyword, openParen, this.factory.createList(expressions), closeParen);
   }
 
