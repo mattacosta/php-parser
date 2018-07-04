@@ -4617,6 +4617,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       array = this.parseArray();
     }
     else {
+      // Short syntax.
       array = this.parseArray();
       if (this.currentToken.kind == TokenKind.Equal) {
         let operator = this.eat(TokenKind.Equal);
@@ -5193,11 +5194,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       return new ListDestructureElementNode(null, null, null, list);
     }
 
-    // When using the []-syntax form, a user may try to make an assignment
-    // by reference, which would be valid if this were an array initializer.
     let ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
-      ampersand = this.addError(ampersand, ErrorCode.ERR_DeconstructVariableReference);
+      // @todo Requires PHP 7.3 or later.
       let byRefValue = this.parseExpression(ExpressionType.Explicit);
       return new ListDestructureElementNode(null, null, ampersand, byRefValue);
     }
@@ -5221,10 +5220,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let key = <ExpressionNode>expr.node;
     let doubleArrow = this.eat(TokenKind.DoubleArrow);
 
-    // See above.
     ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
-      ampersand = this.addError(ampersand, ErrorCode.ERR_DeconstructVariableReference);
+      // @todo Requires PHP 7.3 or later.
     }
 
     // Suppress TS2365: Current token changed after previous method call.

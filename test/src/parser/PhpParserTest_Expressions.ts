@@ -791,7 +791,7 @@ describe('PhpParser', function() {
         assert.equal(elements.length, 1);
         assertArrayElement(elements[0], true, false);
       }),
-      new ParserTestArgs('array(1 => &$a);', 'should parse an array creation expression with key-value pair (byref)', (statements) => {
+      new ParserTestArgs('array(1 => &$a);', 'should parse an array creation expression with key-value pair (byref value)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let arrayNode = <ArraySyntaxNode>exprNode.expression;
@@ -819,10 +819,12 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('array(', 'missing expression or close paren', [ErrorCode.ERR_CloseParenExpected], [6]),
       // @todo Improve error message.
       new DiagnosticTestArgs('array(1', 'missing comma, close paren, or double arrow', [ErrorCode.ERR_CloseParenExpected], [7]),
-
-      // @todo Disabled. Allowed for list destructuring (uses same code as []-syntax).
-      // new DiagnosticTestArgs('array(,);', 'should not parse an array with missing element', [ErrorCode.ERR_ExpressionExpected], [6]),
       new DiagnosticTestArgs('array(&1);', 'should expect explicit byref value', [ErrorCode.ERR_ExpressionNotAddressable], [7]),
+
+      // @todo Recovery tests.
+      new DiagnosticTestArgs('array(&$a => $b);', 'should not parse an array with byref key', [ErrorCode.ERR_Syntax, ErrorCode.ERR_UnexpectedToken], [12, 10]),
+      // @todo Disabled. Allowed for list destructuring (uses same code as []-syntax).
+      // new DiagnosticTestArgs('array(,$a);', 'should not parse an array with missing element', [ErrorCode.ERR_ExpressionExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
@@ -907,6 +909,13 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    // NOTE: See array-creation-expression for array element tests.
+    let diagnosticTests = [
+      // @todo Improve error message.
+      new DiagnosticTestArgs('[', 'missing expression or close bracket', [ErrorCode.ERR_Syntax], [1]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
   });
 
   describe('unary-expression', function() {

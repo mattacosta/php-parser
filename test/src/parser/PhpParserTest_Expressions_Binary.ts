@@ -549,6 +549,17 @@ describe('PhpParser', function() {
           let element = <ListDestructureElementSyntaxNode>elements[0];
           assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
+          assert.strictEqual(element.ampersand, null);
+          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('list(&$a) = $b;', 'should parse a destructuring assignment with byref value', (statements) => {
+          let list = assertListDeconstruction(statements);
+          let elements = list.variables ? list.variables.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let element = <ListDestructureElementSyntaxNode>elements[0];
+          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element.key, null);
+          assert.notStrictEqual(element.ampersand, null);
           assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list($a, $b) = $c;', 'should parse a destructuring assignment with multiple elements', (statements) => {
@@ -607,6 +618,17 @@ describe('PhpParser', function() {
           let element = <ListDestructureElementSyntaxNode>elements[0];
           assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
           assert.equal(element.key instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.ampersand, null);
+          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('list($a => &$b) = $c;', 'should parse a destructuring assignment with a key-value pair (byref value)', (statements) => {
+          let list = assertListDeconstruction(statements);
+          let elements = list.variables ? list.variables.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let element = <ListDestructureElementSyntaxNode>elements[0];
+          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.equal(element.key instanceof LocalVariableSyntaxNode, true);
+          assert.notStrictEqual(element.ampersand, null);
           assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list(1 => $a) = $b;', 'should parse a destructuring assignment with a key-value pair (implicit key)', (statements) => {
@@ -625,25 +647,32 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('list', 'missin open paren', [ErrorCode.ERR_OpenParenExpected], [4]),
         new DiagnosticTestArgs('list(', 'missing expression', [ErrorCode.ERR_DeconstructVariableMissing], [5]),
         new DiagnosticTestArgs('list($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [7]),
+        // @todo Improve error message.
         new DiagnosticTestArgs('list($a,', 'missing expression or close paren', [ErrorCode.ERR_CloseParenExpected], [8]),
         new DiagnosticTestArgs('list($a)', 'missing equals', [ErrorCode.ERR_Syntax], [8]),
         new DiagnosticTestArgs('list($a) =', 'missing expression (operand)', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
 
         new DiagnosticTestArgs('list() = $a;', 'should not parse a deconstruction without a variable', [ErrorCode.ERR_DeconstructVariableMissing], [5]),
         new DiagnosticTestArgs('list(,) = $a;', 'should not parse a deconstruction without a variable (with comma)', [ErrorCode.ERR_DeconstructVariableMissing], [6]),
-        new DiagnosticTestArgs('list(&$a) = $b;', 'should not parse list assignment with byref variable', [ErrorCode.ERR_DeconstructVariableReference], [5]),
         new DiagnosticTestArgs('list([$a]) = $b;', 'should not parse a deconstruction using mixed syntax', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
-        new DiagnosticTestArgs('list(1) = $a;', 'should expect and explicit value', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
+        new DiagnosticTestArgs('list(1) = $a;', 'should expect an explicit value', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
         new DiagnosticTestArgs('list($a => 1) = $b;', 'should expect an explicit value (key-value pair)', [ErrorCode.ERR_ExpressionNotAddressable], [11]),
+        new DiagnosticTestArgs('list(&$a => $b) = $c;', 'should not parse deconstruction with byref key', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
 
-    describe('destructuring-assignment-expression ([]-syntax)', function() {
+    describe('destructuring-assignment-expression (short-syntax)', function() {
       // Since the LHS of this expression is parsed as an array initializer,
       // tests for array elements is handled there.
       let syntaxTests = [
         new ParserTestArgs('[$a] = $b;', 'should parse a destructuring assignment', (statements) => {
+          let array = assertArrayDeconstruction(statements);
+          let elements = array.initializerList ? array.initializerList.childNodes() : [];
+          assert.equal(elements.length, 1);
+          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+        }),
+        new ParserTestArgs('[&$a] = $b;', 'should parse a destructuring assignment with byref value', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
           assert.equal(elements.length, 1);
@@ -681,6 +710,12 @@ describe('PhpParser', function() {
           assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[$a => $b] = $c;', 'should parse a destructuring assignment with a key-value pair', (statements) => {
+          let array = assertArrayDeconstruction(statements);
+          let elements = array.initializerList ? array.initializerList.childNodes() : [];
+          assert.equal(elements.length, 1);
+          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+        }),
+        new ParserTestArgs('[$a => &$b] = $c;', 'should parse a destructuring assignment with a key-value pair (byref value)', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
           assert.equal(elements.length, 1);
