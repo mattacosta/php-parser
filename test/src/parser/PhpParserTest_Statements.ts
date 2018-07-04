@@ -381,21 +381,42 @@ describe('PhpParser', function() {
       new ParserTestArgs('unset($a);', 'should parse an unset statement', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
         assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
-        let variables = unsetNode.expressionList.childNodes();
-        assert.equal(variables.length, 1);
-        let variable = <LocalVariableSyntaxNode>variables[0];
+        let expressions = unsetNode.expressionList.childNodes();
+        assert.equal(expressions.length, 1);
+        let variable = <LocalVariableSyntaxNode>expressions[0];
         assert.equal(variable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
       }),
-      new ParserTestArgs('unset($a, $b);', 'should parse an unset statement with multiple variables', (statements, text) => {
+      new ParserTestArgs('unset($a, $b);', 'should parse an unset statement with expression list', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
         assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
-        let variables = unsetNode.expressionList.childNodes();
-        assert.equal(variables.length, 2);
-        let firstVariable = <LocalVariableSyntaxNode>variables[0];
+        let expressions = unsetNode.expressionList.childNodes();
+        assert.equal(expressions.length, 2);
+        let firstVariable = <LocalVariableSyntaxNode>expressions[0];
         assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
-        let secondVariable = <LocalVariableSyntaxNode>variables[0];
+        let secondVariable = <LocalVariableSyntaxNode>expressions[0];
+        assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
+      }),
+      new ParserTestArgs('unset($a,);', 'should parse an unset statement with trailing comma', (statements, text) => {
+        let unsetNode = <UnsetSyntaxNode>statements[0];
+        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        let expressions = unsetNode.expressionList.childNodes();
+        assert.equal(expressions.length, 1);
+        let variable = <LocalVariableSyntaxNode>expressions[0];
+        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
+      }),
+      new ParserTestArgs('unset($a, $b,);', 'should parse an unset statement with trailing comma after expression list', (statements, text) => {
+        let unsetNode = <UnsetSyntaxNode>statements[0];
+        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        let expressions = unsetNode.expressionList.childNodes();
+        assert.equal(expressions.length, 2);
+        let firstVariable = <LocalVariableSyntaxNode>expressions[0];
+        assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
+        let secondVariable = <LocalVariableSyntaxNode>expressions[0];
         assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
@@ -406,7 +427,8 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('unset', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
       new DiagnosticTestArgs('unset(', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
       new DiagnosticTestArgs('unset($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
-      new DiagnosticTestArgs('unset($a,', 'missing expression after comma', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
+      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
+      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
       new DiagnosticTestArgs('unset(1);', 'should expect an explicit expression', [ErrorCode.ERR_ExpressionNotAddressable], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
