@@ -685,6 +685,12 @@ describe('PhpParser', function() {
           assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
           assert.equal(elements[1] instanceof ArrayElementSyntaxNode, true);
         }),
+        new ParserTestArgs('[,$a] = $c;', 'should parse a destructuring assignment with leading comma', (statements) => {
+          let array = assertArrayDeconstruction(statements);
+          let elements = array.initializerList ? array.initializerList.childNodes() : [];
+          assert.equal(elements.length, 1);
+          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+        }),
         new ParserTestArgs('[$a,] = $c;', 'should parse a destructuring assignment with trailing comma', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
