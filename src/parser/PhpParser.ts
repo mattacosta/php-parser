@@ -2369,11 +2369,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // In the above scenario, the parser does not know if the opening bracket
     // should start a deconstruction or an array initializer and as a result,
     // needs to parse it as either. Sadly, this means that invalid
-    // deconstructions AND array initializers are not syntax errors.
+    // array initializers are not syntax errors.
     //
     //   [,$a]   // Valid deconstruction, invalid array.
-    //
-    //   [&$a]   // Valid array, invalid deconstruction.
     //
     let expr = this.parseExpressionTree();
     let value = <ExpressionNode>expr.node;
