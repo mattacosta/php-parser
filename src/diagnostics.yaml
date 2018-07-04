@@ -110,6 +110,7 @@ diagnostics:
   text: "The modifier '%s' cannot be used on a class, interface, or trait"
 - name: ERR_BaseClassAfterImplements
   text: "Base class must come before any interfaces"
+# @todo Alternative: "A case label must be followed by a ':' or ';'"
 - name: ERR_CaseLabelSeparatorExpected
   text: "Expected ':' or ';' after case label"
 - name: ERR_CatchOrFinallyExpected
@@ -136,12 +137,16 @@ diagnostics:
   text: "A destructuring variable cannot be assigned by reference"
 - name: ERR_DuplicateModifier
   text: "Duplicate '%s' modifier"
+- name: ERR_EllipsisOrCloseParenExpected
+  text: "'...' or ')' expected"
 - name: ERR_ExpressionExpected
   text: "Expression expected, got '%s'"
 - name: ERR_ExpressionExpectedEOF
   text: "End of file found, expression expected"
 - name: ERR_ExpressionNotAddressable
   text: "The given expression does not have a usable address"
+- name: ERR_ExpressionOrCloseParenExpected
+  text: "Expression or ')' expected"
 - name: ERR_ExpressionOrColonExpected
   text: "Expression or ':' expected"
 - name: ERR_ExpressionOrSemicolonExpected

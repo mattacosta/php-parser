@@ -668,8 +668,6 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticTests);
     });
 
-    // @todo Parenthesis are currently implemented independently. If the parser
-    //   is not changed, then each type of invocation needs its own tests.
     describe('argument-list', function() {
       // NOTE: Empty argument lists are tested above.
       let syntaxTests = [
@@ -719,21 +717,57 @@ describe('PhpParser', function() {
           let secondArgument = assertFunctionArgument(args[1], true);
           Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
         }),
+
+        new ParserTestArgs('a($b,);', 'should parse an argument with a trailing comma', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 1);
+          let firstArgument = assertFunctionArgument(args[0], false);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+        }),
+        new ParserTestArgs('a($b, $c,);', 'should parse multiple arguments with a trailing comma', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 2);
+          let firstArgument = assertFunctionArgument(args[0], false);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+          let secondArgument = assertFunctionArgument(args[1], false);
+          Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
+        }),
+        new ParserTestArgs('a(...$b,);', 'should parse an unpacked argument with a trailing comma', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 1);
+          let firstArgument = assertFunctionArgument(args[0], true);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+        }),
+        new ParserTestArgs('a(...$b, ...$c,);', 'should parse multiple unpacked arguments with a trailing comma', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.equal(args.length, 2);
+          let firstArgument = assertFunctionArgument(args[0], true);
+          Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
+          let secondArgument = assertFunctionArgument(args[1], true);
+          Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
+        }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
       let diagnosticsTests = [
-        // @todo Improve error message.
-        new DiagnosticTestArgs('a(', 'missing expression, ellipsis, or close paren', [ErrorCode.ERR_CloseParenExpected], [2]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('a($b', 'missing comma or close paren', [ErrorCode.ERR_CloseParenExpected], [4]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('a($b,', 'missing expression or ellipsis', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
+        // While not an exact match, this error code is a) not overly complex
+        // and b) consistent with what is used by isset() and unset().
+        new DiagnosticTestArgs('a(', 'missing expression, ellipsis, or close paren (in empty list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [2]),
+        new DiagnosticTestArgs('a($b', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [4]),
+        new DiagnosticTestArgs('a($b,', 'missing expression, ellipsis, or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [5]),
+        new DiagnosticTestArgs('a($b, $c', 'missing comma or close paren (in list)', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
+        new DiagnosticTestArgs('a($b, $c,', 'missing expression, ellipsis, or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
         new DiagnosticTestArgs('a(...', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('a(...$b', 'missing comma or close paren (after unpacked argument)', [ErrorCode.ERR_CloseParenExpected], [7]),
-        // @todo Fix this error message.
-        new DiagnosticTestArgs('a(...$b,', 'missing ellipsis', [ErrorCode.ERR_ArgumentAfterUnpack], [8]),
+        new DiagnosticTestArgs('a(...$b', 'missing comma or close paren (after unpacked argument)', [ErrorCode.ERR_CommaOrCloseParenExpected], [7]),
+        new DiagnosticTestArgs('a(...$b,', 'missing ellipsis or close paren', [ErrorCode.ERR_EllipsisOrCloseParenExpected], [8]),
 
         new DiagnosticTestArgs('a(...$b, $c);', 'should not parse a positional argument after an unpacked argument', [ErrorCode.ERR_ArgumentAfterUnpack], [9]),
       ];

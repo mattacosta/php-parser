@@ -181,6 +181,15 @@ export class Expression {
 }
 
 /**
+ * A container for the arguments of an invocation expression.
+ */
+export class InvocationArguments {
+
+  constructor(public readonly openParen: TokenNode, public readonly argumentList: NodeList | null, public readonly closeParen: TokenNode) {}
+
+}
+
+/**
  * Parses a PHP file into an abstract syntax tree.
  */
 export class PhpParser implements IParser<SourceTextSyntaxNode> {
@@ -4350,16 +4359,25 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses an anonymous class.
    *
-   * Syntax: `CLASS ( argument-list ) class-base-clause class-interface-clause { class-member-declarations }`
+   * Syntax:
+   * - `CLASS class-base-clause class-interface-clause { class-member-declarations }`
+   * - `CLASS ( argument-list ) class-base-clause class-interface-clause { class-member-declarations }`
    *
    * @see PhpParser.parseObjectCreationExpression()
    */
   protected parseAnonymousClass(newKeyword: TokenNode): AnonymousClassNode {
     let classKeyword = this.eat(TokenKind.Class);
 
-    let openParen = this.eatOptional(TokenKind.OpenParen);
-    let argumentList = openParen ? this.parseArgumentList() : null;
-    let closeParen = openParen ? this.eat(TokenKind.CloseParen) : null;
+    let openParen: TokenNode | null = null;
+    let argumentList: NodeList | null = null;
+    let closeParen: TokenNode | null = null;
+
+    if (this.currentToken.kind == TokenKind.OpenParen) {
+      let invocationArgs = this.parseArgumentList();
+      openParen = invocationArgs.openParen;
+      argumentList = invocationArgs.argumentList;
+      closeParen = invocationArgs.closeParen;
+    }
 
     let extendsKeyword = this.eatOptional(TokenKind.Extends);
     let baseType: NameNode | null = null;
@@ -4408,7 +4426,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Parses a list of arguments in an anonymous class, invocation, or object
    * creation expression.
    *
-   * Syntax: `argument-list`
+   * Syntax: `( argument-list )`
    *
    * Where `argument-list` is:
    * - `argument-list , argument`
@@ -4418,42 +4436,77 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `ELLIPSIS expr`
    * - `expr`
    */
-  protected parseArgumentList(): NodeList | null {
+  protected parseArgumentList(): InvocationArguments {
     let args: Array<ArgumentNode|TokenNode> = [];
     let hasUnpack = false;
 
-    if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
-      let ellipsis = this.eatOptional(TokenKind.Ellipsis);
-      let value = this.parseExpression();
-      args.push(new ArgumentNode(ellipsis, value));
+    let openParen = this.eat(TokenKind.OpenParen);
 
-      if (ellipsis) {
-        hasUnpack = true;
-      }
-    }
-
-    while (this.currentToken.kind != TokenKind.CloseParen && this.currentToken.kind != TokenKind.EOF) {
+    if (!openParen.isMissing) {
       if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
-        args.push(this.eat(TokenKind.Comma));
-
         let ellipsis = this.eatOptional(TokenKind.Ellipsis);
         let value = this.parseExpression();
-        if (!ellipsis && hasUnpack) {
-          value = this.addError(value, ErrorCode.ERR_ArgumentAfterUnpack);
-        }
         args.push(new ArgumentNode(ellipsis, value));
 
         if (ellipsis) {
           hasUnpack = true;
         }
-
-        continue;
       }
 
-      this.skipBadArgumentListTokens();
+      while (this.currentToken.kind != TokenKind.CloseParen && this.currentToken.kind != TokenKind.EOF) {
+        if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
+          args.push(this.eat(TokenKind.Comma));
+
+            if (!this.isArgumentStart(this.currentToken.kind)) {
+              break;  // @todo Requires PHP 7.3 or later.
+            }
+
+          let ellipsis = this.eatOptional(TokenKind.Ellipsis);
+          let value = this.parseExpression();
+          if (!ellipsis && hasUnpack) {
+            value = this.addError(value, ErrorCode.ERR_ArgumentAfterUnpack);
+          }
+          args.push(new ArgumentNode(ellipsis, value));
+
+          if (ellipsis) {
+            hasUnpack = true;
+          }
+
+          continue;
+        }
+
+        this.skipBadArgumentListTokens();
+      }
     }
 
-    return args.length > 0 ? this.factory.createList(args) : null;
+    let closeParen: TokenNode;
+    if (openParen.isMissing) {
+      closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
+    }
+    else if (this.currentToken.kind == TokenKind.CloseParen) {
+      closeParen = this.eat(TokenKind.CloseParen);
+    }
+    else {
+      let code: ErrorCode;
+      if (args.length & 1) {
+        // Odd: Ended in an argument.
+        code = ErrorCode.ERR_CommaOrCloseParenExpected;
+      }
+      else {
+        // Even: Either there were no arguments or the list ended in a comma.
+        code = hasUnpack ? ErrorCode.ERR_EllipsisOrCloseParenExpected : ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      }
+      closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
+    }
+
+    // NOTE: It is not ideal to create these short-lived objects during a parse,
+    // but it also allows the current node structure to remain, while also
+    // standardizing how argument lists are parsed.
+    return new InvocationArguments(
+      openParen,
+      args.length > 0 ? this.factory.createList(args) : null,
+      closeParen
+    );
   }
 
   /**
@@ -4903,10 +4956,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @see PhpParser.parseScopedAccessOrInvocation()
    */
   protected parseFunctionInvocation(reference: ExpressionNode | NameNode): FunctionInvocationNode {
-    let openParen = this.eat(TokenKind.OpenParen);
-    let argumentList = this.parseArgumentList();
-    let closeParen = this.eat(TokenKind.CloseParen);
-    return new FunctionInvocationNode(reference, openParen, argumentList, closeParen);
+    let invocationArgs = this.parseArgumentList();
+    return new FunctionInvocationNode(
+      reference,
+      invocationArgs.openParen,
+      invocationArgs.argumentList,
+      invocationArgs.closeParen
+    );
   }
 
   /**
@@ -5215,9 +5271,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     if (allowInvocation && this.currentToken.kind == TokenKind.OpenParen) {
-      let openParen = this.eat(TokenKind.OpenParen);
-      let argumentList = this.parseArgumentList();
-      let closeParen = this.eat(TokenKind.CloseParen);
+      let invocationArgs = this.parseArgumentList();
 
       if (memberReference) {
         return new IndirectMethodInvocationNode(
@@ -5226,9 +5280,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           openBrace,
           memberReference,
           closeBrace,
-          openParen,
-          argumentList,
-          closeParen
+          invocationArgs.openParen,
+          invocationArgs.argumentList,
+          invocationArgs.closeParen
         );
       }
       if (memberName) {
@@ -5236,9 +5290,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           dereferenceable,
           objOperator,
           memberName,
-          openParen,
-          argumentList,
-          closeParen
+          invocationArgs.openParen,
+          invocationArgs.argumentList,
+          invocationArgs.closeParen
         );
       }
 
@@ -5358,9 +5412,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let reference = this.parseClassNameReference();
-    let openParen = this.eatOptional(TokenKind.OpenParen);
-    let argumentList = openParen ? this.parseArgumentList() : null;
-    let closeParen = openParen ? this.eat(TokenKind.CloseParen) : null;
+    let openParen: TokenNode | null = null;
+    let argumentList: NodeList | null = null;
+    let closeParen: TokenNode | null = null;
+
+    if (this.currentToken.kind == TokenKind.OpenParen) {
+      let invocationArgs = this.parseArgumentList();
+      openParen = invocationArgs.openParen;
+      argumentList = invocationArgs.argumentList;
+      closeParen = invocationArgs.closeParen;
+    }
 
     return reference instanceof NameNode
       ? new NamedObjectCreationNode(newKeyword, reference, openParen, argumentList, closeParen)
@@ -5387,16 +5448,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       let member = this.eat(this.currentToken.kind);
 
       if (this.currentToken.kind == TokenKind.OpenParen) {
-        let openParen = this.eat(TokenKind.OpenParen);
-        let argumentList = this.parseArgumentList();
-        let closeParen = this.eat(TokenKind.CloseParen);
+        let invocationArgs = this.parseArgumentList();
         let invocation = new NamedScopedInvocationNode(
           qualifier,
           doubleColon,
           member,
-          openParen,
-          argumentList,
-          closeParen
+          invocationArgs.openParen,
+          invocationArgs.argumentList,
+          invocationArgs.closeParen
         );
         return new Expression(invocation, ExpressionType.Explicit);
       }
@@ -5415,18 +5474,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       // Suppress TS2365: Current token changed after previous method call.
       if (<TokenKind>this.currentToken.kind == TokenKind.OpenParen) {
-        let openParen = this.eat(TokenKind.OpenParen);
-        let argumentList = this.parseArgumentList();
-        let closeParen = this.eat(TokenKind.CloseParen);
+        let invocationArgs = this.parseArgumentList();
         let invocation = new IndirectScopedInvocationNode(
           qualifier,
           doubleColon,
           null,
           variable,
           null,
-          openParen,
-          argumentList,
-          closeParen
+          invocationArgs.openParen,
+          invocationArgs.argumentList,
+          invocationArgs.closeParen
         );
         return new Expression(invocation, ExpressionType.Explicit);
       }
@@ -5438,18 +5495,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       let openBrace = this.eat(TokenKind.OpenBrace);
       let member = this.parseExpression();
       let closeBrace = this.eat(TokenKind.CloseBrace);
-      let openParen = this.eat(TokenKind.OpenParen);
-      let argumentList = this.parseArgumentList();
-      let closeParen = this.eat(TokenKind.CloseParen);
+      let invocationArgs = this.parseArgumentList();
       let invocation = new IndirectScopedInvocationNode(
         qualifier,
         doubleColon,
         openBrace,
         member,
         closeBrace,
-        openParen,
-        argumentList,
-        closeParen
+        invocationArgs.openParen,
+        invocationArgs.argumentList,
+        invocationArgs.closeParen
       );
       return new Expression(invocation, ExpressionType.Explicit);
     }

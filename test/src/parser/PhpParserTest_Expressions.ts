@@ -705,7 +705,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('new class {', 'missing close brace or class member', [ErrorCode.ERR_CloseBraceExpected], [11]),
       new DiagnosticTestArgs('new class extends', 'missing name', [ErrorCode.ERR_TypeExpected], [17]),
       new DiagnosticTestArgs('new class implements', 'missing name', [ErrorCode.ERR_TypeExpected], [20]),
-      new DiagnosticTestArgs('new class (', 'missing argument', [ErrorCode.ERR_CloseParenExpected], [11]),
+      new DiagnosticTestArgs('new class (', 'missing argument or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [11]),
       new DiagnosticTestArgs('new class ()', 'missing extends, implements, or open brace', [ErrorCode.ERR_IncompleteClassDeclaration], [12]),
     ];
     Test.assertDiagnostics(diagnosticTests);
