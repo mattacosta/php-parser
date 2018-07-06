@@ -4215,8 +4215,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
   /**
    * @todo Document parsePrimaryExpression().
-   *
-   * @todo The parameter `expectedType` is not used.
    */
   protected parsePrimaryExpression(expectedType: ExpressionType): Expression {
     let expr: ExpressionNode | null = null;
@@ -4323,9 +4321,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return this.parseStringLiteral();
 
       default:
-        // Anything triggering this assert may cause an infinite loop since
-        // the parser may not actually move forward.
-        Debug.assert(!this.isExpressionStart(this.currentToken.kind));
+        // This point should have been reached intentionally. If not, then the
+        // parser may not move forward and could enter an infinite loop.
+        Debug.assert(!this.isExpressionStart(this.currentToken.kind) || (this.isUnaryOperator(this.currentToken.kind) && !this.isUnaryOperatorExpected(this.currentToken.kind, expectedType)));
 
         // @todo Use variable if expectedType is explicit and identifier otherwise?
         let variable = this.createMissingToken(TokenKind.Variable, this.currentToken.kind, false);
