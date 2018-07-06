@@ -1348,19 +1348,25 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.OpenBrace:
           this.offset++;  // "{"
           this.scanInterpolatedScript(Character.CloseBrace);
-          this.offset++;  // "}"
+          if (this.peek(this.offset) == Character.CloseBrace) {
+            this.offset++;
+          }
           break;
         case Character.OpenBracket:
           // @todo This may be unnecessary?
           this.offset++;  // "["
           this.scanInterpolatedScript(Character.CloseBracket);
-          this.offset++;  // "]"
+          if (this.peek(this.offset) == Character.CloseBracket) {
+            this.offset++;
+          }
           break;
         case Character.OpenParen:
           // @todo This may be unnecessary?
           this.offset++;  // "("
           this.scanInterpolatedScript(Character.CloseParen);
-          this.offset++;  // ")"
+          if (this.peek(this.offset) == Character.CloseParen) {
+            this.offset++;
+          }
           break;
 
         // Strings.
@@ -1524,7 +1530,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             }
 
             this.scanInterpolatedScript(Character.CloseBrace);
-            this.offset++;  // "}"
+            if (this.peek(this.offset) == Character.CloseBrace) {
+              this.offset++;
+            }
 
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
@@ -1570,7 +1578,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           if (next == Character.Dollar) {
             spanOffset = this.offset;
             this.scanInterpolatedScript(Character.CloseBrace);
-            this.offset++;  // "}"
+            if (this.peek(this.offset) == Character.CloseBrace) {
+              this.offset++;
+            }
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           break;

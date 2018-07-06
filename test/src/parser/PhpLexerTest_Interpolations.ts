@@ -31,14 +31,19 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) 
     if (test.expectedTokens.length > 0) {
       it(test.description || test.text, () => {
         let code = '<?php ' + test.text;
-        let lexer = new PhpLexer(SourceTextFactory.from(code));
+        let fullText = SourceTextFactory.from(code);
+        let lexer = new PhpLexer(fullText);
+
+        // Find the template.
         let token = lexer.lex(lexer.currentState);
         while (TokenKindInfo.isTrivia(token.kind)) {
           token = lexer.lex(lexer.currentState);
         }
         assert.equal(token.kind, templateKind, 'template kind');
 
-        let rescanText = SourceTextFactory.from(code.substr(token.offset, token.length));
+        // Create a new lexer to rescan the template. This must use a substring
+        // of the original source text to test the bounds of the template's span.
+        let rescanText = SourceTextFactory.from(fullText.substring(token.offset, token.length));
         let rescanLexer = new PhpLexer(rescanText);
         if (templateKind == TokenKind.StringTemplate) {
           rescanLexer.rescanInterpolatedString(lexer.templateSpans);
@@ -49,6 +54,7 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) 
         else {
           rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
         }
+
         for (let n = 0; n < test.expectedTokens.length; n++) {
           let rescanToken = rescanLexer.lex(rescanLexer.currentState);
           assert.equal(rescanToken.kind, test.expectedTokens[n], 'token kind');
@@ -154,6 +160,11 @@ describe('PhpLexer', function() {
         new LexerTestArgs('"{$a{}}"', 'variable substitution with braces',
           [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Variable, TokenKind.OpenBrace, TokenKind.CloseBrace, TokenKind.CloseBrace, TokenKind.DoubleQuote]
         ),
+        new LexerTestArgs('"{$"', 'should not move beyond EOF if variable substitution is incomplete',
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Dollar, TokenKind.StringLiteral],
+          // The '$' and '"' are part of the embedded script and cause the string to be unterminated.
+          ['"', '{', '$', '"']
+        ),
 
         // Entered via `LookingForVariableName`.
         // - Starts at first non-label character after the opening brace.
@@ -184,6 +195,20 @@ describe('PhpLexer', function() {
           TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral, TokenKind.CloseTag, TokenKind.OpenTag,
           TokenKind.Whitespace, TokenKind.Period, TokenKind.StringLiteral, TokenKind.CloseBrace, TokenKind.DoubleQuote
         ], ['"', '${', '\'a\'', '?>', '<?php', ' ', '.', '\'b\'', '}', '"']),
+
+        // All text after the identifier is part of the embedded script. If a
+        // closing token is not found the string is unterminated.
+        new LexerTestArgs('"${a{"', 'should not move beyond EOF if indirect variable name is incomplete (unmatched brace)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.OpenBrace, TokenKind.StringLiteral],
+        ),
+        new LexerTestArgs('"${a["', 'should not move beyond EOF if indirect variable name is incomplete (unmatched bracket)',
+          // Only an indentifier followed by a '[' or '}' results in the
+          // expected `StringIdentifier`.
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.OpenBracket, TokenKind.StringLiteral],
+        ),
+        new LexerTestArgs('"${a("', 'should not move beyond EOF if indirect variable name is incomplete (unmatched parenthesis)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.OpenParen, TokenKind.StringLiteral],
+        ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
     });
