@@ -70,14 +70,8 @@ describe('PhpParser', function() {
         let contents = assertStringTemplate(statements);
         assert.equal(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
       }),
-      new ParserTestArgs('"{$a}";', 'should parse a template using variable expression', (statements) => {
-        let contents = assertStringTemplate(statements);
-        let strExpr = <StringExpressionSyntaxNode>contents[0];
-        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
-        assert.equal(strExpr.expression instanceof LocalVariableSyntaxNode, true);
-      }),
 
-      // Element access.
+      // Variable with element access.
       new ParserTestArgs('"$a[0]";', 'should parse a template using element access with numeric offset', (statements, text) => {
         let contents = assertStringTemplate(statements);
         let elementAccess = <StringElementAccessSyntaxNode>contents[0];
@@ -133,10 +127,40 @@ describe('PhpParser', function() {
         assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
         assert.equal(variable.expression instanceof LocalVariableSyntaxNode, true);
       }),
+
+      // Expression.
+      new ParserTestArgs('"{$a}";', 'should parse a template using variable expression', (statements) => {
+        let contents = assertStringTemplate(statements);
+        let strExpr = <StringExpressionSyntaxNode>contents[0];
+        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
+        assert.equal(strExpr.expression instanceof LocalVariableSyntaxNode, true);
+      }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
-    // @todo Add diagnostic tests.
+    let diagnosticTests = [
+      // All incomplete variables are just plain variables followed by strings.
+
+      // Variable with element access.
+      // @todo Improve error message.
+      new DiagnosticTestArgs('"$a[]";', 'missing identifier, variable, minus, or string number', [ErrorCode.ERR_Syntax], [4]),
+      new DiagnosticTestArgs('"$a[0";', 'missing close bracket', [ErrorCode.ERR_Syntax], [5]),
+      // @todo Improve error message.
+      new DiagnosticTestArgs('"$a[-";', 'missing string number', [ErrorCode.ERR_Syntax], [5]),
+
+      // Indirect variable.
+      // @todo Improve error message.
+      new DiagnosticTestArgs('"${}";', 'missing expression or string identifier', [ErrorCode.ERR_ExpressionExpected], [3]),
+      new DiagnosticTestArgs('"${$}";', 'partial variable name (indirect variable)', [ErrorCode.ERR_IncompleteVariable], [3]),
+
+      // Expression.
+      new DiagnosticTestArgs('"{$}";', 'partial variable name (expression)', [ErrorCode.ERR_IncompleteVariable], [2]),
+
+      // @todo These should be recovery tests.
+      new DiagnosticTestArgs('"${a[0 1]}";', 'missing close bracket (in malformed string offset)', [ErrorCode.ERR_Syntax], [6]),
+      new DiagnosticTestArgs('"{$a $b}";', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [4]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
   });
 
   describe('shell-command', function() {
@@ -169,6 +193,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('`', 'missing back quote', [ErrorCode.ERR_UnterminatedString], [0]),
+      new DiagnosticTestArgs('`a', 'missing back quote (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('`$a', 'missing back quote (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
     ];
     Test.assertDiagnostics(diagnosticTests);
@@ -204,6 +229,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('<<<LABEL\n', 'missing end label', [ErrorCode.ERR_UnterminatedString], [0]),
+      new DiagnosticTestArgs('<<<LABEL\na', 'missing end label (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('<<<LABEL\n$a', 'missing end label (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
     ];
     Test.assertDiagnostics(diagnosticTests);
@@ -228,6 +254,8 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    // See heredoc for diagnostic tests.
   });
 
 });

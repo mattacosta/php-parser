@@ -1123,6 +1123,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Determines if a token ends a string template.
+   */
+  protected isStringTemplateEnd(kind: TokenKind, terminator: TokenKind): boolean {
+    return kind == terminator || kind == TokenKind.EOF;
+  }
+
+  /**
    * Determines if a token starts a variable offset within an interpolated
    * element access expression.
    */
@@ -4972,7 +4979,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a heredoc (or nowdoc) template.
    *
-   * Syntax: `HEREDOC_START optional-string-elements HEREDOC_END`
+   * Syntax:
+   * - `HEREDOC_START HEREDOC_END`
+   * - `HEREDOC_START STRING_TEMPLATE_LITERAL HEREDOC_END`
+   * - `HEREDOC_START string-template-list HEREDOC_END`
    *
    * @see PhpParser.parseShellCommandTemplate()
    * @see PhpParser.parseStringTemplate()
@@ -4993,7 +5003,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     heredocStart = heredocStart.withDiagnostics(template.diagnostics);
     heredocStart = heredocStart.withLeadingTrivia(template.leadingTrivia);
 
-    let nodes = parser.parseHeredocOrShellCommandElementList(TokenKind.HeredocEnd);
+    let nodes: NodeList | null = null;
+    if (parser.currentToken.kind == TokenKind.StringTemplateLiteral) {
+      let stringLiteral = parser.parseStringTemplateLiteral();
+      nodes = parser.isStringTemplateEnd(parser.currentToken.kind, TokenKind.HeredocEnd)
+        ? parser.factory.createList([stringLiteral])
+        : parser.parseStringTemplateElementList(stringLiteral, TokenKind.HeredocEnd);
+    }
+    else if (parser.isStringTemplateElementStart(parser.currentToken.kind)) {
+      nodes = parser.parseStringTemplateElementList(null, TokenKind.HeredocEnd);
+    }
 
     // If the end label was missing the lexer already added an error.
     let heredocEnd = parser.currentToken.kind == TokenKind.HeredocEnd
@@ -5001,47 +5020,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       : parser.createMissingToken(TokenKind.HeredocEnd, parser.currentToken.kind, false);
 
     return new HeredocTemplateNode(heredocStart, nodes, heredocEnd);
-  }
-
-  /**
-   * @todo Document parseHeredocOrShellCommandElementList().
-   */
-  protected parseHeredocOrShellCommandElementList(terminator: TokenKind): NodeList | null {
-    let nodes: Array<ExpressionNode | TokenNode> = [];
-
-    if (this.currentToken.kind == TokenKind.EOF || this.currentToken.kind == terminator) {
-      return null;
-    }
-
-    // Unlike a double-quoted string, the first string literal in one of these
-    // templates does not need to be followed by a variable.
-    if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
-      nodes.push(this.parseStringTemplateLiteral());
-      if (!this.isStringTemplateElementStart(this.currentToken.kind)) {
-        return this.factory.createList(nodes);
-      }
-      nodes.push(this.parseStringTemplateElement());
-    }
-    else {
-      nodes.push(this.parseStringTemplateElement());
-    }
-
-    // Suppress TS2365: Current token changed after previous method call.
-    while (<TokenKind>this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != terminator) {
-      if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
-        nodes.push(this.parseStringTemplateLiteral());
-      }
-      else if (this.isStringTemplateElementStart(this.currentToken.kind)) {
-        nodes.push(this.parseStringTemplateElement());
-      }
-      else {
-        // Any unrecognized characters should be part of a `StringTemplateLiteral`
-        // token instead of generating other unexpected tokens.
-        throw new ParserException('Unexpected token in string template');
-      }
-    }
-
-    return this.factory.createList(nodes);
   }
 
   /**
@@ -5541,7 +5519,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a shell command (backquote) template.
    *
-   * Syntax: `BACKQUOTE optional-string-elements BACKQUOTE`
+   * Syntax:
+   * - `BACKQUOTE BACKQUOTE`
+   * - `BACKQUOTE STRING_TEMPLATE_LITERAL BACKQUOTE`
+   * - `BACKQUOTE string-template-list BACKQUOTE`
    */
   protected parseShellCommandTemplate(): ShellCommandTemplateNode {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
@@ -5559,7 +5540,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     openBackQuote = openBackQuote.withDiagnostics(template.diagnostics);
     openBackQuote = openBackQuote.withLeadingTrivia(template.leadingTrivia);
 
-    let nodes = parser.parseHeredocOrShellCommandElementList(TokenKind.BackQuote);
+    let nodes: NodeList | null = null;
+    if (parser.currentToken.kind == TokenKind.StringTemplateLiteral) {
+      let stringLiteral = parser.parseStringTemplateLiteral();
+      nodes = parser.isStringTemplateEnd(parser.currentToken.kind, TokenKind.BackQuote)
+        ? parser.factory.createList([stringLiteral])
+        : parser.parseStringTemplateElementList(stringLiteral, TokenKind.BackQuote);
+    }
+    else if (parser.isStringTemplateElementStart(parser.currentToken.kind)) {
+      nodes = parser.parseStringTemplateElementList(null, TokenKind.BackQuote);
+    }
 
     // If the closing backquote was missing the lexer already added an error.
     let closeBackQuote = parser.currentToken.kind == TokenKind.BackQuote
@@ -5649,7 +5639,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
-   * @todo Document parseStringTemplate().
+   * Parses a double-quoted template.
+   *
+   * Syntax: `" string-template-list "`
    */
   protected parseStringTemplate(): StringTemplateNode {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
@@ -5667,7 +5659,19 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     openQuote = openQuote.withDiagnostics(template.diagnostics);
     openQuote = openQuote.withLeadingTrivia(template.leadingTrivia);
 
-    let nodes = parser.parseStringTemplateElementList();
+    let nodes: NodeList | null = null;
+    if (parser.currentToken.kind == TokenKind.StringTemplateLiteral) {
+      let stringLiteral = parser.parseStringTemplateLiteral();
+
+      // Unlike heredoc and shell command templates, if there is not at least
+      // one interpolation, the lexer will not create a string template token.
+      Debug.assert(parser.isStringTemplateElementStart(parser.currentToken.kind));
+
+      nodes = parser.parseStringTemplateElementList(stringLiteral, TokenKind.DoubleQuote);
+    }
+    else {
+      nodes = parser.parseStringTemplateElementList(null, TokenKind.DoubleQuote);
+    }
 
     // If the closing quote was missing, the lexer already added an error.
     let closeQuote = parser.currentToken.kind == TokenKind.DoubleQuote
@@ -5706,20 +5710,33 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
-   * @todo Document parseStringTemplateElementList().
+   * Parses a list of literal strings and interpolations within a string template.
+   *
+   * Syntax: `string-template-list`
+   *
+   * Where `string-template-list` is:
+   * - `string-template-list string-template-element`
+   * - `string-template-list STRING_TEMPLATE_LITERAL`
+   * - `string-template-element`
+   * - `STRING_TEMPLATE_LITERAL string-template-element`
+   *
+   * @param {LiteralNode|null} templateLiteral
+   *   The first literal within a string template.
+   * @param {TokenKind} terminator
+   *   The token used to terminate the string template.
    */
-  protected parseStringTemplateElementList(): NodeList {
-    let nodes: Array<ExpressionNode | TokenNode> = [];
+  protected parseStringTemplateElementList(templateLiteral: LiteralNode | null, terminator: TokenKind): NodeList {
+    let nodes: ExpressionNode[] = [];
 
-    if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
-      nodes.push(this.parseStringTemplateLiteral());
+    if (templateLiteral !== null) {
+      nodes.push(templateLiteral);
       nodes.push(this.parseStringTemplateElement());
     }
     else {
       nodes.push(this.parseStringTemplateElement());
     }
 
-    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.DoubleQuote) {
+    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != terminator) {
       if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
         nodes.push(this.parseStringTemplateLiteral());
       }
@@ -5727,7 +5744,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         nodes.push(this.parseStringTemplateElement());
       }
       else {
-        this.skipBadStringTemplateTokens(TokenKind.DoubleQuote);
+        // An interpolation can cause the lexer to remain in the "in script"
+        // state which will cause it to return unexpected tokens.
+        this.skipBadStringTemplateTokens(terminator);
       }
     }
 
