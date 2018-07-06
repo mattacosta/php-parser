@@ -587,7 +587,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if the parser is currently in the given context.
    */
   protected isInContext(context: ParseContext): boolean {
-    return (this.currentContext & context) != 0;
+    return this.currentContext == context || (this.currentContext & context) != 0;
   }
 
   /**
@@ -599,7 +599,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       return true;
     }
 
-    for (let context = 0; context < ParseContext.Length; context++) {
+    for (let context = 1; context < ParseContext.Length; context++) {
       let contextFlag = 1 << context;
       if (this.isInContext(contextFlag)) {
         if (this.tokenStartsContext(contextFlag, kind) || this.tokenEndsContext(contextFlag, kind)) {
@@ -5281,7 +5281,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected parseNamespaceDeclarationOrExpression(isStatementExpected: boolean): Expression {
     // Namespace declarations should only be expected as a top-level statement.
-    Debug.assert(isStatementExpected && this.currentContext == ParseContext.SourceElements);
+    Debug.assert(isStatementExpected && (this.isInContext(ParseContext.SourceElements) || this.isInContext(ParseContext.NamespaceElements)));
 
     let namespaceKeyword = this.eat(TokenKind.Namespace);
 
