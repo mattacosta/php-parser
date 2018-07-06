@@ -1744,7 +1744,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected parseClassMemberDeclaration(context: ParseContext): Node {
     // Anything that is not a modifier should have been handled by the caller.
-    Debug.assert((this.getModifierFlag(this.currentToken.kind) & ModifierFlags.VisibilityMask) != 0);
+    Debug.assert(this.getModifierFlag(this.currentToken.kind) != ModifierFlags.None);
 
     let modifiers: TokenNode[] = [];
     let modifierFlags = this.parseClassMemberModifiers(modifiers, context);
