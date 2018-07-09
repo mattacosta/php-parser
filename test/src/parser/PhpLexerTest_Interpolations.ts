@@ -242,7 +242,7 @@ describe('PhpLexer', function() {
 
         // Invalid offsets.
         new LexerTestArgs('"$a[0.1]"', 'variable with floating-point offset',
-        [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
         ),
         new LexerTestArgs('"$a[-B]"', 'negative constant',
           [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
@@ -275,19 +275,42 @@ describe('PhpLexer', function() {
     let lexerTests = [
       new LexerTestArgs('<<<LABEL\nLABEL\n', 'empty text',
         [TokenKind.HeredocStart, TokenKind.HeredocEnd],
-        ['<<<LABEL\n', 'LABEL']),
+        ['<<<LABEL\n', 'LABEL']
+      ),
       new LexerTestArgs('<<<LABEL\ntext\nLABEL\n', 'plain text',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
-        ['<<<LABEL\n', 'text\n', 'LABEL']),
+        ['<<<LABEL\n', 'text\n', 'LABEL']
+      ),
       new LexerTestArgs('<<<LABEL\n$a\nLABEL\n', 'simple variable',
         [TokenKind.HeredocStart, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
-        ['<<<LABEL\n', '$a', '\n', 'LABEL']),
-      new LexerTestArgs('<<<LABEL\nlabel\n', 'heredoc label should be case-sensitive',
-        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral],
-        ['<<<LABEL\n', 'label\n']),
-      new LexerTestArgs('<<<LABEL\n\n\nLABEL\n', 'multiple newlines before end label',
+        ['<<<LABEL\n', '$a', '\n', 'LABEL']
+      ),
+
+      new LexerTestArgs('<<< LABEL\nLABEL\n', 'heredoc start label should allow leading space',
+        [TokenKind.HeredocStart, TokenKind.HeredocEnd],
+        ['<<< LABEL\n', 'LABEL']
+      ),
+      new LexerTestArgs('<<<\tLABEL\nLABEL\n', 'heredoc start label should allow leading tab',
+        [TokenKind.HeredocStart, TokenKind.HeredocEnd],
+        ['<<<\tLABEL\n', 'LABEL']
+      ),
+
+      new LexerTestArgs('<<<LABEL\n LABEL\nLABEL\n', 'heredoc end label should be at start of line',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
-        ['<<<LABEL\n', '\n\n', 'LABEL']),
+        ['<<<LABEL\n', ' LABEL\n', 'LABEL']
+      ),
+      new LexerTestArgs('<<<LABEL\n\n\nLABEL\n', 'heredoc end label should be at start of line (multiple lines)',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
+        ['<<<LABEL\n', '\n\n', 'LABEL']
+      ),
+      new LexerTestArgs('<<<LABEL\nLABEL', 'heredoc end label should have trailing line break',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral],
+        ['<<<LABEL\n', 'LABEL']
+      ),
+      new LexerTestArgs('<<<LABEL\nlabel\n', 'heredoc end label should be case-sensitive',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral],
+        ['<<<LABEL\n', 'label\n']
+      ),
     ];
     assertRescannedTokens(lexerTests, TokenKind.HeredocTemplate);
   });
@@ -296,28 +319,39 @@ describe('PhpLexer', function() {
     let lexerTests = [
       new LexerTestArgs('<<<"LABEL"\nLABEL\n', 'empty text',
         [TokenKind.HeredocStart, TokenKind.HeredocEnd],
-        ['<<<"LABEL"\n', 'LABEL']),
+        ['<<<"LABEL"\n', 'LABEL']
+      ),
       new LexerTestArgs('<<<"LABEL"\ntext\nLABEL\n', 'plain text',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
-        ['<<<"LABEL"\n', 'text\n', 'LABEL']),
+        ['<<<"LABEL"\n', 'text\n', 'LABEL']
+      ),
       new LexerTestArgs('<<<"LABEL"\n$a\nLABEL\n', 'simple variable',
         [TokenKind.HeredocStart, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
-        ['<<<"LABEL"\n', '$a', '\n', 'LABEL']),
+        ['<<<"LABEL"\n', '$a', '\n', 'LABEL']
+      ),
       new LexerTestArgs('<<<"LABEL"\nlabel\n', 'heredoc label should be case-sensitive',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral],
-        ['<<<"LABEL"\n', 'label\n']),
+        ['<<<"LABEL"\n', 'label\n']
+      ),
     ];
     assertRescannedTokens(lexerTests, TokenKind.HeredocTemplate);
   });
 
   describe('nowdoc strings', function() {
     let lexerTests = [
-      new LexerTestArgs('<<<\'LABEL\'\nLABEL\n', 'empty text', [TokenKind.HeredocStart, TokenKind.HeredocEnd]),
-      new LexerTestArgs('<<<\'LABEL\'\ntext\nLABEL\n', 'plain text', [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd]),
-      new LexerTestArgs('<<<\'LABEL\'\n$a\nLABEL\n', 'simple variable', [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd]),
+      new LexerTestArgs('<<<\'LABEL\'\nLABEL\n', 'empty text',
+        [TokenKind.HeredocStart, TokenKind.HeredocEnd]
+      ),
+      new LexerTestArgs('<<<\'LABEL\'\ntext\nLABEL\n', 'plain text',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd]
+      ),
+      new LexerTestArgs('<<<\'LABEL\'\n$a\nLABEL\n', 'simple variable',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd]
+      ),
       new LexerTestArgs('<<<\'LABEL\'\n\n\nLABEL\n', 'multiple newlines before end label',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
-        ['<<<\'LABEL\'\n', '\n\n', 'LABEL']),
+        ['<<<\'LABEL\'\n', '\n\n', 'LABEL']
+      ),
     ];
     assertRescannedTokens(lexerTests, TokenKind.HeredocTemplate);
   });
