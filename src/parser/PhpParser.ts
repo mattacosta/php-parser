@@ -56,6 +56,8 @@ import {
   ExpressionGroupNode,
   ExpressionNode,
   ExpressionStatementNode,
+  FlexibleHeredocElementNode,
+  FlexibleHeredocTemplateNode,
   ForBlockNode,
   ForEachBlockNode,
   ForEachNode,
@@ -879,6 +881,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.BackQuoteTemplate:
       case TokenKind.DNumber:
       case TokenKind.Dollar:
+      case TokenKind.FlexdocTemplate:
       case TokenKind.Function:
       case TokenKind.HeredocTemplate:
       case TokenKind.LNumber:
@@ -932,6 +935,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       default:
         return false;
     }
+  }
+
+  /**
+   * Determines if the token starts a line within a flexible heredoc.
+   */
+  protected isFlexdocTemplateLineStart(kind: TokenKind) {
+    return kind == TokenKind.StringIndent
+      || kind == TokenKind.StringTemplateLiteral   // For error recovery.
+      || this.isStringTemplateElementStart(kind);  // For error recovery.
   }
 
   /**
@@ -4272,6 +4284,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         expr = this.parseExit();
         type = ExpressionType.Implicit;
         break;
+      case TokenKind.FlexdocTemplate:
+        expr = this.parseFlexdocTemplate();
+        type = ExpressionType.Implicit;
+        break;
       case TokenKind.HeredocTemplate:
         expr = this.parseHeredocTemplate();
         type = ExpressionType.Implicit;
@@ -4938,6 +4954,124 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     return new Expression(expr, type);
+  }
+
+  /**
+   * Parses a flexible heredoc template.
+   *
+   * Syntax:
+   * - `HEREDOC_START flexdoc-element-list HEREDOC_END`
+   */
+  protected parseFlexdocTemplate(): FlexibleHeredocTemplateNode {
+    const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
+    const fullText = this.lexer.sourceText.slice(fullSpan);
+
+    let template = this.eat(TokenKind.FlexdocTemplate);
+
+    // Create a temporary lexer and parser.
+    let lexer = new PhpLexer(fullText);
+    lexer.rescanInterpolatedFlexdoc(this.lexer.templateSpans);
+    let parser = new PhpParser(lexer);
+    parser.nextToken();  // @todo Should be done in constructor?
+
+    let heredocStart = parser.eat(TokenKind.HeredocStart);
+    heredocStart = heredocStart.withDiagnostics(template.diagnostics);
+    heredocStart = heredocStart.withLeadingTrivia(template.leadingTrivia);
+
+    let elements = parser.parseFlexdocTemplateElements();
+
+    // If the end label was missing the lexer already added an error.
+    let heredocEnd = parser.currentToken.kind == TokenKind.HeredocEnd
+      ? parser.eat(TokenKind.HeredocEnd)
+      : parser.createMissingToken(TokenKind.HeredocEnd, parser.currentToken.kind, false);
+
+    return new FlexibleHeredocTemplateNode(heredocStart, elements, heredocEnd);
+  }
+
+  /**
+   * Parses a list of optional lines in a flexible heredoc template.
+   *
+   * Syntax: `flexdoc-element-list`
+   *
+   * Where `flexdoc-element-list` is:
+   * - `flexdoc-element-list STRING_NEWLINE flexdoc-element`
+   * - `flexdoc-element`
+   */
+  protected parseFlexdocTemplateElements(): NodeList {
+    let elements: Array<FlexibleHeredocElementNode | LiteralNode> = [];
+
+    if (this.isFlexdocTemplateLineStart(this.currentToken.kind)) {
+      elements.push(this.parseFlexdocTemplateLine());
+    }
+
+    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.HeredocEnd) {
+      if (this.currentToken.kind == TokenKind.StringNewLine) {
+        elements.push(new LiteralNode(this.eat(TokenKind.StringNewLine)));
+        if (this.isFlexdocTemplateLineStart(this.currentToken.kind)) {
+          elements.push(this.parseFlexdocTemplateLine());
+        }
+        continue;
+      }
+
+      this.skipToken();
+    }
+
+    if (elements.length == 0) {
+      // Unreachable. There should always be an indent before the end label.
+      throw new ParserException('Flexible heredoc template cannot be empty');
+    }
+
+    return this.factory.createList(elements);
+  }
+
+  /**
+   * Parses a line in a flexible heredoc template.
+   *
+   * Syntax:
+   * - `STRING_INDENT`
+   * - `STRING_INDENT STRING_TEMPLATE_LITERAL`
+   * - `STRING_INDENT string-template-list`
+   */
+  protected parseFlexdocTemplateLine(): FlexibleHeredocElementNode {
+    let indent = this.currentToken.kind == TokenKind.StringIndent
+      ? this.eat(TokenKind.StringIndent)
+      : this.createMissingTokenWithError(TokenKind.StringIndent, ErrorCode.ERR_IndentExpected);
+
+    if (this.currentToken.kind != TokenKind.StringTemplateLiteral && !this.isStringTemplateElementStart(this.currentToken.kind)) {
+      return new FlexibleHeredocElementNode(indent, null);
+    }
+
+    let nodes: ExpressionNode[] = [];
+
+    if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
+      nodes.push(this.parseStringTemplateLiteral());
+      if (!this.isStringTemplateElementStart(this.currentToken.kind)) {
+        return new FlexibleHeredocElementNode(indent, this.factory.createList(nodes));
+      }
+    }
+    else {
+      nodes.push(this.parseStringTemplateElement());
+    }
+
+    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.StringNewLine) {
+      if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
+        nodes.push(this.parseStringTemplateLiteral());
+        continue;
+      }
+      if (this.isStringTemplateElementStart(this.currentToken.kind)) {
+        nodes.push(this.parseStringTemplateElement());
+        continue;
+      }
+
+      // The parser can't be at the end of the heredoc until it has found the
+      // indent before the end label, and an indent can't be found until a
+      // the parser gets to an embedded line break (which would have been caught
+      // by the while-condition), so the current token has to be something else.
+
+      this.skipToken();  // @todo Use custom method?
+    }
+
+    return new FlexibleHeredocElementNode(indent, this.factory.createList(nodes));
   }
 
   /**

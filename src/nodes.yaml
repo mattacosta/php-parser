@@ -306,6 +306,16 @@ nodes:
   - name: closeParen
     type: TokenNode
   visitorName: visitExpressionGroup
+- name: FlexibleHeredocTemplate
+  extends: Expression
+  properties:
+  - name: heredocStart
+    type: TokenNode
+  - name: flexibleElements
+    type: NodeList
+  - name: heredocEnd
+    type: TokenNode
+  visitorName: visitFlexibleHeredocTemplate
 # @todo Should not mix expression and name.
 - name: FunctionInvocation
   extends: Invocation
@@ -1628,6 +1638,14 @@ nodes:
     type: NodeList
     optional: true
   visitorName: visitElseIfBlock
+- name: FlexibleHeredocElement
+  properties:
+  - name: indent
+    type: TokenNode
+  - name: template
+    type: NodeList
+    optional: true
+  visitorName: visitFlexibleHeredocElement
 - name: FullyQualifiedName
   extends: Name
   properties:

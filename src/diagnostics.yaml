@@ -195,6 +195,8 @@ diagnostics:
 # variable token, use `ERR_VariableNameExpected` instead.
 - name: ERR_IncompleteVariable
   text: "Expected a variable or indirect expression to evaluate as a variable name"
+- name: ERR_IndentExpected
+  text: "Indentation expected"
 - name: ERR_InterfaceImplementsList
   text: "The keyword 'implements' cannot be used on an interface"
 - name: ERR_InterfaceMethodDefinition
