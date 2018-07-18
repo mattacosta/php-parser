@@ -37,6 +37,15 @@ export const enum PhpLexerState {
    */
   InDoubleQuote,
   /**
+   * The default lexing state when rescanning a `FlexdocTemplate`.
+   */
+  InFlexibleHeredoc,
+  /**
+   * The default lexing state when rescanning a `FlexdocTemplate` that starts
+   * with a nowdoc label.
+   */
+  InFlexibleNowdoc,
+  /**
    * The default lexing state when rescanning a `HeredocTemplate`.
    */
   InHeredoc,
@@ -56,6 +65,10 @@ export const enum PhpLexerState {
    * string interpolation.
    */
   InVariableOffset,
+  /**
+   * A lexing state used when rescanning the whitespace after a line break.
+   */
+  LookingForHeredocIndent,
   /**
    * A lexing state used when rescanning heredoc start or end labels.
    */

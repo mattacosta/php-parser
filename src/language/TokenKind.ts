@@ -195,6 +195,7 @@ export enum TokenKind {
   // Literals
   BackQuoteTemplate,        // Virtual.
   DNumber,
+  FlexdocTemplate,          // Virtual.
   HeredocEnd,
   HeredocStart,
   HeredocTemplate,          // Virtual.
@@ -202,7 +203,9 @@ export enum TokenKind {
   InlineText,               // T_INLINE_HTML
   LNumber,
   StringIdentifier,         // T_STRING_VARNAME
+  StringIndent,             // Custom.
   StringLiteral,            // T_CONSTANT_ENCAPSED_STRING (single quotes)
+  StringNewLine,            // Custom.
   StringNumber,             // T_NUM_STRING
   StringTemplate,           // Virtual.
   StringTemplateLiteral,    // T_ENCAPSED_AND_WHITESPACE (double quotes)

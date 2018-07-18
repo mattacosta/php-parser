@@ -48,6 +48,10 @@ diagnostics:
 - name: ERR_UnexpectedCharacter
   text: "Unexpected character (%s: '%s') in source text"
   code: 1000
+- name: ERR_HeredocIndentHasSpacesAndTabs
+  text: "Indentation contains both space and tab characters"
+- name: ERR_HeredocIndentMismatch
+  text: "Indentation does not match that of the closing identifier"
 - name: ERR_InvalidNumber
   text: "Invalid number"
 - name: ERR_InvalidEscapeSequenceUnicode
