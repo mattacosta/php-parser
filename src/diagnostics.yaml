@@ -118,7 +118,7 @@ diagnostics:
 - name: ERR_CaseLabelSeparatorExpected
   text: "Expected ':' or ';' after case label"
 - name: ERR_CatchOrFinallyExpected
-  text: "Expected catch or finally"
+  text: "Expected 'catch' or 'finally'"
 - name: ERR_ClassMemberExpected
   text: "Constant, method, or property declaration expected"
 - name: ERR_ClassNameOrReferenceExpected
