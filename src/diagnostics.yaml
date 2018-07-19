@@ -48,6 +48,10 @@ diagnostics:
 - name: ERR_UnexpectedCharacter
   text: "Unexpected character (%s: '%s') in source text"
   code: 1000
+- name: ERR_HeredocIndentHasSpacesAndTabs
+  text: "Indentation contains both space and tab characters"
+- name: ERR_HeredocIndentMismatch
+  text: "Indentation does not match that of the closing identifier"
 - name: ERR_InvalidNumber
   text: "Invalid number"
 - name: ERR_InvalidEscapeSequenceUnicode
@@ -110,6 +114,7 @@ diagnostics:
   text: "The modifier '%s' cannot be used on a class, interface, or trait"
 - name: ERR_BaseClassAfterImplements
   text: "Base class must come before any interfaces"
+# @todo Alternative: "A case label must be followed by a ':' or ';'"
 - name: ERR_CaseLabelSeparatorExpected
   text: "Expected ':' or ';' after case label"
 - name: ERR_CatchOrFinallyExpected
@@ -136,12 +141,16 @@ diagnostics:
   text: "A destructuring variable cannot be assigned by reference"
 - name: ERR_DuplicateModifier
   text: "Duplicate '%s' modifier"
+- name: ERR_EllipsisOrCloseParenExpected
+  text: "'...' or ')' expected"
 - name: ERR_ExpressionExpected
   text: "Expression expected, got '%s'"
 - name: ERR_ExpressionExpectedEOF
   text: "End of file found, expression expected"
 - name: ERR_ExpressionNotAddressable
   text: "The given expression does not have a usable address"
+- name: ERR_ExpressionOrCloseParenExpected
+  text: "Expression or ')' expected"
 - name: ERR_ExpressionOrColonExpected
   text: "Expression or ':' expected"
 - name: ERR_ExpressionOrSemicolonExpected
@@ -186,6 +195,8 @@ diagnostics:
 # variable token, use `ERR_VariableNameExpected` instead.
 - name: ERR_IncompleteVariable
   text: "Expected a variable or indirect expression to evaluate as a variable name"
+- name: ERR_IndentExpected
+  text: "Indentation expected"
 - name: ERR_InterfaceImplementsList
   text: "The keyword 'implements' cannot be used on an interface"
 - name: ERR_InterfaceMethodDefinition

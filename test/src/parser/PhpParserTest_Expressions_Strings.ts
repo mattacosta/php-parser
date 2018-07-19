@@ -28,6 +28,8 @@ import {
 import {
   ElementAccessSyntaxNode,
   ExpressionStatementSyntaxNode,
+  FlexibleHeredocElementSyntaxNode,
+  FlexibleHeredocTemplateSyntaxNode,
   HeredocTemplateSyntaxNode,
   IndirectStringVariableSyntaxNode,
   LiteralSyntaxNode,
@@ -47,10 +49,40 @@ import { TokenKind } from '../../../src/language/TokenKind';
 function assertStringTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-  let shellCommand = <StringTemplateSyntaxNode>exprNode.expression;
-  assert.equal(shellCommand instanceof StringTemplateSyntaxNode, true, 'StringTemplateSyntaxNode');
-  let contents = shellCommand.template ? shellCommand.template.childNodes() : [];
-  return contents;
+  let interpolatedString = <StringTemplateSyntaxNode>exprNode.expression;
+  assert.equal(interpolatedString instanceof StringTemplateSyntaxNode, true, 'StringTemplateSyntaxNode');
+  return interpolatedString.template.childNodes();
+}
+
+function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent: string, templateText?: string | null): ISyntaxNode[] {
+  let element = <FlexibleHeredocElementSyntaxNode>node;
+  assert.equal(element instanceof FlexibleHeredocElementSyntaxNode, true, 'FlexibleHeredocElementSyntaxNode');
+  Test.assertSyntaxToken(element.indent, sourceText, TokenKind.StringIndent, indent);
+  let template = element.template ? element.template.childNodes() : [];
+  if (templateText) {
+    // Simple literal.
+    assert.equal(template.length, 1);
+    let stringLiteral = <LiteralSyntaxNode>template[0];
+    assert.equal(stringLiteral instanceof LiteralSyntaxNode, true);
+    Test.assertSyntaxToken(stringLiteral.value, sourceText, TokenKind.StringTemplateLiteral, templateText);
+  }
+  else if (templateText === null) {
+    // Intended to be empty.
+    assert.strictEqual(element.template, null);
+  }
+  else {
+    // Interpolations.
+    assert.notEqual(template.length, 0);
+  }
+  return template;
+}
+
+function assertFlexibleHeredocTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  let interpolatedString = <FlexibleHeredocTemplateSyntaxNode>exprNode.expression;
+  assert.equal(interpolatedString instanceof FlexibleHeredocTemplateSyntaxNode, true, 'FlexibleHeredocTemplateSyntaxNode');
+  return interpolatedString.flexibleElements.childNodes();
 }
 
 describe('PhpParser', function() {
@@ -70,14 +102,8 @@ describe('PhpParser', function() {
         let contents = assertStringTemplate(statements);
         assert.equal(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
       }),
-      new ParserTestArgs('"{$a}";', 'should parse a template using variable expression', (statements) => {
-        let contents = assertStringTemplate(statements);
-        let strExpr = <StringExpressionSyntaxNode>contents[0];
-        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
-        assert.equal(strExpr.expression instanceof LocalVariableSyntaxNode, true);
-      }),
 
-      // Element access.
+      // Variable with element access.
       new ParserTestArgs('"$a[0]";', 'should parse a template using element access with numeric offset', (statements, text) => {
         let contents = assertStringTemplate(statements);
         let elementAccess = <StringElementAccessSyntaxNode>contents[0];
@@ -133,10 +159,40 @@ describe('PhpParser', function() {
         assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
         assert.equal(variable.expression instanceof LocalVariableSyntaxNode, true);
       }),
+
+      // Expression.
+      new ParserTestArgs('"{$a}";', 'should parse a template using variable expression', (statements) => {
+        let contents = assertStringTemplate(statements);
+        let strExpr = <StringExpressionSyntaxNode>contents[0];
+        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
+        assert.equal(strExpr.expression instanceof LocalVariableSyntaxNode, true);
+      }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
-    // @todo Add diagnostic tests.
+    let diagnosticTests = [
+      // All incomplete variables are just plain variables followed by strings.
+
+      // Variable with element access.
+      // @todo Improve error message.
+      new DiagnosticTestArgs('"$a[]";', 'missing identifier, variable, minus, or string number', [ErrorCode.ERR_Syntax], [4]),
+      new DiagnosticTestArgs('"$a[0";', 'missing close bracket', [ErrorCode.ERR_Syntax], [5]),
+      // @todo Improve error message.
+      new DiagnosticTestArgs('"$a[-";', 'missing string number', [ErrorCode.ERR_Syntax], [5]),
+
+      // Indirect variable.
+      // @todo Improve error message.
+      new DiagnosticTestArgs('"${}";', 'missing expression or string identifier', [ErrorCode.ERR_ExpressionExpected], [3]),
+      new DiagnosticTestArgs('"${$}";', 'partial variable name (indirect variable)', [ErrorCode.ERR_IncompleteVariable], [3]),
+
+      // Expression.
+      new DiagnosticTestArgs('"{$}";', 'partial variable name (expression)', [ErrorCode.ERR_IncompleteVariable], [2]),
+
+      // @todo These should be recovery tests.
+      new DiagnosticTestArgs('"${a[0 1]}";', 'missing close bracket (in malformed string offset)', [ErrorCode.ERR_Syntax], [6]),
+      new DiagnosticTestArgs('"{$a $b}";', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [4]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
   });
 
   describe('shell-command', function() {
@@ -169,6 +225,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('`', 'missing back quote', [ErrorCode.ERR_UnterminatedString], [0]),
+      new DiagnosticTestArgs('`a', 'missing back quote (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('`$a', 'missing back quote (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
     ];
     Test.assertDiagnostics(diagnosticTests);
@@ -204,6 +261,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('<<<LABEL\n', 'missing end label', [ErrorCode.ERR_UnterminatedString], [0]),
+      new DiagnosticTestArgs('<<<LABEL\na', 'missing end label (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('<<<LABEL\n$a', 'missing end label (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
     ];
     Test.assertDiagnostics(diagnosticTests);
@@ -228,6 +286,138 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    // See heredoc for diagnostic tests.
+  });
+
+  describe('flexible-heredoc', function() {
+    let syntaxTests = [
+      new ParserTestArgs('<<<LABEL\n  LABEL;', 'should parse a flexible heredoc string (empty)', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 1);
+        assertFlexibleHeredocLine(elements[0], text, '  ', null);
+      }),
+
+      new ParserTestArgs('<<<LABEL\n\n  LABEL;', 'should parse an empty line', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 2);
+        let lineBreak = <LiteralSyntaxNode>elements[0];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        Test.assertSyntaxToken(lineBreak.value, text, TokenKind.StringNewLine, '\n');
+        assertFlexibleHeredocLine(elements[1], text, '  ', null);
+      }),
+      new ParserTestArgs('<<<LABEL\n  \n  LABEL;', 'should parse an indented line', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+        assertFlexibleHeredocLine(elements[0], text, '  ', null);
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+
+      new ParserTestArgs('<<<LABEL\n  a\n  LABEL;', 'should parse an indented line with literal', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+        assertFlexibleHeredocLine(elements[0], text, '  ', 'a');
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+      new ParserTestArgs('<<<LABEL\n  $a\n  LABEL;', 'should parse an indented line with interpolation', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+        let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
+        let variable = <LocalVariableSyntaxNode>interpolations[0];
+        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+      new ParserTestArgs('<<<LABEL\n  $a b\n  LABEL;', 'should parse an indented line with interpolation followed by literal', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+
+        let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
+        let variable = <LocalVariableSyntaxNode>interpolations[0];
+        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
+        let literal = <LiteralSyntaxNode>interpolations[1];
+        Test.assertSyntaxToken(literal.value, text, TokenKind.StringTemplateLiteral, ' b');
+
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+      new ParserTestArgs('<<<LABEL\n  a $b\n  LABEL;', 'should parse an indented line with literal followed by interpolation', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+
+        let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
+        let literal = <LiteralSyntaxNode>interpolations[0];
+        Test.assertSyntaxToken(literal.value, text, TokenKind.StringTemplateLiteral, 'a ');
+        let variable = <LocalVariableSyntaxNode>interpolations[1];
+        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$b');
+
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+      new ParserTestArgs('<<<LABEL\n  $a$b\n  LABEL;', 'should parse an indented line with consecutive interpolations', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+
+        let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
+        let firstVariable = <LocalVariableSyntaxNode>interpolations[0];
+        assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
+        let secondVariable = <LocalVariableSyntaxNode>interpolations[1];
+        assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
+
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+
+      new ParserTestArgs('<<<LABEL\n  ${a}\n  LABEL;', 'should parse an indented line with indirection', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+        let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
+        let variable = <IndirectStringVariableSyntaxNode>interpolations[0];
+        assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+      new ParserTestArgs('<<<LABEL\n  {$a}\n  LABEL;', 'should parse an indented line with interpolated expression', (statements, text) => {
+        let elements = assertFlexibleHeredocTemplate(statements);
+        assert.equal(elements.length, 3);
+        let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
+        let strExpr = <StringExpressionSyntaxNode>interpolations[0];
+        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
+        let lineBreak = <LiteralSyntaxNode>elements[1];
+        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assertFlexibleHeredocLine(elements[2], text, '  ', null);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('<<<LABEL\na\n  LABEL;', 'missing indent', [ErrorCode.ERR_IndentExpected], [9]),
+
+      // @todo Lexer tests.
+      new DiagnosticTestArgs('<<<LABEL\n\t\ta\n  LABEL;', 'should match indent of end label', [ErrorCode.ERR_HeredocIndentMismatch], [9]),
+      new DiagnosticTestArgs('<<<LABEL\n  a\n\t\tLABEL;', 'should match indent of end label (tabs)', [ErrorCode.ERR_HeredocIndentMismatch], [9]),
+      new DiagnosticTestArgs('<<<LABEL\n a\n  LABEL;', 'should not partially match indent of end label', [ErrorCode.ERR_HeredocIndentMismatch], [9]),
+      new DiagnosticTestArgs('<<<LABEL\n\ta\n\t\tLABEL;', 'should not partially match indent of end label (tabs)', [ErrorCode.ERR_HeredocIndentMismatch], [9]),
+      new DiagnosticTestArgs('<<<LABEL\n \ta\n \tLABEL;', 'should not contain spaces and tabs', [ErrorCode.ERR_HeredocIndentHasSpacesAndTabs], [13]),
+
+      // @todo Recovery tests.
+      new DiagnosticTestArgs('<<<LABEL\n  {$a $b}\n  LABEL;', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [14]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
   });
 
 });

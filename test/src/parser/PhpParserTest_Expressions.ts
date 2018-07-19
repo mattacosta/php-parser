@@ -401,14 +401,35 @@ describe('PhpParser', function() {
           assert.equal(expressions[0] instanceof LocalVariableSyntaxNode, true);
           assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
         }),
+        new ParserTestArgs('isset($a,);', 'should parse an isset expression with trailing comma', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let isSetNode = <IsSetIntrinsicSyntaxNode>exprNode.expression;
+          assert.equal(isSetNode instanceof IsSetIntrinsicSyntaxNode, true);
+          let expressions = isSetNode.expressions.childNodes();
+          assert.equal(expressions.length, 1);
+          assert.equal(expressions[0] instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('isset($a, $b,);', 'should parse an isset expression with trailing comma after expression list', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let isSetNode = <IsSetIntrinsicSyntaxNode>exprNode.expression;
+          assert.equal(isSetNode instanceof IsSetIntrinsicSyntaxNode, true);
+          let expressions = isSetNode.expressions.childNodes();
+          assert.equal(expressions.length, 2);
+          assert.equal(expressions[0] instanceof LocalVariableSyntaxNode, true);
+          assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
+        }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('isset', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
         new DiagnosticTestArgs('isset(', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
-        new DiagnosticTestArgs('isset($a', 'missing close paren or comma', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
-        new DiagnosticTestArgs('isset($a, $b', 'missing close paren or comma (in list)', [ErrorCode.ERR_CommaOrCloseParenExpected], [12]),
+        new DiagnosticTestArgs('isset($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
+        new DiagnosticTestArgs('isset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
+        new DiagnosticTestArgs('isset($a, $b', 'missing comma or close paren (in list)', [ErrorCode.ERR_CommaOrCloseParenExpected], [12]),
+        new DiagnosticTestArgs('isset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
@@ -705,7 +726,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('new class {', 'missing close brace or class member', [ErrorCode.ERR_CloseBraceExpected], [11]),
       new DiagnosticTestArgs('new class extends', 'missing name', [ErrorCode.ERR_TypeExpected], [17]),
       new DiagnosticTestArgs('new class implements', 'missing name', [ErrorCode.ERR_TypeExpected], [20]),
-      new DiagnosticTestArgs('new class (', 'missing argument', [ErrorCode.ERR_CloseParenExpected], [11]),
+      new DiagnosticTestArgs('new class (', 'missing argument or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [11]),
       new DiagnosticTestArgs('new class ()', 'missing extends, implements, or open brace', [ErrorCode.ERR_IncompleteClassDeclaration], [12]),
     ];
     Test.assertDiagnostics(diagnosticTests);
@@ -770,7 +791,7 @@ describe('PhpParser', function() {
         assert.equal(elements.length, 1);
         assertArrayElement(elements[0], true, false);
       }),
-      new ParserTestArgs('array(1 => &$a);', 'should parse an array creation expression with key-value pair (byref)', (statements) => {
+      new ParserTestArgs('array(1 => &$a);', 'should parse an array creation expression with key-value pair (byref value)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let arrayNode = <ArraySyntaxNode>exprNode.expression;
@@ -798,10 +819,12 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('array(', 'missing expression or close paren', [ErrorCode.ERR_CloseParenExpected], [6]),
       // @todo Improve error message.
       new DiagnosticTestArgs('array(1', 'missing comma, close paren, or double arrow', [ErrorCode.ERR_CloseParenExpected], [7]),
-
-      // @todo Disabled. Allowed for list destructuring (uses same code as []-syntax).
-      // new DiagnosticTestArgs('array(,);', 'should not parse an array with missing element', [ErrorCode.ERR_ExpressionExpected], [6]),
       new DiagnosticTestArgs('array(&1);', 'should expect explicit byref value', [ErrorCode.ERR_ExpressionNotAddressable], [7]),
+
+      // @todo Recovery tests.
+      new DiagnosticTestArgs('array(&$a => $b);', 'should not parse an array with byref key', [ErrorCode.ERR_Syntax, ErrorCode.ERR_UnexpectedToken], [12, 10]),
+      // @todo Disabled. Allowed for list destructuring (uses same code as []-syntax).
+      // new DiagnosticTestArgs('array(,$a);', 'should not parse an array with missing element', [ErrorCode.ERR_ExpressionExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
@@ -886,6 +909,13 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    // NOTE: See array-creation-expression for array element tests.
+    let diagnosticTests = [
+      // @todo Improve error message.
+      new DiagnosticTestArgs('[', 'missing expression or close bracket', [ErrorCode.ERR_Syntax], [1]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
   });
 
   describe('unary-expression', function() {

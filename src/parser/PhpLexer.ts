@@ -179,6 +179,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected end: number = 0;
 
   /**
+   * The indentation to remove from lines in a flexdoc template.
+   */
+  protected flexibleIndent: string = '';
+
+  /**
    * Temporary storage for spans within a string template.
    */
   protected interpolations: TemplateSpan[] = [];
@@ -285,24 +290,50 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
   /**
    * Initializes the lexer with predetermined lexing regions found after
+   * scanning a `FlexdocTemplate` token.
+   */
+  public rescanInterpolatedFlexdoc(spans: TemplateSpan[]) {
+    if (spans.length < 1) {
+      throw new ArgumentException('Flexdoc template must contain at least one span');
+    }
+    if (spans[spans.length - 1].state != PhpLexerState.LookingForHeredocLabel) {
+      throw new ArgumentException('Flexdoc template must end with a label span');
+    }
+
+    this.defaultState = PhpLexerState.InFlexibleHeredoc;
+    this.state = PhpLexerState.LookingForHeredocLabel;
+    this.templateStack = spans;
+
+    let endSpan = spans[spans.length - 1];
+
+    // Get the indent.
+    let endLabel = this.text.substring(endSpan.start, endSpan.length);
+    for (let i = 0; i < endLabel.length; i++) {
+      if (!CharacterInfo.isWhitespace(endLabel.charCodeAt(i))) {
+        this.flexibleIndent = endLabel.substr(0, i);
+        break;
+      }
+    }
+
+    // Force the lexer to stop just before an end label instead of always
+    // trying to scan for it. After reaching the last span, this region will
+    // be "appended" and scanned normally.
+    this.end = this.end - endSpan.length;
+  }
+
+  /**
+   * Initializes the lexer with predetermined lexing regions found after
    * scanning a `HeredocTemplate` token.
    */
   public rescanInterpolatedHeredoc(spans: TemplateSpan[]) {
-    if (spans.length == 0) {
-      throw new ArgumentException('Heredoc template must contain at least one span');
-    }
-    if (spans[0].state != PhpLexerState.LookingForHeredocLabel) {
-      throw new ArgumentException('Heredoc template must start with a label span');
-    }
-
     this.defaultState = PhpLexerState.InHeredoc;
-    this.state = spans[0].state;
+    this.state = PhpLexerState.LookingForHeredocLabel;
     this.templateStack = spans;
 
     // Force the lexer to stop just before an end label instead of always
     // trying to scan for it. After reaching the last span, this region will
     // be "appended" and scanned normally.
-    if (spans.length > 1 && spans[spans.length - 1].state == PhpLexerState.LookingForHeredocLabel) {
+    if (spans.length > 0 && spans[spans.length - 1].state == PhpLexerState.LookingForHeredocLabel) {
       this.end = this.end - spans[spans.length - 1].length;
     }
   }
@@ -341,32 +372,37 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
       switch (this.state) {
         // Standard lexing states.
-        case PhpLexerState.InHostLanguage:  // 0
+        case PhpLexerState.InHostLanguage:
           this.state = this.lexInlineText();
           break;
-        case PhpLexerState.InScript:        // 5
+        case PhpLexerState.InScript:
           this.state = this.lexScript();
           break;
 
         // Rescanning states.
-        case PhpLexerState.InBackQuote:             // 1
-        case PhpLexerState.InDoubleQuote:           // 2
-        case PhpLexerState.InHeredoc:               // 3
-          this.state = this.lexString(this.state);
+        case PhpLexerState.InBackQuote:
+        case PhpLexerState.InDoubleQuote:
+        case PhpLexerState.InFlexibleHeredoc:
+        case PhpLexerState.InHeredoc:
+          this.state = this.lexString();
           break;
-        case PhpLexerState.InNowdoc:                // 4
+        case PhpLexerState.InFlexibleNowdoc:
+        case PhpLexerState.InNowdoc:
           this.state = this.lexNowdoc();
           break;
-        case PhpLexerState.InVariableOffset:        // 6
+        case PhpLexerState.InVariableOffset:
           this.state = this.lexVariableOffset();
           break;
-        case PhpLexerState.LookingForHeredocLabel:  // 7
+        case PhpLexerState.LookingForHeredocIndent:
+          this.state = this.lexString();
+          break;
+        case PhpLexerState.LookingForHeredocLabel:
           this.state = this.lexHeredocLabel();
           break;
         // case PhpLexerState.LookingForProperty:
         //   this.state = this.lexProperty();
         //   break;
-        case PhpLexerState.LookingForVariableName:  // 8
+        case PhpLexerState.LookingForVariableName:
           this.state = this.lexVariableName();
           break;
 
@@ -457,9 +493,43 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // Don't move the actual lexer position.
     let offset = this.offset;
 
+    // PHP 7.3 allows leading whitespace.
+    if (this.phpVersion >= PhpVersion.PHP7_3) {
+      while (offset < this.end && CharacterInfo.isWhitespace(this.text.charCodeAt(offset))) {
+        offset++;
+      }
+    }
+
     // End label.
-    if (!this.startsWith(label, false)) {
+    if (offset + label.length > this.end) {
       return false;
+    }
+
+    let labelStart = offset;
+    if (CharacterInfo.isIdentifierStart(this.text.charCodeAt(offset))) {
+      offset++;
+
+      // No partial matches, so get the full identifier.
+      while (offset < this.end) {
+        let ch = this.text.charCodeAt(offset);
+        if (!CharacterInfo.isIdentifierPart(ch, this.phpVersion)) {
+          break;
+        }
+        offset++;
+      }
+
+      // Compare to the label.
+      if (this.text.substring(labelStart, offset - labelStart) !== label) {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+    // PHP 7.3 also removes requirements for trailing characters.
+    if (this.phpVersion >= PhpVersion.PHP7_3) {
+      return true;
     }
 
     offset = offset + label.length;
@@ -482,14 +552,22 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Tokenizes a starting or ending heredoc label.
    */
   protected lexHeredocLabel(): PhpLexerState {
-    if (this.text.charCodeAt(this.offset) == Character.LessThan) {
+    let ch = this.text.charCodeAt(this.offset);
+    if (ch == Character.LessThan) {
       let info = this.tryScanHeredocStartLabel();
-
-      if (info && info.isNowdoc) {
-        this.defaultState = PhpLexerState.InNowdoc;
+      if (this.flexibleIndent) {
+        this.state = PhpLexerState.LookingForHeredocIndent;
+      }
+      else {
+        this.state = (info && info.isNowdoc) ? PhpLexerState.InNowdoc : PhpLexerState.InHeredoc;
       }
 
       this.tokenKind = TokenKind.HeredocStart;
+    }
+    else if (CharacterInfo.isWhitespace(ch)) {
+      // NOTE: Do not move past the first whitespace character yet.
+      this.scanHeredocEndLabelIndent();
+      this.tokenKind = TokenKind.StringIndent;
     }
     else {
       this.offset++;
@@ -532,10 +610,44 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Tokenizes the text of a nowdoc string.
    */
   protected lexNowdoc(): PhpLexerState {
-    // The end label has been temporarily removed, so there's nothing to do
-    // but instantaneously parse the string...
-    this.offset = this.end;
-    this.tokenKind = TokenKind.StringTemplateLiteral;
+    // In a regular nowdoc, the end label has been temporarily removed, so
+    // there's nothing to do but instantaneously tokenize the string.
+    if (this.state == PhpLexerState.InNowdoc) {
+      this.offset = this.end;
+      this.tokenKind = TokenKind.StringTemplateLiteral;
+      return this.state;
+    }
+
+    // A flexible nowdoc actually has some tokens though.
+    let ch = this.text.charCodeAt(this.offset);
+
+    switch (ch) {
+      case Character.Space:
+      case Character.Tab:
+        if (this.state == PhpLexerState.LookingForHeredocIndent) {
+          this.tryScanFlexdocIndent();
+          this.tokenKind = TokenKind.StringIndent;
+          this.state = PhpLexerState.InFlexibleNowdoc;
+          break;
+        }
+        this.tryScanNowdocString();
+        this.tokenKind = TokenKind.StringTemplateLiteral;
+        break;
+      case Character.CarriageReturn:
+      case Character.LineFeed:
+        this.offset++;
+        while (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
+          this.offset++;
+        }
+        this.tokenKind = TokenKind.StringNewLine;
+        this.state = PhpLexerState.LookingForHeredocIndent;
+        break;
+      default:
+        this.tryScanNowdocString();
+        this.tokenKind = TokenKind.StringTemplateLiteral;
+        break;
+    }
+
     return this.state;
   }
 
@@ -1052,16 +1164,16 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Tokenizes the regions within a string template that are not part of an
    * interpolation.
    */
-  protected lexString(state: PhpLexerState): PhpLexerState {
+  protected lexString(): PhpLexerState {
     let ch = this.text.charCodeAt(this.offset);
     let next = this.peek(this.offset + 1);
 
-    if (state == PhpLexerState.InDoubleQuote && ch == Character.DoubleQuote) {
+    if (this.state == PhpLexerState.InDoubleQuote && ch == Character.DoubleQuote) {
       this.offset++;
       this.tokenKind = TokenKind.DoubleQuote;
       return this.state;
     }
-    else if (state == PhpLexerState.InBackQuote && ch == Character.BackQuote) {
+    else if (this.state == PhpLexerState.InBackQuote && ch == Character.BackQuote) {
       this.offset++;
       this.tokenKind = TokenKind.BackQuote;
       return this.state;
@@ -1077,7 +1189,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         else {
           this.offset++;
-          this.tryScanStringTemplateLiteral(this.state);
+          this.tryScanStringTemplateLiteral();
           this.tokenKind = TokenKind.StringTemplateLiteral;
         }
         break;
@@ -1087,13 +1199,41 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.tokenKind = TokenKind.OpenBrace;
         }
         else {
-          this.tryScanStringTemplateLiteral(this.state);
+          this.tryScanStringTemplateLiteral();
+          this.tokenKind = TokenKind.StringTemplateLiteral;
+        }
+        break;
+      case Character.Space:
+      case Character.Tab:
+        if (this.state == PhpLexerState.LookingForHeredocIndent) {
+          this.state = PhpLexerState.InFlexibleHeredoc;
+          let length = this.tryScanFlexdocIndent();
+          if (length > 0) {
+            this.tokenKind = TokenKind.StringIndent;
+            break;
+          }
+        }
+        this.tryScanStringTemplateLiteral();
+        this.tokenKind = TokenKind.StringTemplateLiteral;
+        break;
+      case Character.CarriageReturn:
+      case Character.LineFeed:
+        if (this.state == PhpLexerState.InFlexibleHeredoc || this.state == PhpLexerState.LookingForHeredocIndent) {
+          this.offset++;
+          while (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
+            this.offset++;
+          }
+          this.tokenKind = TokenKind.StringNewLine;
+          this.state = PhpLexerState.LookingForHeredocIndent;
+        }
+        else {
+          this.tryScanStringTemplateLiteral();
           this.tokenKind = TokenKind.StringTemplateLiteral;
         }
         break;
       default:
         // @todo Assert that this length is greater than 0.
-        this.tryScanStringTemplateLiteral(this.state);
+        this.tryScanStringTemplateLiteral();
         this.tokenKind = TokenKind.StringTemplateLiteral;
         break;
     }
@@ -1228,6 +1368,36 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Scans the indentation of the end label in a flexdoc template.
+   */
+  protected scanHeredocEndLabelIndent() {
+    const start = this.offset;
+
+    let hasSpaces = false;
+    let hasTabs = false;
+
+    while (this.offset < this.end) {
+      let ch = this.text.charCodeAt(this.offset);
+      if (ch == Character.Space) {
+        hasSpaces = true;
+      }
+      else if (ch == Character.Tab) {
+        hasTabs = true;
+      }
+      else {
+        break;
+      }
+      this.offset++;
+    }
+
+    if (hasSpaces && hasTabs) {
+      this.addError(0, this.offset - start, ErrorCode.ERR_HeredocIndentHasSpacesAndTabs);
+    }
+
+    return this.offset - start;
+  }
+
+  /**
    * Scans the digits of a hexadecimal integer.
    */
   protected scanHexDigits(): number {
@@ -1348,19 +1518,25 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.OpenBrace:
           this.offset++;  // "{"
           this.scanInterpolatedScript(Character.CloseBrace);
-          this.offset++;  // "}"
+          if (this.peek(this.offset) == Character.CloseBrace) {
+            this.offset++;
+          }
           break;
         case Character.OpenBracket:
           // @todo This may be unnecessary?
           this.offset++;  // "["
           this.scanInterpolatedScript(Character.CloseBracket);
-          this.offset++;  // "]"
+          if (this.peek(this.offset) == Character.CloseBracket) {
+            this.offset++;
+          }
           break;
         case Character.OpenParen:
           // @todo This may be unnecessary?
           this.offset++;  // "("
           this.scanInterpolatedScript(Character.CloseParen);
-          this.offset++;  // ")"
+          if (this.peek(this.offset) == Character.CloseParen) {
+            this.offset++;
+          }
           break;
 
         // Strings.
@@ -1384,6 +1560,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             if (info) {
               this.scanInterpolatedString(info.label);
               if (this.isHeredocEnd(info.label)) {
+                this.scanWhitespace();
                 this.offset = this.offset + info.label.length;
               }
               break;
@@ -1433,7 +1610,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Scans the contents of a possible interpolated string.
    *
-   * @param {Character|string} label
+   * @param {Character|string} delimiter
    *   A closing quote or label used to delimit a heredoc or nowdoc string.
    * @param {TemplateSpan[]=} spans
    *   An array to store any scanned interpolations within the string.
@@ -1524,7 +1701,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             }
 
             this.scanInterpolatedScript(Character.CloseBrace);
-            this.offset++;  // "}"
+            if (this.peek(this.offset) == Character.CloseBrace) {
+              this.offset++;
+            }
 
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
@@ -1570,7 +1749,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           if (next == Character.Dollar) {
             spanOffset = this.offset;
             this.scanInterpolatedScript(Character.CloseBrace);
-            this.offset++;  // "}"
+            if (this.peek(this.offset) == Character.CloseBrace) {
+              this.offset++;
+            }
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           break;
@@ -1897,6 +2078,50 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Attempts to scan for the indent in a flexible heredoc. If not found,
+   * nothing is scanned.
+   */
+  protected tryScanFlexdocIndent(): number {
+    const start = this.offset;
+
+    let hasMismatchedIndentation = false;
+
+    for (let i = 0; i < this.flexibleIndent.length; i++) {
+      if (this.offset >= this.end) {
+        throw new Exception('Missing end label');  // Unreachable.
+      }
+
+      let ch = this.text.charCodeAt(this.offset);
+      if (ch != this.flexibleIndent.charCodeAt(i)) {
+        if (CharacterInfo.isLineBreak(ch)) {
+          // Found an empty line.
+          break;
+        }
+        else {
+          // Either this is a space instead of a tab, a tab instead of a space,
+          // or some other non-whitespace character. In the first two cases,
+          // continue scanning the indent in order to prevent "indent expected"
+          // errors when there is clearly whitespace present.
+          hasMismatchedIndentation = true;
+
+          // Found a line without enough indentation.
+          if (!CharacterInfo.isWhitespace(ch)) {
+            break;
+          }
+        }
+      }
+
+      this.offset++;
+    }
+
+    if (hasMismatchedIndentation && this.offset - start > 0) {
+      this.addError(0, this.offset - start, ErrorCode.ERR_HeredocIndentMismatch);
+    }
+
+    return this.offset - start;
+  }
+
+  /**
    * Attempts to scan for a heredoc or nowdoc string. If not found, a left
    * shift token is scanned instead.
    */
@@ -1906,14 +2131,18 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     let info = this.tryScanHeredocStartLabel();
     if (info !== null) {
       spans.length = 0;  // Need to modify the existing array.
-      spans.push(new TemplateSpan(PhpLexerState.LookingForHeredocLabel, 0, info.fullLength));
 
       // The starting label consumes a trailing new line, so for an empty
-      // string, the search for an ending label is never triggered.
+      // string, the search for an ending label would never be triggered.
       if (this.isHeredocEnd(info.label)) {
-        spans.push(new TemplateSpan(PhpLexerState.LookingForHeredocLabel, this.offset - start, info.label.length));
+        this.tokenKind = CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))
+          ? TokenKind.FlexdocTemplate : TokenKind.HeredocTemplate;
+
+        let labelStart = this.offset - start;
+        let indentLength = this.scanWhitespace();
         this.offset = this.offset + info.label.length;
-        this.tokenKind = TokenKind.HeredocTemplate;
+
+        spans.push(new TemplateSpan(PhpLexerState.LookingForHeredocLabel, labelStart, indentLength + info.label.length));
         return this.offset - start;
       }
 
@@ -1925,13 +2154,19 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
 
       if (this.isHeredocEnd(info.label)) {
-        spans.push(new TemplateSpan(PhpLexerState.LookingForHeredocLabel, this.offset - start, info.label.length));
+        this.tokenKind = CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))
+          ? TokenKind.FlexdocTemplate : TokenKind.HeredocTemplate;
+
+        let labelStart = this.offset - start;
+        let indentLength = this.scanWhitespace();
         this.offset = this.offset + info.label.length;
+
+        spans.push(new TemplateSpan(PhpLexerState.LookingForHeredocLabel, labelStart, indentLength + info.label.length));
       }
       else {
         this.addError(0, this.offset - start, info.isNowdoc ? ErrorCode.ERR_UnterminatedStringConstant : ErrorCode.ERR_UnterminatedString);
+        this.tokenKind = TokenKind.HeredocTemplate;
       }
-      this.tokenKind = TokenKind.HeredocTemplate;
     }
     else {
       // Starting label not found.
@@ -2019,6 +2254,22 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Attempts to scan for constant text within a nowdoc.
+   */
+  protected tryScanNowdocString(): number {
+    const start = this.offset;
+
+    while (this.offset < this.end) {
+      if (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
+        break;
+      }
+      this.offset++;
+    }
+
+    return this.offset - start;
+  }
+
+  /**
    * Attempts to scan for an octal escape sequence.
    */
   protected tryScanOctalEscape(): number {
@@ -2072,7 +2323,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Attempts to scan for constant text within a string template.
    */
-  protected tryScanStringTemplateLiteral(state: PhpLexerState): number {
+  protected tryScanStringTemplateLiteral(): number {
     const start = this.offset;
 
     while (this.offset < this.end) {
@@ -2080,10 +2331,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       let next = this.peek(this.offset + 1);
 
       // String terminators.
-      if (state == PhpLexerState.InDoubleQuote && ch == Character.DoubleQuote) {
+      if (this.state == PhpLexerState.InDoubleQuote && ch == Character.DoubleQuote) {
         break;
       }
-      else if (state == PhpLexerState.InBackQuote && ch == Character.BackQuote) {
+      else if (this.state == PhpLexerState.InBackQuote && ch == Character.BackQuote) {
         break;
       }
 
@@ -2092,6 +2343,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         break;
       }
       else if (ch == Character.OpenBrace && next == Character.Dollar) {
+        break;
+      }
+      else if ((this.state == PhpLexerState.InFlexibleHeredoc || this.state == PhpLexerState.LookingForHeredocIndent) && CharacterInfo.isLineBreak(ch)) {
         break;
       }
       else if (ch == Character.Backslash) {
