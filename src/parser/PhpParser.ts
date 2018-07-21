@@ -771,6 +771,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       // Comparison operators.
       case TokenKind.Coalesce:
       case TokenKind.GreaterThan:
+      case TokenKind.Inequality:
       case TokenKind.IsEqual:
       case TokenKind.IsGreaterThanOrEqual:
       case TokenKind.IsIdentical:
@@ -1013,6 +1014,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.IsLessThanOrEqual:
       case TokenKind.LessThan:
       // Equality.
+      case TokenKind.Inequality:
       case TokenKind.IsEqual:
       case TokenKind.IsIdentical:
       case TokenKind.IsNotEqual:
@@ -6081,6 +6083,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return Precedence.BitwiseXor;
       case TokenKind.Ampersand:
         return Precedence.BitwiseAnd;
+      case TokenKind.Inequality:
       case TokenKind.IsEqual:
       case TokenKind.IsIdentical:
       case TokenKind.IsNotEqual:

@@ -1033,7 +1033,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         else if (next == Character.GreaterThan) {
           this.offset = this.offset + 2;  // "<>"
-          this.tokenKind = TokenKind.IsNotEqual;
+          this.tokenKind = TokenKind.Inequality;
         }
         else if (next == Character.LessThan) {
           if (this.peek(this.offset + 2) == Character.LessThan) {

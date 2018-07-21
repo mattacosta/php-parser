@@ -250,7 +250,7 @@ describe('PhpLexer', function() {
         // Comparison
         new LexerTestArgs('<?php ==', 'equal', [TokenKind.IsEqual]),
         new LexerTestArgs('<?php !=', 'not equal', [TokenKind.IsNotEqual]),
-        new LexerTestArgs('<?php <>', 'not equal (alternate)', [TokenKind.IsNotEqual]),
+        new LexerTestArgs('<?php <>', 'not equal (alternate)', [TokenKind.Inequality]),
         new LexerTestArgs('<?php ===', 'is identical', [TokenKind.IsIdentical]),
         new LexerTestArgs('<?php !==', 'is not identical', [TokenKind.IsNotIdentical]),
         new LexerTestArgs('<?php <=', 'smaller or equal', [TokenKind.IsLessThanOrEqual]),

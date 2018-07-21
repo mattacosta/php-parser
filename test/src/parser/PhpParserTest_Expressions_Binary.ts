@@ -380,7 +380,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('$a <> 1;', 'should parse an is not equal expression (alternate syntax)', (statements, text) => {
           let binaryExpr = assertBinaryNode(statements);
-          Test.assertSyntaxToken(binaryExpr.operator, text, TokenKind.IsNotEqual, '<>');
+          Test.assertSyntaxToken(binaryExpr.operator, text, TokenKind.Inequality, '<>');
         }),
         new ParserTestArgs('$a === 1;', 'should parse an is strict equal expression', (statements, text) => {
           let binaryExpr = assertBinaryNode(statements);
