@@ -362,12 +362,6 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(exitNode.exitOrDieKeyword, text, TokenKind.Exit, 'exit');
           assert.equal(exitNode.expression instanceof LiteralSyntaxNode, true);
         }),
-        // @todo Use unique tokens for `die` and `exit`.
-        //   - Issue: Text of language defined tokens should be unique.
-        //   - This also affects '!=' => '<>' and '(double)' => '(float)'.
-        // new ParserTestArgs('die;'),
-        // new ParserTestArgs('die();'),
-        // new ParserTestArgs('die(1);'),
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
@@ -376,6 +370,44 @@ describe('PhpParser', function() {
         // @todo Improve error message.
         new DiagnosticTestArgs('exit(', 'missing close paren or expression', [ErrorCode.ERR_CloseParenExpected], [5]),
         new DiagnosticTestArgs('exit(1', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [6]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('exit-intrinsic (die)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('die;', 'should parse an exit expression', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let exitNode = <ExitIntrinsicSyntaxNode>exprNode.expression;
+          assert.equal(exitNode instanceof ExitIntrinsicSyntaxNode, true);
+          Test.assertSyntaxToken(exitNode.exitOrDieKeyword, text, TokenKind.Die, 'die');
+          assert.strictEqual(exitNode.expression, null);
+        }),
+        new ParserTestArgs('die();', 'should parse an exit expression with parentheses', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let exitNode = <ExitIntrinsicSyntaxNode>exprNode.expression;
+          assert.equal(exitNode instanceof ExitIntrinsicSyntaxNode, true);
+          Test.assertSyntaxToken(exitNode.exitOrDieKeyword, text, TokenKind.Die, 'die');
+          assert.strictEqual(exitNode.expression, null);
+        }),
+        new ParserTestArgs('die(1);', 'should parse an exit expression with parentheses and expression', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let exitNode = <ExitIntrinsicSyntaxNode>exprNode.expression;
+          assert.equal(exitNode instanceof ExitIntrinsicSyntaxNode, true);
+          Test.assertSyntaxToken(exitNode.exitOrDieKeyword, text, TokenKind.Die, 'die');
+          assert.equal(exitNode.expression instanceof LiteralSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('die', 'missing open paren or semicolon', [ErrorCode.ERR_SemicolonExpected], [3]),
+        // @todo Improve error message.
+        new DiagnosticTestArgs('die(', 'missing close paren or expression', [ErrorCode.ERR_CloseParenExpected], [4]),
+        new DiagnosticTestArgs('die(1', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [5]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

@@ -894,6 +894,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Variable:      // Includes "$this".
 
       // primary-expression > intrinsic
+      case TokenKind.Die:
       case TokenKind.Empty:
       case TokenKind.Eval:
       case TokenKind.Exit:
@@ -4280,6 +4281,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         expr = this.parseEval();
         type = ExpressionType.Implicit;
         break;
+      case TokenKind.Die:
       case TokenKind.Exit:
         expr = this.parseExit();
         type = ExpressionType.Implicit;
@@ -4927,7 +4929,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `EXIT ( expr )`
    */
   protected parseExit(): ExitIntrinsicNode {
-    let exitKeyword = this.eat(TokenKind.Exit);
+    // Only exit expressions should reach this point.
+    Debug.assert(this.currentToken.kind == TokenKind.Die || this.currentToken.kind == TokenKind.Exit);
+
+    let exitKeyword = this.eat(this.currentToken.kind);
     if (this.currentToken.kind != TokenKind.OpenParen) {
       return new ExitIntrinsicNode(exitKeyword, null, null, null);
     }

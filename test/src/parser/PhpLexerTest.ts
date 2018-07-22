@@ -79,7 +79,7 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php continue', 'continue', [TokenKind.Continue]),
         new LexerTestArgs('<?php declare', 'declare', [TokenKind.Declare]),
         new LexerTestArgs('<?php default', 'default', [TokenKind.Default]),
-        new LexerTestArgs('<?php die', 'die', [TokenKind.Exit]),
+        new LexerTestArgs('<?php die', 'die', [TokenKind.Die]),
         new LexerTestArgs('<?php do', 'do', [TokenKind.Do]),
         new LexerTestArgs('<?php echo', 'echo', [TokenKind.Echo]),
         new LexerTestArgs('<?php else', 'else', [TokenKind.Else]),

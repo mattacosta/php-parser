@@ -110,7 +110,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     ['continue', TokenKind.Continue],
     ['declare', TokenKind.Declare],
     ['default', TokenKind.Default],
-    ['die', TokenKind.Exit],
+    ['die', TokenKind.Die],
     ['do', TokenKind.Do],
     ['echo', TokenKind.Echo],
     ['else', TokenKind.Else],
