@@ -63,10 +63,7 @@
 
             let severity = d.severity == PhpParser.DiagnosticSeverity.Error
               ? 'E' : (d.severity == PhpParser.DiagnosticSeverity.Warning ? 'W' : 'I');
-            let message = PhpParser.ErrorCodeInfo.getMessage(d.code);
-            let args = d.messageArgs.slice();
-
-            message = message.replace(/%s/g, function() { return args.shift(); });
+            let message = PhpParser.ErrorCodeInfo.formatMessage(d.code, d.messageArgs);
             problems += `[${severity}] [PHP${d.code}] ${message}\n`;
           }
 

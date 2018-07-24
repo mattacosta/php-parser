@@ -67,6 +67,8 @@ export class ErrorCodeInfoGenerator {
     this.text += '\n';
     this.text += '  protected static Resources = new ResourceSet<ErrorCodeData>(\'../ErrorCode.json\');\n';
     this.text += '\n';
+    this.text += this.addFormatMessage();
+    this.text += '\n';
     this.text += this.addGetMessage();
     this.text += '\n';
     this.text += this.addGetSeverity();
@@ -87,6 +89,18 @@ export class ErrorCodeInfoGenerator {
     this.text += '\n';
     this.text += '}\n';
     this.text += '\n';
+  }
+
+  protected addFormatMessage(): string {
+    let text = '  public static formatMessage(code: ErrorCode, messageArgs: ReadonlyArray<any>): string {\n';
+    text += '    let message = ErrorCodeInfo.getMessage(code);\n';
+    text += '    if (messageArgs.length > 0) {\n';
+    text += '      let args = messageArgs.slice();\n';
+    text += '      message = message.replace(/%s/g, function() { return args.shift(); });\n';
+    text += '    }\n';
+    text += '    return message;\n';
+    text += '  }\n';
+    return text;
   }
 
   protected addGetMessage(): string {

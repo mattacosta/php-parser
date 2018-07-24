@@ -84,9 +84,7 @@ glob('**/*.php', { cwd: dir }, (error, matches) => {
       let diagnostics = tree.getDiagnostics();
       for (let d of diagnostics) {
       //let severity = d.severity == DiagnosticSeverity.Error ? 'E' : 'W';
-        let message = ErrorCodeInfo.getMessage(d.code);
-        let args = d.messageArgs.slice();
-        message = message.replace(/%s/g, function() { return args.shift(); });
+        let message = ErrorCodeInfo.formatMessage(d.code, d.messageArgs);
         if (d.severity == DiagnosticSeverity.Error) {
           console.error('[E] [PHP%s] [%s:%s] %s', d.code, d.offset, d.width, message);
           hasErrors = true;
