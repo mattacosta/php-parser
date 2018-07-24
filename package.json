@@ -27,6 +27,7 @@
         "@types/mocha": "^5.2.1",
         "@types/node": "^8.10.18",
         "browserify": "^16.2.2",
+        "coveralls": "^3.0.2",
         "event-stream": "^3.3.4",
         "exorcist": "^1.0.1",
         "glob": "^7.1.2",
@@ -37,6 +38,7 @@
         "js-yaml": "^3.12.0",
         "merge2": "^1.2.2",
         "mocha": "^5.2.0",
+        "nyc": "^12.0.2",
         "rimraf": "^2.6.2",
         "typescript": "^2.9.1"
     },
@@ -45,7 +47,8 @@
         "build:codegen": "tsc -p ./tools/CodeGenerator",
         "build:validator": "tsc -p ./tools/Validator",
         "pretest": "tsc -p ./test",
-        "test": "mocha --recursive ./out/test",
+        "test": "nyc mocha --recursive ./out/test",
+        "test:coverage": "nyc report --reporter=text-lcov | coveralls",
         "browserify": "browserify ./lib/main.js -d -s PhpParser -r ./lib/ErrorCode.json:../ErrorCode.json | exorcist ./lib/php-parser.map.js > ./lib/php-parser.js"
     }
 }
