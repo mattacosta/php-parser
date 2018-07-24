@@ -46,14 +46,6 @@ import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
 import { TokenKind } from '../../../src/language/TokenKind';
 
-function assertStringTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
-  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-  let interpolatedString = <StringTemplateSyntaxNode>exprNode.expression;
-  assert.equal(interpolatedString instanceof StringTemplateSyntaxNode, true, 'StringTemplateSyntaxNode');
-  return interpolatedString.template.childNodes();
-}
-
 function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent: string, templateText?: string | null): ISyntaxNode[] {
   let element = <FlexibleHeredocElementSyntaxNode>node;
   assert.equal(element instanceof FlexibleHeredocElementSyntaxNode, true, 'FlexibleHeredocElementSyntaxNode');
@@ -83,6 +75,14 @@ function assertFlexibleHeredocTemplate(statements: ISyntaxNode[]): ISyntaxNode[]
   let interpolatedString = <FlexibleHeredocTemplateSyntaxNode>exprNode.expression;
   assert.equal(interpolatedString instanceof FlexibleHeredocTemplateSyntaxNode, true, 'FlexibleHeredocTemplateSyntaxNode');
   return interpolatedString.flexibleElements.childNodes();
+}
+
+function assertStringTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  let interpolatedString = <StringTemplateSyntaxNode>exprNode.expression;
+  assert.equal(interpolatedString instanceof StringTemplateSyntaxNode, true, 'StringTemplateSyntaxNode');
+  return interpolatedString.template.childNodes();
 }
 
 describe('PhpParser', function() {

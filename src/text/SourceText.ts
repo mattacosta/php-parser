@@ -151,16 +151,6 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
   /**
    * @inheritDoc
    */
-  public abstract slice(spanOrPosition: TextSpan | number): ISourceText;
-
-  /**
-   * @inheritDoc
-   */
-  public abstract substring(start: number, length?: number): string;
-
-  /**
-   * @inheritDoc
-   */
   public equals(value: ISourceText): boolean {
     if (value === this) {
       return true;
@@ -175,6 +165,16 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
     }
     return true;
   }
+
+  /**
+   * @inheritDoc
+   */
+  public abstract slice(spanOrPosition: TextSpan | number): ISourceText;
+
+  /**
+   * @inheritDoc
+   */
+  public abstract substring(start: number, length?: number): string;
 
   /**
    * @inheritDoc

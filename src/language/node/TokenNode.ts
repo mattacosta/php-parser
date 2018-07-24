@@ -113,14 +113,14 @@ export class TokenNode extends Node {
   /**
    * @inheritDoc
    */
-  public createSyntaxNode<T extends ISyntaxNode>(parent: ISyntaxNode, offset: number): T {
+  public childAt(index: number): INode | null {
     throw new InvalidOperationException('Unreachable');
   }
 
   /**
    * @inheritDoc
    */
-  public childAt(index: number): INode | null {
+  public createSyntaxNode<T extends ISyntaxNode>(parent: ISyntaxNode, offset: number): T {
     throw new InvalidOperationException('Unreachable');
   }
 

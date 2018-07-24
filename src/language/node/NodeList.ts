@@ -144,15 +144,15 @@ export class SingleChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  public createSyntaxNode(parent: ISyntaxNode, offset: number): SingleChildSyntaxList {
-    return new SingleChildSyntaxList(this, parent, offset);
+  public childAt(index: number): Node | null {
+    return index == 0 ? this.child : null;
   }
 
   /**
    * @inheritDoc
    */
-  public childAt(index: number): Node | null {
-    return index == 0 ? this.child : null;
+  public createSyntaxNode(parent: ISyntaxNode, offset: number): SingleChildSyntaxList {
+    return new SingleChildSyntaxList(this, parent, offset);
   }
 
   /**
@@ -291,13 +291,6 @@ export class TwoChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  public createSyntaxNode(parent: ISyntaxNode, offset: number): TwoChildSyntaxList {
-    return new TwoChildSyntaxList(this, parent, offset);
-  }
-
-  /**
-   * @inheritDoc
-   */
   public childAt(index: number): Node | null {
     switch (index) {
       case 0:
@@ -307,6 +300,13 @@ export class TwoChildListNode extends NodeList {
       default:
         return null;
     }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public createSyntaxNode(parent: ISyntaxNode, offset: number): TwoChildSyntaxList {
+    return new TwoChildSyntaxList(this, parent, offset);
   }
 
   /**

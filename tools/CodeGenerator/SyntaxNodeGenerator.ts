@@ -120,6 +120,26 @@ export class SyntaxNodeGenerator {
     return text;
   }
 
+  protected addChildAtMethod(properties: NodeProperty[]): string {
+    let text = '';
+    text += '  protected childAt(index: number): SyntaxNodeBase | null {\n';
+    text += '    switch (index) {\n';
+    for (let i = 0; i < properties.length; i++) {
+      let prop = properties[i];
+      if (prop.type != 'TokenNode') {
+        text += '      case ' + i + ':\n';
+        // NOTE: Since these properties are not initialized in the compiled JS,
+        // a check is needed to avoid returning `undefined`.
+        text += '        return this._' + prop.name + ' !== void 0 ? ' + 'this._' + prop.name + ' : null;\n';
+      }
+    }
+    text += '      default:\n';
+    text += '        return null;\n';
+    text += '    }\n';
+    text += '  }\n';
+    return text;
+  }
+
   protected addClass(info: NodeClass) {
     let abstract = info.abstract ? ' abstract' : '';
     let baseClass = info.extends ? info.extends + 'SyntaxNode' : 'SyntaxNode';
@@ -153,26 +173,6 @@ export class SyntaxNodeGenerator {
     let text = '';
     text += '  protected get count(): number {\n';
     text += '    return ' + count + ';\n';
-    text += '  }\n';
-    return text;
-  }
-
-  protected addChildAtMethod(properties: NodeProperty[]): string {
-    let text = '';
-    text += '  protected childAt(index: number): SyntaxNodeBase | null {\n';
-    text += '    switch (index) {\n';
-    for (let i = 0; i < properties.length; i++) {
-      let prop = properties[i];
-      if (prop.type != 'TokenNode') {
-        text += '      case ' + i + ':\n';
-        // NOTE: Since these properties are not initialized in the compiled JS,
-        // a check is needed to avoid returning `undefined`.
-        text += '        return this._' + prop.name + ' !== void 0 ? ' + 'this._' + prop.name + ' : null;\n';
-      }
-    }
-    text += '      default:\n';
-    text += '        return null;\n';
-    text += '    }\n';
     text += '  }\n';
     return text;
   }

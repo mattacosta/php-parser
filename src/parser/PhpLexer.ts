@@ -276,6 +276,83 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Scans the source text until a token is found.
+   */
+  public lex(state: PhpLexerState): Token {
+    this.diagnostics = [];
+    this.state = state;
+
+    if (this.offset < this.end) {
+      this.tokenStart = this.offset;
+
+      switch (this.state) {
+        // Standard lexing states.
+        case PhpLexerState.InHostLanguage:
+          this.state = this.lexInlineText();
+          break;
+        case PhpLexerState.InScript:
+          this.state = this.lexScript();
+          break;
+
+        // Rescanning states.
+        case PhpLexerState.InBackQuote:
+        case PhpLexerState.InDoubleQuote:
+        case PhpLexerState.InFlexibleHeredoc:
+        case PhpLexerState.InHeredoc:
+          this.state = this.lexString();
+          break;
+        case PhpLexerState.InFlexibleNowdoc:
+        case PhpLexerState.InNowdoc:
+          this.state = this.lexNowdoc();
+          break;
+        case PhpLexerState.InVariableOffset:
+          this.state = this.lexVariableOffset();
+          break;
+        case PhpLexerState.LookingForHeredocIndent:
+          this.state = this.lexString();
+          break;
+        case PhpLexerState.LookingForHeredocLabel:
+          this.state = this.lexHeredocLabel();
+          break;
+        // case PhpLexerState.LookingForProperty:
+        //   this.state = this.lexProperty();
+        //   break;
+        case PhpLexerState.LookingForVariableName:
+          this.state = this.lexVariableName();
+          break;
+
+        default:
+          throw new Exception('Invalid lexer state');
+      }
+
+      // If the lexer is currently rescanning a string template, then the state
+      // may have already been determined.
+      if (this.templateStack.length > 0) {
+        // End of current span.
+        if (this.offset == this.templateStack[0].start + this.templateStack[0].length) {
+          this.state = this.defaultState;
+          this.templateStack.shift();
+        }
+        // If there is another span, then it may start immediately.
+        if (this.templateStack.length > 0 && this.offset == this.templateStack[0].start) {
+          this.state = this.templateStack[0].state;
+          // If a heredoc string had an end label, extend the scan range back
+          // to its normal length.
+          if (this.state == PhpLexerState.LookingForHeredocLabel && this.offset == this.end) {
+            this.end = this.end + this.templateStack[0].length;
+          }
+        }
+      }
+
+      return new Token(this.tokenKind, this.tokenStart, this.offset - this.tokenStart, this.diagnostics);
+    }
+
+    this.tokenStart = this.offset;
+    this.tokenKind = TokenKind.EOF;
+    return new Token(this.tokenKind, this.tokenStart, 0, this.diagnostics);
+  }
+
+  /**
    * Initializes the lexer with predetermined lexing regions found after
    * scanning a `BackQuoteTemplate` token.
    */
@@ -358,83 +435,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     if (this.offset == spans[0].start) {
       this.state = spans[0].state;
     }
-  }
-
-  /**
-   * Scans the source text until a token is found.
-   */
-  public lex(state: PhpLexerState): Token {
-    this.diagnostics = [];
-    this.state = state;
-
-    if (this.offset < this.end) {
-      this.tokenStart = this.offset;
-
-      switch (this.state) {
-        // Standard lexing states.
-        case PhpLexerState.InHostLanguage:
-          this.state = this.lexInlineText();
-          break;
-        case PhpLexerState.InScript:
-          this.state = this.lexScript();
-          break;
-
-        // Rescanning states.
-        case PhpLexerState.InBackQuote:
-        case PhpLexerState.InDoubleQuote:
-        case PhpLexerState.InFlexibleHeredoc:
-        case PhpLexerState.InHeredoc:
-          this.state = this.lexString();
-          break;
-        case PhpLexerState.InFlexibleNowdoc:
-        case PhpLexerState.InNowdoc:
-          this.state = this.lexNowdoc();
-          break;
-        case PhpLexerState.InVariableOffset:
-          this.state = this.lexVariableOffset();
-          break;
-        case PhpLexerState.LookingForHeredocIndent:
-          this.state = this.lexString();
-          break;
-        case PhpLexerState.LookingForHeredocLabel:
-          this.state = this.lexHeredocLabel();
-          break;
-        // case PhpLexerState.LookingForProperty:
-        //   this.state = this.lexProperty();
-        //   break;
-        case PhpLexerState.LookingForVariableName:
-          this.state = this.lexVariableName();
-          break;
-
-        default:
-          throw new Exception('Invalid lexer state');
-      }
-
-      // If the lexer is currently rescanning a string template, then the state
-      // may have already been determined.
-      if (this.templateStack.length > 0) {
-        // End of current span.
-        if (this.offset == this.templateStack[0].start + this.templateStack[0].length) {
-          this.state = this.defaultState;
-          this.templateStack.shift();
-        }
-        // If there is another span, then it may start immediately.
-        if (this.templateStack.length > 0 && this.offset == this.templateStack[0].start) {
-          this.state = this.templateStack[0].state;
-          // If a heredoc string had an end label, extend the scan range back
-          // to its normal length.
-          if (this.state == PhpLexerState.LookingForHeredocLabel && this.offset == this.end) {
-            this.end = this.end + this.templateStack[0].length;
-          }
-        }
-      }
-
-      return new Token(this.tokenKind, this.tokenStart, this.offset - this.tokenStart, this.diagnostics);
-    }
-
-    this.tokenStart = this.offset;
-    this.tokenKind = TokenKind.EOF;
-    return new Token(this.tokenKind, this.tokenStart, 0, this.diagnostics);
   }
 
   /**

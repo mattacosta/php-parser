@@ -40,19 +40,6 @@ export class SourceTextFactory {
   protected static readonly LargeTextLimit: number = 4 * 1024;  // 4KB
 
   /**
-   * Creates a source text object from a string.
-   *
-   * @param {string} text
-   *   A string containing source code.
-   */
-  public static from(text: string /* , encoding: any */): ISourceText {
-    // if (text.length > SourceText.LargeTextLimit) {
-    //   return LargeText.decode(text, encoding);
-    // }
-    return new StringText(text);
-  }
-
-  /**
    * Creates a source text container from other source texts.
    *
    * @param {ReadonlyArray<ISourceText>} sources
@@ -65,6 +52,19 @@ export class SourceTextFactory {
    */
   public static createContainer(sources: ReadonlyArray<ISourceText>, sourceLength: number): ISourceText {
     return CompositeText.from(sources, sourceLength);
+  }
+
+  /**
+   * Creates a source text object from a string.
+   *
+   * @param {string} text
+   *   A string containing source code.
+   */
+  public static from(text: string /* , encoding: any */): ISourceText {
+    // if (text.length > SourceText.LargeTextLimit) {
+    //   return LargeText.decode(text, encoding);
+    // }
+    return new StringText(text);
   }
 
 }

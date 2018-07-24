@@ -234,6 +234,21 @@ export class SourceTextBuilder {
   }
 
   /**
+   * Calculates the smallest segment length that also reduces the number of
+   * builder segments below a threshold.
+   */
+  private calculateRebuildSegmentLength(): number {
+    let length = SourceTextBuilder.MinSegmentLength;
+    while (length <= SourceTextBuilder.MaxSegmentLength) {
+      if (this.getRebuildSegmentCount(length) <= SourceTextBuilder.SegmentRebuildLimit) {
+        return length;
+      }
+      length = length * 2;
+    }
+    return SourceTextBuilder.MaxSegmentLength;
+  }
+
+  /**
    * Determines how many segments will be in a rebuilt text that uses the
    * given segment length.
    */
@@ -263,21 +278,6 @@ export class SourceTextBuilder {
       }
     }
     return this.segments.length - removedSegments;
-  }
-
-  /**
-   * Calculates the smallest segment length that also reduces the number of
-   * builder segments below a threshold.
-   */
-  private calculateRebuildSegmentLength(): number {
-    let length = SourceTextBuilder.MinSegmentLength;
-    while (length <= SourceTextBuilder.MaxSegmentLength) {
-      if (this.getRebuildSegmentCount(length) <= SourceTextBuilder.SegmentRebuildLimit) {
-        return length;
-      }
-      length = length * 2;
-    }
-    return SourceTextBuilder.MaxSegmentLength;
   }
 
   /**

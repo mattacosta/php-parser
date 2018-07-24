@@ -46,24 +46,14 @@ import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
 import { TokenKind } from '../../../src/language/TokenKind';
 
-function assertAssignmentNode(statements: ISyntaxNode[]): AssignmentSyntaxNode {
+function assertArrayDeconstruction(statements: ISyntaxNode[]): ArraySyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-  let assignmentNode = <AssignmentSyntaxNode>exprNode.expression;
-  assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-  assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-  assert.equal(assignmentNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
-  return assignmentNode;
-}
-
-function assertBinaryNode(statements: ISyntaxNode[]): BinarySyntaxNode {
-  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-  let binaryNode = <BinarySyntaxNode>exprNode.expression;
-  assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
-  assert.equal(binaryNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-  assert.equal(binaryNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
-  return binaryNode;
+  let assignmentNode = <DestructuringAssignmentSyntaxNode>exprNode.expression;
+  assert.equal(assignmentNode instanceof DestructuringAssignmentSyntaxNode, true, 'DestructuringAssignmentSyntaxNode');
+  let array = <ArraySyntaxNode>assignmentNode.unpackedList;
+  assert.equal(array instanceof ArraySyntaxNode, true);
+  return array;
 }
 
 function assertAssignmentAssociativity(statements: ISyntaxNode[]) {
@@ -76,6 +66,16 @@ function assertAssignmentAssociativity(statements: ISyntaxNode[]) {
   assert.equal(childExpr instanceof AssignmentSyntaxNode, true);
   assert.equal(childExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
   assert.equal(childExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+}
+
+function assertAssignmentNode(statements: ISyntaxNode[]): AssignmentSyntaxNode {
+  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  let assignmentNode = <AssignmentSyntaxNode>exprNode.expression;
+  assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
+  assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  assert.equal(assignmentNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+  return assignmentNode;
 }
 
 function assertBinaryAssociativity(statements: ISyntaxNode[], isRightAssociative = false) {
@@ -101,14 +101,14 @@ function assertBinaryAssociativity(statements: ISyntaxNode[], isRightAssociative
   }
 }
 
-function assertArrayDeconstruction(statements: ISyntaxNode[]): ArraySyntaxNode {
+function assertBinaryNode(statements: ISyntaxNode[]): BinarySyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-  let assignmentNode = <DestructuringAssignmentSyntaxNode>exprNode.expression;
-  assert.equal(assignmentNode instanceof DestructuringAssignmentSyntaxNode, true, 'DestructuringAssignmentSyntaxNode');
-  let array = <ArraySyntaxNode>assignmentNode.unpackedList;
-  assert.equal(array instanceof ArraySyntaxNode, true);
-  return array;
+  let binaryNode = <BinarySyntaxNode>exprNode.expression;
+  assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
+  assert.equal(binaryNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  assert.equal(binaryNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+  return binaryNode;
 }
 
 function assertListDeconstruction(statements: ISyntaxNode[]): ListDestructureSyntaxNode {

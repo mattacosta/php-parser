@@ -93,6 +93,17 @@ export class ObjectCache<T extends IHashable<object>> {
   }
 
   /**
+   * Adds an object to the cache.
+   *
+   * NOTE: In order to prevent V8 from dereferencing the value, this method
+   * takes the hash code as a parameter. This may be changed in the future.
+   */
+  public set(value: T, hash: number) {
+    const index = hash & this.cacheMask;
+    this.cache[index] = new ObjectCacheEntry(hash, value);
+  }
+
+  /**
    * Attempts to get an equivalent object from the cache.
    */
   public tryGetObject(value: T, hash: number): T | null {
@@ -113,17 +124,6 @@ export class ObjectCache<T extends IHashable<object>> {
     }
 
     return null;
-  }
-
-  /**
-   * Adds an object to the cache.
-   *
-   * NOTE: In order to prevent V8 from dereferencing the value, this method
-   * takes the hash code as a parameter. This may be changed in the future.
-   */
-  public set(value: T, hash: number) {
-    const index = hash & this.cacheMask;
-    this.cache[index] = new ObjectCacheEntry(hash, value);
   }
 
 }

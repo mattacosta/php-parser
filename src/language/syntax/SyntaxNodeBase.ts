@@ -503,39 +503,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public *getAllChildren(): IterableIterator<ISyntaxNode | ISyntaxToken> {
-    let count = NodeExtensions.childCount(this.node);
-    for (let i = 0; i < count; i++) {
-      yield SyntaxNodeBase.relativeChildAt(this, i);
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getAllChildrenReversed(): IterableIterator<ISyntaxNode | ISyntaxToken> {
-    let count = NodeExtensions.childCount(this.node);
-    for (let i = count - 1; i >= 0; i--) {
-      yield SyntaxNodeBase.relativeChildAt(this, i);
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
   public ancestors(): ISyntaxNodeOrList[] {
     return this.parent ? this.parent.ancestorsAndSelf() : [];
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getAncestors(): IterableIterator<ISyntaxNodeOrList> {
-    let node = this.parent;
-    while (node) {
-      yield node;
-      node = node.parent;
-    }
   }
 
   /**
@@ -549,17 +518,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       node = node.parent;
     }
     return parents;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getAncestorsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
-    let node: ISyntaxNodeOrList | null = this;
-    while (node) {
-      yield node;
-      node = node.parent;
-    }
   }
 
   /**
@@ -580,17 +538,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public *getChildNodes(): IterableIterator<ISyntaxNode> {
-    for (let child of this.getAllChildren()) {
-      if (!child.isToken) {
-        yield <ISyntaxNode>child;
-      }
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
   public childTokens(): ISyntaxToken[] {
     let tokens = [];
     let children = this.allChildren();
@@ -601,17 +548,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       }
     }
     return tokens;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getChildTokens(): IterableIterator<ISyntaxToken> {
-    for (let child of this.getAllChildren()) {
-      if (child.isToken) {
-        yield <ISyntaxToken>child;
-      }
-    }
   }
 
   /**
@@ -640,21 +576,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public *getDescendants(): IterableIterator<ISyntaxNodeOrList> {
-    throw new NotImplementedException();
-  }
-
-  /**
-   * @inheritDoc
-   */
   public descendantsAndSelf(): ISyntaxNodeOrList[] {
-    throw new NotImplementedException();
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getDescendantsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
     throw new NotImplementedException();
   }
 
@@ -713,6 +635,20 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
+  public firstAncestorOrSelf(nodeFilter?: SyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
+    let node: ISyntaxNodeOrList | null = this;
+    while (node != null) {
+      if (!nodeFilter || nodeFilter(node)) {
+        return node;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /**
+   * @inheritDoc
+   */
   public firstToken(includeZeroWidth = false): ISyntaxToken | null {
     if (!includeZeroWidth) {
       return SyntaxNodeBase.tryGetFirstToken(this, SyntaxToken.hasWidth);
@@ -723,15 +659,79 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public firstAncestorOrSelf(nodeFilter?: SyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
-    let node: ISyntaxNodeOrList | null = this;
-    while (node != null) {
-      if (!nodeFilter || nodeFilter(node)) {
-        return node;
-      }
+  public *getAllChildren(): IterableIterator<ISyntaxNode | ISyntaxToken> {
+    let count = NodeExtensions.childCount(this.node);
+    for (let i = 0; i < count; i++) {
+      yield SyntaxNodeBase.relativeChildAt(this, i);
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAllChildrenReversed(): IterableIterator<ISyntaxNode | ISyntaxToken> {
+    let count = NodeExtensions.childCount(this.node);
+    for (let i = count - 1; i >= 0; i--) {
+      yield SyntaxNodeBase.relativeChildAt(this, i);
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAncestors(): IterableIterator<ISyntaxNodeOrList> {
+    let node = this.parent;
+    while (node) {
+      yield node;
       node = node.parent;
     }
-    return null;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getAncestorsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
+    let node: ISyntaxNodeOrList | null = this;
+    while (node) {
+      yield node;
+      node = node.parent;
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getChildNodes(): IterableIterator<ISyntaxNode> {
+    for (let child of this.getAllChildren()) {
+      if (!child.isToken) {
+        yield <ISyntaxNode>child;
+      }
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getChildTokens(): IterableIterator<ISyntaxToken> {
+    for (let child of this.getAllChildren()) {
+      if (child.isToken) {
+        yield <ISyntaxToken>child;
+      }
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getDescendants(): IterableIterator<ISyntaxNodeOrList> {
+    throw new NotImplementedException();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public *getDescendantsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
+    throw new NotImplementedException();
   }
 
   /**

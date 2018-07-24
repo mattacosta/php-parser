@@ -100,6 +100,21 @@ export class ErrorCodeInfoGenerator {
     return text;
   }
 
+  protected addGetSeverity(): string {
+    let text = '  public static getSeverity(code: ErrorCode): DiagnosticSeverity {\n';
+    text += '    if (ErrorCodeInfo.isInfo(code)) {\n';
+    text += '      return DiagnosticSeverity.Info;\n';
+    text += '    }\n';
+    text += '    else if (ErrorCodeInfo.isWarning(code)) {\n';
+    text += '      return DiagnosticSeverity.Warning;\n';
+    text += '    }\n';
+    text += '    else {\n';
+    text += '      return DiagnosticSeverity.Error;\n';
+    text += '    }\n';
+    text += '  }\n';
+    return text;
+  }
+
   protected addImports() {
     this.text += 'import { ArgumentOutOfRangeException} from \'@mattacosta/php-common\';\n';
     this.text += '\n';
@@ -152,21 +167,6 @@ export class ErrorCodeInfoGenerator {
     text += '    }\n';
     text += '  }\n';
 
-    return text;
-  }
-
-  protected addGetSeverity(): string {
-    let text = '  public static getSeverity(code: ErrorCode): DiagnosticSeverity {\n';
-    text += '    if (ErrorCodeInfo.isInfo(code)) {\n';
-    text += '      return DiagnosticSeverity.Info;\n';
-    text += '    }\n';
-    text += '    else if (ErrorCodeInfo.isWarning(code)) {\n';
-    text += '      return DiagnosticSeverity.Warning;\n';
-    text += '    }\n';
-    text += '    else {\n';
-    text += '      return DiagnosticSeverity.Error;\n';
-    text += '    }\n';
-    text += '  }\n';
     return text;
   }
 

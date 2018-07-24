@@ -74,13 +74,13 @@ export const enum PhpLexerState {
    */
   LookingForHeredocLabel,
   /**
-   * A lexing state used when scanning an indirect variable name.
-   */
-  LookingForVariableName,  // `${...}`
-  /**
    * A lexing state used when scanning an object access expression within a
    * string interpolation.
    */
   LookingForProperty,      // Not used.
+  /**
+   * A lexing state used when scanning an indirect variable name.
+   */
+  LookingForVariableName,  // `${...}`
 
 }

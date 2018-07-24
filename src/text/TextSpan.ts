@@ -108,13 +108,6 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
   }
 
   /**
-   * @inheritDoc
-   */
-  public equals(span: TextSpan): boolean {
-    return this.start == span.start && this.length == span.length;
-  }
-
-  /**
    * Determines if the position or span is completely within this span.
    */
   public contains(spanOrPosition: TextSpan | number): boolean {
@@ -122,6 +115,13 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
       return (spanOrPosition - this.start) < this.length;
     }
     return spanOrPosition.start >= this.start && spanOrPosition.end <= this.end;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public equals(span: TextSpan): boolean {
+    return this.start == span.start && this.length == span.length;
   }
 
   /**

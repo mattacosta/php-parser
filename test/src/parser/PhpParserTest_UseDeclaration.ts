@@ -36,20 +36,6 @@ import {
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { TokenKind } from '../../../src/language/TokenKind';
 
-function assertUseGroupDeclaration(decl: UseGroupDeclarationSyntaxNode, nameTokenCount: number, hasUseType = true): UseElementSyntaxNode[] {
-  assert.equal(decl instanceof UseGroupDeclarationSyntaxNode, true, 'UseGroupDeclarationSyntaxNode');
-  if (hasUseType) {
-    assert.notStrictEqual(decl.useType, null);
-  }
-  else {
-    assert.strictEqual(decl.useType, null);
-  }
-  let nameTokens = decl.rootName ? decl.rootName.childTokens() : [];
-  assert.equal(nameTokens.length, nameTokenCount);
-  let declarations = decl.declarations ? decl.declarations.childNodes() : [];
-  return <UseElementSyntaxNode[]>declarations;
-}
-
 function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQualified: boolean, type: string | null, alias: string | null) {
   assert.equal(element instanceof UseElementSyntaxNode, true, 'UseElementSyntaxNode');
   if (type) {
@@ -73,6 +59,20 @@ function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQu
     assert.strictEqual(element.asKeyword, null);
     assert.strictEqual(element.alias, null);
   }
+}
+
+function assertUseGroupDeclaration(decl: UseGroupDeclarationSyntaxNode, nameTokenCount: number, hasUseType = true): UseElementSyntaxNode[] {
+  assert.equal(decl instanceof UseGroupDeclarationSyntaxNode, true, 'UseGroupDeclarationSyntaxNode');
+  if (hasUseType) {
+    assert.notStrictEqual(decl.useType, null);
+  }
+  else {
+    assert.strictEqual(decl.useType, null);
+  }
+  let nameTokens = decl.rootName ? decl.rootName.childTokens() : [];
+  assert.equal(nameTokens.length, nameTokenCount);
+  let declarations = decl.declarations ? decl.declarations.childNodes() : [];
+  return <UseElementSyntaxNode[]>declarations;
 }
 
 describe('PhpParser', function() {
