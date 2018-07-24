@@ -19,98 +19,105 @@
 const cp = require('child_process');
 const fs = require('fs');
 
+const del = require('del');
 const gulp = require('gulp');
 const merge = require('merge2');
 const mocha = require('gulp-mocha');
-const rimraf = require('rimraf');
 const ts = require('gulp-typescript');
 
 // --- Build tasks ------------------------------------------------------------
 
-let codegen = ts.createProject('./tools/CodeGenerator/tsconfig.json');
-gulp.task('compile-codegen', function() {
+const codegen = ts.createProject('./tools/CodeGenerator/tsconfig.json');
+
+const parser = ts.createProject('./src/tsconfig.json');
+
+function compileCodeGenerator() {
   return codegen.src()
     .pipe(codegen()).js
     .pipe(gulp.dest('./out/tools/CodeGenerator'));
-});
+}
 
-gulp.task('run-codegen', ['compile-codegen'], function(doneFn) {
+function compileParser() {
+  let tsResult = parser.src().pipe(parser());
+  return merge([
+    tsResult.js.pipe(gulp.dest('./lib')),
+    tsResult.dts.pipe(gulp.dest('./typings'))
+  ]);
+}
+
+function runCodeGenerator(doneFn) {
   cp.exec('node ./out/tools/CodeGenerator/Program.js', (error, stdout, stderr) => {
     doneFn(error);
   });
-});
+}
 
-gulp.task('copy-json', ['run-codegen'], function() {
+function writeJsonOutput() {
   return gulp.src('./src/ErrorCode.json')
     .pipe(gulp.dest('./lib'));
-});
+}
 
-let parser = ts.createProject('./src/tsconfig.json');
+gulp.task('compile-codegen', compileCodeGenerator);
 
-// This task does not compile and run the code generator.
-gulp.task('compile-parser', function() {
-  let tsResult = parser.src().pipe(parser());
-  return merge([
-    tsResult.js.pipe(gulp.dest('./lib')),
-    tsResult.dts.pipe(gulp.dest('./typings'))
-  ]);
-})
+gulp.task('run-codegen', gulp.series('compile-codegen', runCodeGenerator, writeJsonOutput));
 
-gulp.task('compile', ['copy-json'], function() {
-  let tsResult = parser.src().pipe(parser());
-  return merge([
-    tsResult.js.pipe(gulp.dest('./lib')),
-    tsResult.dts.pipe(gulp.dest('./typings'))
-  ]);
-});
+gulp.task('compile-parser', compileParser);
 
-gulp.task('watch', ['compile'], function() {
-  // Use at own risk.
-  // gulp.watch('./tools/CodeGenerator/**/*.ts', ['copy-json']);
-  gulp.watch('./src/**/*.ts', ['compile-parser']);
-});
+gulp.task('compile', gulp.series('run-codegen', 'compile-parser'));
 
 // --- Testing tasks ----------------------------------------------------------
 
-gulp.task('compile-tests', function(doneFn) {
+function compileTests(doneFn) {
   // @todo Use gulp-typescript instead, once sourcemaps work.
   cp.exec('npm run pretest', (error, stdout, stderr) => {
     doneFn(error);
   });
-})
+}
 
-gulp.task('test', ['compile-tests'], function(doneFn) {
+function runTests(doneFn) {
+  let hasError = false;
+  function onError(error) {
+    hasError = true;
+  }
   return gulp.src('./out/test/**/*.js', { read: false })
-    .pipe(mocha({ ui: 'tdd', reporter: 'dot', suppress: true }))
-    // .on('error', (error) => {
-    //   // console.log(error.stdout);
-    //   let e = new Error('Test failed');
-    //   e.showStack = false;
-    //   doneFn(e);
-    // });
-});
+    .pipe(mocha({ ui: 'tdd', reporter: 'dot' /* , suppress: true */ }))
+    .on('error', onError)
+    .on('end', function() {
+      if (hasError) {
+        let e = new Error('Tests failed');
+        e.showStack = false;
+        throw e;
+      }
+    });
+}
+
+gulp.task('pretest', compileTests);
+
+gulp.task('test', gulp.series('pretest', runTests));
 
 // --- General tasks ----------------------------------------------------------
 
-gulp.task('clean', function() {
-  let cb = (err) => {
-    if (err) {
-      throw err;
-    }
-  };
-  rimraf('./src/ErrorCode.json', cb);
-  rimraf('./lib', cb);
-  rimraf('./out', cb);
-  rimraf('./typings', cb);
-});
-
-const license = require('./gulpfile.license');
-gulp.task('assert-license', () => license.assertLicense());
-
-gulp.task('prepublish', ['assert-license', 'test'], function() {
+/**
+ * @todo Run the build task instead.
+ */
+function assertOutput(doneFn) {
   if (!fs.existsSync('./lib')) {
     let e = new Error('Project has not been compiled for publishing');
     e.showStack = false;
     throw e;
   }
-});
+}
+
+/**
+ * Deletes all generated files.
+ */
+function clean() {
+  return del(['./src/ErrorCode.json', './lib', './out', './typings', './.nyc_output']);
+}
+
+const license = require('./gulpfile.license');
+
+gulp.task('assert-license', license.assertLicense);
+
+gulp.task('clean', clean);
+
+gulp.task('prepublish', gulp.series(gulp.parallel('assert-license', 'test'), assertOutput));
