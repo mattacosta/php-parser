@@ -83,14 +83,14 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
    * Adds a new diagnostic to the list of diagnostics found during a scan.
    */
   protected addError(relativeOffset: number, width: number, code: ErrorCode, ...args: any[]) {
-    this.diagnostics.push(this.createDiagnostic(relativeOffset, width, code, args));
+    this.diagnostics.push(this.createDiagnostic(relativeOffset, width, code, ...args));
   }
 
   /**
    * Creates a diagnostic for a token.
    */
   protected createDiagnostic(relativeOffset: number, width: number, code: ErrorCode, ...args: any[]): SyntaxDiagnostic {
-    return new SyntaxDiagnostic(relativeOffset, width, code, args);
+    return new SyntaxDiagnostic(relativeOffset, width, code, ...args);
   }
 
 }
