@@ -33,6 +33,7 @@ import {
   ElementAccessSyntaxNode,
   ExpressionGroupSyntaxNode,
   ExpressionStatementSyntaxNode,
+  FullyQualifiedNameSyntaxNode,
   FunctionInvocationSyntaxNode,
   IndirectMemberAccessSyntaxNode,
   IndirectScopedInvocationSyntaxNode,
@@ -45,6 +46,7 @@ import {
   NameSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PostfixUnarySyntaxNode,
+  RelativeNameSyntaxNode,
   StaticPropertySyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
@@ -214,6 +216,14 @@ describe('PhpParser', function() {
           let accessNode = assertElementAccess(statements, true);
           assert.equal(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
         }),
+        new ParserTestArgs('\\A[0];', 'element access of a constant (fully qualified)', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A[0];', 'element access of a constant (relative)', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+        }),
         // Object access.
         new ParserTestArgs('$a->b[0];', 'element access of a property', (statements) => {
           let accessNode = assertElementAccess(statements, true);
@@ -298,6 +308,14 @@ describe('PhpParser', function() {
           let accessNode = assertElementAccess(statements, false);
           assert.equal(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
         }),
+        new ParserTestArgs('\\A[];', 'element access of a constant (fully qualified)', (statements) => {
+          let accessNode = assertElementAccess(statements, false);
+          assert.equal(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A[];', 'element access of a constant (relative)', (statements) => {
+          let accessNode = assertElementAccess(statements, false);
+          assert.equal(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+        }),
         // Object access.
         new ParserTestArgs('$a->b[];', 'element access of a property', (statements) => {
           let accessNode = assertElementAccess(statements, false);
@@ -355,6 +373,14 @@ describe('PhpParser', function() {
           let invocation = assertFunctionInvocation(statements);
           assert.equal(invocation.reference instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
+        new ParserTestArgs('\\A();', 'invocation of a function (fully qualified)', (statements) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof FullyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A();', 'invocation of a function (relative)', (statements) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof RelativeNameSyntaxNode, true);
+        }),
         // Object access.
         new ParserTestArgs('$a->b();', 'invocation of a method', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -391,6 +417,14 @@ describe('PhpParser', function() {
         }),
         // Self.
         new ParserTestArgs('a()();', 'invocation of a function invocation', (statements) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('\\a()();', 'invocation of a function invocation (fully qualified)', (statements) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.equal(invocation.reference instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\a()();', 'invocation of a function invocation (relative)', (statements) => {
           let invocation = assertFunctionInvocation(statements);
           assert.equal(invocation.reference instanceof FunctionInvocationSyntaxNode, true);
         }),
@@ -575,6 +609,14 @@ describe('PhpParser', function() {
           let property = assertStaticProperty(statements);
           assert.equal(property.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
+        new ParserTestArgs('\\A::$b;', 'scoped access of a class name (fully qualified)', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.equal(property.qualifier instanceof FullyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A::$b;', 'scoped access of a class name (relative)', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.equal(property.qualifier instanceof RelativeNameSyntaxNode, true);
+        }),
         new ParserTestArgs('static::$b;', 'scoped access of a class name (static keyword)', (statements) => {
           let property = assertStaticProperty(statements);
           assert.equal(property.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
@@ -643,6 +685,14 @@ describe('PhpParser', function() {
         new ParserTestArgs('A::B;', 'scoped access of a class name', (statements, text) => {
           let constant = assertClassConstant(statements, text, 'B');
           assert.equal(constant.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('\\A::B;', 'scoped access of a class name (fully qualified)', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.equal(constant.qualifier instanceof FullyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A::B;', 'scoped access of a class name (relative)', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.equal(constant.qualifier instanceof RelativeNameSyntaxNode, true);
         }),
         new ParserTestArgs('static::B;', 'scoped access of a class name (static keyword)', (statements, text) => {
           let constant = assertClassConstant(statements, text, 'B');

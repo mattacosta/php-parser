@@ -5507,6 +5507,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         // The element access part of this will get parsed later.
         constant = new ConstantNode(relativeName);
         return new Expression(constant, ExpressionType.Explicit);
+      case TokenKind.OpenParen:
+        let invocation = this.parseFunctionInvocation(relativeName);
+        return new Expression(invocation, ExpressionType.Explicit);
       default:
         constant = new ConstantNode(relativeName);
         return new Expression(constant, ExpressionType.Implicit);
