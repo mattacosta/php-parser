@@ -19,7 +19,7 @@
 import * as assert from 'assert';
 
 import { CompositeText } from '../../../src/text/CompositeText';
-import { ISourceText } from '../../../src/text/SourceText';
+import { ISourceText } from '../../../src/text/ISourceText';
 import { SegmentedText } from '../../../src/text/SegmentedText';
 import { SourceTextBuilder } from '../../../src/text/SourceTextBuilder';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';

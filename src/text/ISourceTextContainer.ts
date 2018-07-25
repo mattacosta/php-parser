@@ -16,7 +16,7 @@
 
 'use strict';
 
-import { ISourceText } from './SourceText';
+import { ISourceText } from './ISourceText';
 
 /**
  * Defines an interface for objects that contain multiple source texts.

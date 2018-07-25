@@ -18,7 +18,7 @@
 
 import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
-import { ISourceText } from './SourceText';
+import { ISourceText } from './ISourceText';
 import { SourceTextExtensions } from './SourceTextExtensions';
 import { SourceTextFactory } from './SourceTextFactory';
 

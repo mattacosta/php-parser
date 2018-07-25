@@ -24,7 +24,7 @@ import {
 
 import { Character, CharacterInfo } from './Character';
 import { ErrorCode } from '../diagnostics/ErrorCode.Generated';
-import { ISourceText } from '../text/SourceText';
+import { ISourceText } from '../text/ISourceText';
 import { LexerBase } from './Lexer';
 import { PhpLexerState } from './PhpLexerState';
 import { PhpVersion } from './PhpVersion';

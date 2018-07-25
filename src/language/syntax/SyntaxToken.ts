@@ -19,7 +19,7 @@
 import { ArgumentException, Debug } from '@mattacosta/php-common';
 
 import { INode } from '../node/INode';
-import { ISourceText } from '../../text/SourceText';
+import { ISourceText } from '../../text/ISourceText';
 import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';

@@ -17,7 +17,7 @@
 'use strict';
 
 import { ErrorCode } from '../diagnostics/ErrorCode.Generated';
-import { ISourceText } from '../text/SourceText';
+import { ISourceText } from '../text/ISourceText';
 import { SyntaxDiagnostic } from '../diagnostics/SyntaxDiagnostic';
 
 /**

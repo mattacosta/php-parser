@@ -17,7 +17,7 @@
 'use strict';
 
 import { CompositeText } from './CompositeText';
-import { ISourceText } from './SourceText';
+import { ISourceText } from './ISourceText';
 import { StringText } from './StringText';
 
 /**

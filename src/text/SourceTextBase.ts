@@ -18,77 +18,16 @@
 
 import {
   ArgumentException,
-  ArgumentOutOfRangeException,
-  IEquatable
+  ArgumentOutOfRangeException
 } from '@mattacosta/php-common';
 
 import { BomKind } from './BomKind';
+import { ISourceText } from './ISourceText';
 import { ISourceTextContainer } from './ISourceTextContainer';
 import { SourceTextBuilder } from './SourceTextBuilder';
 import { SourceTextFactory } from './SourceTextFactory';
 import { TextChange } from './TextChange';
 import { TextSpan } from './TextSpan';
-
-/**
- * Defines an interface for objects containing source code.
- *
- * @todo Add a `lines` property?
- */
-export interface ISourceText extends IEquatable<ISourceText> {
-
-  /**
-   * The length of the text.
-   */
-  readonly length: number;
-
-  /**
-   * Returns an integer representing a character at a given location.
-   *
-   * @param {number} offset
-   *   The offset of the character.
-   *
-   * @return {number}
-   *   The integer value of the character.
-   */
-  charCodeAt(offset: number): number;
-
-  /**
-   * Creates a copy of the source text containing the given region.
-   *
-   * @param {TextSpan|number} spanOrPosition
-   *   A span containing the region of text to copy, or the starting position
-   *   of the region. If a position is given, all remaining text is included.
-   *
-   * @return {ISourceText}
-   *   A section of the source text.
-   */
-  slice(spanOrPosition: TextSpan | number): ISourceText;
-
-  /**
-   * Extracts a section of the text as a string.
-   *
-   * @param {number} start
-   *   The offset of the first character to extract. If this is a negative
-   *   number, the offset will start from the end of the source text.
-   * @param {number=} length
-   *   The number of characters to extract. If not provided, the length will be
-   *   the number of characters from `start` to the end of the string. If the
-   *   length is negative, it will be set to 0.
-   *
-   * @return {string}
-   *   A section of the source text, as a string.
-   */
-  substring(start: number, length?: number): string;
-
-  /**
-   * Creates a new source text object with the given changes.
-   *
-   * @param {Iterable<TextChange>} changes
-   *   A series of changes to the text.
-   */
-  withChanges(changes: Iterable<TextChange>): ISourceText;
-
-}
 
 /**
  * Provides a base class for objects that contain source code.
