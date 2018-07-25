@@ -25,22 +25,12 @@ code analysis and transformation features.
 
 ## Getting started
 
-Parsing a file:
-
+Parsing a file and getting diagnostics:
 ```ts
-let code = fs.readFileSync('example.php', 'latin1');
-let tree = PhpSyntaxTree.fromText(code);
-```
+let tree = PhpSyntaxTree.fromText('<?php var_dump($a);');
 
-Getting diagnostics:
-```ts
 for (let diagnostic of tree.getDiagnostics()) {
-  // This message may have placeholders.
-  let message = ErrorCodeInfo.getMessage(diagnostic.code);
-  // Create a copy of the replacements.
-  let args = diagnostic.messageArgs.slice();
-  // Format the message.
-  message = message.replace(/%s/g, function() { return args.shift(); });
+  let message = ErrorCodeInfo.formatMessage(diagnostic.code, diagnostic.messageArgs);
   console.log(message);
 }
 ```
