@@ -126,8 +126,6 @@ function assertStaticProperty(statements: ISyntaxNode[]): StaticPropertySyntaxNo
   return scopedAccess;
 }
 
-// @todo Add partially qualfied and relative name tests.
-
 describe('PhpParser', function() {
 
   describe('postfix-expression', function() {
