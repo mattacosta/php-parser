@@ -50,7 +50,7 @@ export interface ISyntaxNodeQueryable<T> extends ISyntaxTreeTraversable<T> {
 
   /**
    * Finds the first ancestor (which may include the current node) that matches
-   * then given filter.
+   * the given filter.
    *
    * @param {SyntaxNodeFilter<T>=} nodeFilter
    *   A callback used to limit what nodes are returned.
