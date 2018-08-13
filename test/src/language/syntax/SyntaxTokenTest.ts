@@ -76,7 +76,7 @@ describe('SyntaxToken', function() {
     it('should get next token in parent node', function() {
       let text = '<?php { ; }';
       let tree = PhpSyntaxTree.fromText(text);
-      let node = <ExpressionStatementSyntaxNode>tree.root.findChildNodeAt(new TextSpan(8, 1));
+      let node = <ExpressionStatementSyntaxNode>tree.root.findChildNode(new TextSpan(8, 1));
       assert.equal(node instanceof ExpressionStatementSyntaxNode, true);
       Test.assertSyntaxToken(node.semicolon.nextToken(), text, TokenKind.CloseBrace, '}');
     });
@@ -118,7 +118,7 @@ describe('SyntaxToken', function() {
     it('should get previous token in parent node', function() {
       let text = '<?php { ; }';
       let tree = PhpSyntaxTree.fromText(text);
-      let node = <ExpressionStatementSyntaxNode>tree.root.findChildNodeAt(new TextSpan(8, 1));
+      let node = <ExpressionStatementSyntaxNode>tree.root.findChildNode(new TextSpan(8, 1));
       assert.equal(node instanceof ExpressionStatementSyntaxNode, true);
       Test.assertSyntaxToken(node.semicolon.previousToken(), text, TokenKind.OpenBrace, '{');
     });

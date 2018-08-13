@@ -592,7 +592,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public findChildNodeAt(span: TextSpan, innermostNode = false): ISyntaxNodeOrList {
+  public findChildNode(span: TextSpan, innermostNode = false): ISyntaxNodeOrList {
     // Find the first token in the span.
     let token = this.findChildToken(span.start);
 

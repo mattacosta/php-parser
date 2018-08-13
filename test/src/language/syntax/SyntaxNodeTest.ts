@@ -35,43 +35,43 @@ import { TokenKind } from '../../../../src/language/TokenKind';
 
 describe('SyntaxNode', function() {
 
-  describe('#findChildNodeAt()', function() {
+  describe('#findChildNode()', function() {
     // @todo Disabled. Works when debugging, fails otherwise???
     // it('should get root node if span is at eof', function() {
     //   let tree = PhpSyntaxTree.fromText('<?php if($a){}');
-    //   let node = tree.root.findChildNodeAt(new TextSpan(14, 0));
+    //   let node = tree.root.findChildNode(new TextSpan(14, 0));
     //   assert.equal(node instanceof SourceTextSyntaxNode, true);
     // });
 
     it('should get parent node if span does not contain child', function() {
       let tree = PhpSyntaxTree.fromText('<?php if($a){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(10, 2));  // "a)"
+      let node = tree.root.findChildNode(new TextSpan(10, 2));  // "a)"
       assert.equal(node instanceof IfSyntaxNode, true);
     });
     it('should get parent node if span contains multiple children', function() {
       let tree = PhpSyntaxTree.fromText('<?php if($a){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(10, 3));  // "a){"
+      let node = tree.root.findChildNode(new TextSpan(10, 3));  // "a){"
       assert.equal(node instanceof IfSyntaxNode, true);
     });
     it('should get child node', function() {
       let tree = PhpSyntaxTree.fromText('<?php if($a){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(9, 2));  // "$a"
+      let node = tree.root.findChildNode(new TextSpan(9, 2));  // "$a"
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
 
     it('should get node if span is empty', function() {
       let tree = PhpSyntaxTree.fromText('<?php if($a){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(9, 0));  // ""
+      let node = tree.root.findChildNode(new TextSpan(9, 0));  // ""
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
     it('should get node if span contains trivia', function() {
       let tree = PhpSyntaxTree.fromText('<?php if( $a){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(9, 1));  // " "
+      let node = tree.root.findChildNode(new TextSpan(9, 1));  // " "
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
     it('should get node if span partially contains token', function() {
       let tree = PhpSyntaxTree.fromText('<?php if($a){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(9, 1));  // "$"
+      let node = tree.root.findChildNode(new TextSpan(9, 1));  // "$"
       assert.equal(node instanceof LocalVariableSyntaxNode, true);
     });
 
@@ -79,12 +79,12 @@ describe('SyntaxNode', function() {
 
     it('should get outermost node', function() {
       let tree = PhpSyntaxTree.fromText('<?php if(A){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(9, 1));  // "A"
+      let node = tree.root.findChildNode(new TextSpan(9, 1));  // "A"
       assert.equal(node instanceof ConstantSyntaxNode, true);
     });
     it('should get innermost node', function() {
       let tree = PhpSyntaxTree.fromText('<?php if(A){}');
-      let node = tree.root.findChildNodeAt(new TextSpan(9, 1), true);  // "A"
+      let node = tree.root.findChildNode(new TextSpan(9, 1), true);  // "A"
       assert.equal(node instanceof SyntaxList, true);
     });
   });

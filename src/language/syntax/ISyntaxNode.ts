@@ -145,7 +145,7 @@ export interface ISyntaxNodeOrList extends IEquatable<ISyntaxNodeOrList>, ISynta
    *   If `true` and a parent has the same span as a child, the first child
    *   node is returned. Defaults to `false`.
    */
-  findChildNodeAt(span: TextSpan, innermostNode?: boolean): ISyntaxNodeOrList;
+  findChildNode(span: TextSpan, innermostNode?: boolean): ISyntaxNodeOrList;
 
   /**
    * Finds the child token located at the given offset.
