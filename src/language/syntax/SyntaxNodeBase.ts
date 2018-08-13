@@ -365,16 +365,16 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    *
    * @param {SyntaxNodeBase} parent
    *   The parent node.
-   * @param {number} targetOffset
-   *   The offset of the token.
+   * @param {number} offset
+   *   The offset of the token, relative to the start of the syntax tree.
    *
    * @todo Experimental.
    */
-  protected static findChildTokenAt(parent: SyntaxNodeBase, targetOffset: number): ISyntaxToken {
-    Debug.assert(parent.fullSpan.contains(targetOffset));
+  protected static getToken(parent: SyntaxNodeBase, offset: number): ISyntaxToken {
+    Debug.assert(parent.fullSpan.contains(offset));
 
     let node = parent.node;
-    let offset = parent.offset;
+    let start = parent.offset;
 
     let index = 0;
     let relativeIndex = 0;
@@ -382,11 +382,11 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     while (index < count) {
       let child = node.childAt(index);
       if (child) {
-        let end = offset + child.fullWidth;
-        if (targetOffset < end) {
+        let end = start + child.fullWidth;
+        if (offset < end) {
           if (child.isToken) {
             // If the child is a token then the parent must be a node.
-            return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, offset, relativeIndex);
+            return new SyntaxToken(child, <ISyntaxNode><ISyntaxNodeOrList>parent, start, relativeIndex);
           }
 
           // Found a node, search through its children.
@@ -401,16 +401,16 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
           node = child;
           parent = syntaxNode;
 
-          index = child.indexAtOffset(targetOffset - offset);
+          index = child.indexAtOffset(offset - start);
           count = child.count;
 
-          offset += child.offsetAt(index);
+          start += child.offsetAt(index);
           relativeIndex += NodeExtensions.childCount(child);
           continue;
         }
         else {
-          // Target offset is not within this child.
-          offset = end;
+          // Offset is not within this child.
+          start = end;
           relativeIndex += NodeExtensions.childCount(child);
         }
       }
@@ -593,21 +593,10 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public findChildNodeAt(span: TextSpan, innermostNode = false): ISyntaxNodeOrList {
-    let token: ISyntaxToken;
+    // Find the first token in the span.
+    let token = this.findChildToken(span.start);
 
-    // Find the token at the start of the span.
-    let end = this.offset + this.node.fullWidth;
-    if (span.start == end && SyntaxNodeExtensions.isSourceTextSyntaxNode(this)) {
-      token = this.eof;
-    }
-    else {
-      if (!this.fullSpan.contains(span.start)) {
-        throw new ArgumentOutOfRangeException();
-      }
-      token = SyntaxNodeBase.findChildTokenAt(this, span.start);
-    }
-
-    // Then find the first parent that contains the entire span.
+    // Then find the first node that contains the entire span.
     let node = token.parent.firstAncestorOrSelf((value) => {
       return value.fullSpan.contains(span);
     });
@@ -630,6 +619,20 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     }
 
     return node;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public findChildToken(offset: number): ISyntaxToken {
+    let end = this.offset + this.node.fullWidth;
+    if (offset == end && SyntaxNodeExtensions.isSourceTextSyntaxNode(this)) {
+      return this.eof;
+    }
+    if (!this.fullSpan.contains(offset)) {
+      throw new ArgumentOutOfRangeException();
+    }
+    return SyntaxNodeBase.getToken(this, offset);
   }
 
   /**

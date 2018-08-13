@@ -23,6 +23,7 @@ import { Test } from '../../Test';
 
 import {
   ConstantSyntaxNode,
+  ExpressionStatementSyntaxNode,
   IfSyntaxNode,
   LocalVariableSyntaxNode
 } from '../../../../src/language/syntax/SyntaxNode.Generated';
@@ -85,6 +86,46 @@ describe('SyntaxNode', function() {
       let tree = PhpSyntaxTree.fromText('<?php if(A){}');
       let node = tree.root.findChildNodeAt(new TextSpan(9, 1), true);  // "A"
       assert.equal(node instanceof SyntaxList, true);
+    });
+  });
+
+  describe('#findChildToken()', function() {
+    it('should get token at start of file', function() {
+      let text = 'hello world';
+      let tree = PhpSyntaxTree.fromText(text);
+      Test.assertSyntaxToken(tree.root.findChildToken(0), text, TokenKind.InlineText, 'hello world');
+    });
+
+    it('should get token at end of file', function() {
+      let text = '<?php $x = 1;';
+      let tree = PhpSyntaxTree.fromText(text);
+      Test.assertSyntaxToken(tree.root.findChildToken(12), text, TokenKind.Semicolon, ';');
+      // The EOF token never contains the given offset, but still needs to be
+      // reachable since it is not considered to be "missing".
+      Test.assertSyntaxToken(tree.root.findChildToken(13), text, TokenKind.EOF, '');
+    });
+
+    it('should get token if offset is in trivia', function() {
+      let text = '<?php $x = 1;';
+      let tree = PhpSyntaxTree.fromText(text);
+      Test.assertSyntaxToken(tree.root.findChildToken(0), text, TokenKind.Variable, '$x');
+      Test.assertSyntaxToken(tree.root.findChildToken(3), text, TokenKind.Variable, '$x');
+      Test.assertSyntaxToken(tree.root.findChildToken(6), text, TokenKind.Variable, '$x');
+    });
+
+    it('should not get token outside of node span', function() {
+      let text = '<?php $x = 1; $y = 2;';
+      let tree = PhpSyntaxTree.fromText(text);
+      let statements = tree.root.childNodes();
+
+      let firstExpr = statements[0];
+      assert.equal(firstExpr instanceof ExpressionStatementSyntaxNode, true);
+      assert.throws(() => firstExpr.findChildToken(14));  // "$y"
+
+      let secondExpr = statements[1];
+      assert.equal(secondExpr instanceof ExpressionStatementSyntaxNode, true);
+      assert.throws(() => secondExpr.findChildToken(12));  // ";"
+      assert.throws(() => secondExpr.findChildToken(21));  // EOF
     });
   });
 

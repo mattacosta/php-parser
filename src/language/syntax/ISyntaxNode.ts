@@ -148,6 +148,14 @@ export interface ISyntaxNodeOrList extends IEquatable<ISyntaxNodeOrList>, ISynta
   findChildNodeAt(span: TextSpan, innermostNode?: boolean): ISyntaxNodeOrList;
 
   /**
+   * Finds the child token located at the given offset.
+   *
+   * @param {number} offset
+   *   An offset, relative to the start of the syntax tree.
+   */
+  findChildToken(offset: number /*, includeTrivia?: boolean */): ISyntaxToken;
+
+  /**
    * Finds the first token within the node.
    *
    * @param {boolean=} includeZeroWidth
