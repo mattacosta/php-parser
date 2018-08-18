@@ -198,7 +198,7 @@ export class CompositeText extends SourceTextBase {
    * @param {number} offset
    *   The offset to search for.
    *
-   * @return {CompositeTextPosition}
+   * @return {CompositePosition}
    *   The segment and offset within that segment, of the specified offset.
    */
   protected positionAt(offset: number): CompositePosition {
