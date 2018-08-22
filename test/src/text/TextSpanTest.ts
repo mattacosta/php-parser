@@ -56,6 +56,13 @@ describe('TextSpan', function() {
     it('should not contain span starting after end', () => {
       assert.equal(medium.contains(new TextSpan(9, 1)), false);
     });
+
+    it('should contain an offset at start', () => {
+      assert.equal(medium.contains(3), true);
+    });
+    it('should not contain an offset at end', () => {
+      assert.equal(medium.contains(7), false);
+    });
   });
 
   describe('#intersection()', function() {
@@ -119,6 +126,13 @@ describe('TextSpan', function() {
     it('should not intersect with span starting after end', () => {
       assert.equal(medium.intersectsWith(new TextSpan(8, 2)), false);
     });
+
+    it('should intersect with an offset at start', () => {
+      assert.equal(medium.intersectsWith(3), true);
+    });
+    it('should intersect with an offset at end', () => {
+      assert.equal(medium.intersectsWith(7), true);
+    });
   });
 
   describe('#overlap()', function() {
@@ -149,6 +163,10 @@ describe('TextSpan', function() {
     });
     it('should not overlap with span starting after end', () => {
       assert.strictEqual(medium.overlap(new TextSpan(8, 2)), null);
+    });
+    it('should not overlap with an empty span', () => {
+      assert.strictEqual(medium.overlap(new TextSpan(3, 0)), null);
+      assert.strictEqual(medium.overlap(new TextSpan(7, 0)), null);
     });
   });
 
@@ -181,6 +199,10 @@ describe('TextSpan', function() {
     });
     it('should not overlap with span starting after end', () => {
       assert.equal(medium.overlapsWith(new TextSpan(8, 2)), false);
+    });
+    it('should not overlap with an empty span', () => {
+      assert.equal(medium.overlapsWith(new TextSpan(3, 0)), false);
+      assert.equal(medium.overlapsWith(new TextSpan(7, 0)), false);
     });
   });
 
