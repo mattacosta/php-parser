@@ -119,27 +119,27 @@ export class CompositeText extends SourceTextBase {
     if (offset < 0 || offset >= this.length) {
       return NaN;
     }
-    let position = this.positionAt(offset);
-    return this.sources[position.index].charCodeAt(position.offset);
+    let segmentPosition = this.positionAt(offset);
+    return this.sources[segmentPosition.index].charCodeAt(segmentPosition.offset);
   }
 
   /**
    * @inheritDoc
    */
-  public slice(spanOrPosition: TextSpan | number): ISourceText {
-    if (typeof spanOrPosition === 'number') {
-      spanOrPosition = TextSpan.fromBounds(spanOrPosition, this.length);
+  public slice(position: TextSpan | number): ISourceText {
+    if (typeof position === 'number') {
+      position = TextSpan.fromBounds(position, this.length);
     }
-    if (!this.isSpanInText(spanOrPosition)) {
+    if (!this.isSpanInText(position)) {
       throw new ArgumentOutOfRangeException();
     }
 
-    let position = this.positionAt(spanOrPosition.start);
+    let segmentPosition = this.positionAt(position.start);
     let builder = new SourceTextBuilder();
 
-    let index = position.index;
-    let offset = position.offset;
-    let remainder = spanOrPosition.length;
+    let index = segmentPosition.index;
+    let offset = segmentPosition.offset;
+    let remainder = position.length;
 
     while (remainder > 0) {
       let length = Math.min(remainder, this.sources[index].length - offset);
@@ -173,11 +173,11 @@ export class CompositeText extends SourceTextBase {
       throw new ArgumentOutOfRangeException();
     }
 
-    let position = this.positionAt(start);
+    let segmentPosition = this.positionAt(start);
     let text = '';
 
-    let index = position.index;
-    let offset = position.offset;
+    let index = segmentPosition.index;
+    let offset = segmentPosition.offset;
     let remainder = length;
 
     while (remainder > 0) {

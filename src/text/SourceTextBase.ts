@@ -108,7 +108,7 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
   /**
    * @inheritDoc
    */
-  public abstract slice(spanOrPosition: TextSpan | number): ISourceText;
+  public abstract slice(position: TextSpan | number): ISourceText;
 
   /**
    * @inheritDoc

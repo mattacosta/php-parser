@@ -47,14 +47,14 @@ export interface ISourceText extends IEquatable<ISourceText> {
   /**
    * Creates a copy of the source text containing the given region.
    *
-   * @param {TextSpan|number} spanOrPosition
-   *   A span containing the region of text to copy, or the starting position
-   *   of the region. If a position is given, all remaining text is included.
+   * @param {TextSpan|number} position
+   *   A span containing the region of text to copy, or the starting offset
+   *   of the region. If an offset is given, all remaining text is included.
    *
    * @return {ISourceText}
    *   A section of the source text.
    */
-  slice(spanOrPosition: TextSpan | number): ISourceText;
+  slice(position: TextSpan | number): ISourceText;
 
   /**
    * Extracts a section of the text as a string.

@@ -97,17 +97,17 @@ export class SegmentedText extends SourceTextBase {
   /**
    * @inheritDoc
    */
-  public slice(spanOrPosition: TextSpan | number): ISourceText {
-    if (typeof spanOrPosition === 'number') {
-      spanOrPosition = TextSpan.fromBounds(spanOrPosition, this.length);
+  public slice(position: TextSpan | number): ISourceText {
+    if (typeof position === 'number') {
+      position = TextSpan.fromBounds(position, this.length);
     }
-    if (!this.isSpanInText(spanOrPosition)) {
+    if (!this.isSpanInText(position)) {
       throw new ArgumentOutOfRangeException();
     }
-    if (spanOrPosition.length == 0) {
+    if (position.length == 0) {
       return SourceTextFactory.EmptyText;
     }
-    let segmentSpan = this.createSegmentSpan(spanOrPosition.start, spanOrPosition.length);
+    let segmentSpan = this.createSegmentSpan(position.start, position.length);
     return new SegmentedText(this.text, segmentSpan);
   }
 

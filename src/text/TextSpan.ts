@@ -108,13 +108,14 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
   }
 
   /**
-   * Determines if the position or span is completely within this span.
+   * Determines if the given span is completely within this span, or if an
+   * offset is within the bounds of this span (`start` inclusive).
    */
-  public contains(spanOrPosition: TextSpan | number): boolean {
-    if (typeof spanOrPosition === 'number') {
-      return (spanOrPosition - this.start) < this.length;
+  public contains(position: TextSpan | number): boolean {
+    if (typeof position === 'number') {
+      return (position - this.start) < this.length;
     }
-    return spanOrPosition.start >= this.start && spanOrPosition.end <= this.end;
+    return position.start >= this.start && position.end <= this.end;
   }
 
   /**
@@ -127,8 +128,8 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
   /**
    * Finds the intersecting region of this span and a given span.
    *
-   * Unlike an overlap, two spans may intersect if the end of one span is the
-   * same as the start of the other.
+   * Text spans intersect if both share a common region, or if the end of one
+   * span is the same as the start of the other.
    *
    * @return {TextSpan|null}
    *   The intersecting region of the spans, or `null` if the spans did not
@@ -143,15 +144,14 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
   }
 
   /**
-   * Determines if the position is within the start and end positions of this
-   * span, or if the span shares a region with this span (including if the end
-   * of one span is at the start of the other).
+   * Determines if a given span intersects with this span, or if an offset is
+   * within the bounds of this span (`start` and `end` inclusive).
    */
-  public intersectsWith(spanOrPosition: TextSpan | number): boolean {
-    if (typeof spanOrPosition === 'number') {
-      return (spanOrPosition - this.start) <= this.length;
+  public intersectsWith(position: TextSpan | number): boolean {
+    if (typeof position === 'number') {
+      return (position - this.start) <= this.length;
     }
-    return spanOrPosition.start <= this.end && spanOrPosition.end >= this.start;
+    return position.start <= this.end && position.end >= this.start;
   }
 
   /**

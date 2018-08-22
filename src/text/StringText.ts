@@ -81,20 +81,20 @@ export class StringText extends SourceTextBase {
   /**
    * @inheritDoc
    */
-  public slice(spanOrPosition: TextSpan | number): ISourceText {
-    if (typeof spanOrPosition === 'number') {
-      spanOrPosition = TextSpan.fromBounds(spanOrPosition, this.text.length);
+  public slice(position: TextSpan | number): ISourceText {
+    if (typeof position === 'number') {
+      position = TextSpan.fromBounds(position, this.text.length);
     }
-    if (!this.isSpanInText(spanOrPosition)) {
+    if (!this.isSpanInText(position)) {
       throw new ArgumentOutOfRangeException();
     }
-    if (spanOrPosition.length == 0) {
+    if (position.length == 0) {
       return SourceTextFactory.EmptyText;
     }
-    if (spanOrPosition.start == 0 && spanOrPosition.length == this.text.length) {
+    if (position.start == 0 && position.length == this.text.length) {
       return new StringText(this.text);  // Always return a new instance.
     }
-    return new SegmentedText(this, spanOrPosition);
+    return new SegmentedText(this, position);
   }
 
   /**
