@@ -78,6 +78,9 @@ describe('CompositeText', function() {
     it('should get substring if starting position is equal to text length', () => {
       assert.equal(text.substring(5, 0), '');
     });
+    it('should get substring if length is negative', () => {
+      assert.equal(text.substring(5, -1), '');
+    });
     it('should throw exception if starting position is greater than text length', () => {
       assert.throws(() => { text.substring(6, 0); });
     });

@@ -35,6 +35,62 @@ import { TokenKind } from '../../../../src/language/TokenKind';
 
 describe('SyntaxNode', function() {
 
+  describe('#containsSkippedText', function() {
+    it('should contain skipped text if a token was skipped', () => {
+      let tree = PhpSyntaxTree.fromText('<?php :');
+      assert.equal(tree.root.containsSkippedText, true);
+    });
+    it('should not contain skipped text if there were no skipped tokens', () => {
+      let tree = PhpSyntaxTree.fromText('<?php ;');
+      assert.equal(tree.root.containsSkippedText, false);
+    });
+    it('should not contain skipped text if a token was missing', () => {
+      let tree = PhpSyntaxTree.fromText('<?php {');
+      assert.equal(tree.root.containsSkippedText, false);
+    });
+  });
+
+  describe('#hasError', function() {
+    it('error diagnostic', () => {
+      // ERR_SemicolonExpected: ';' expected
+      let tree = PhpSyntaxTree.fromText('<?php 1');
+      assert.equal(tree.root.hasError, true);
+    });
+    it('warning diagnostic', () => {
+      // WRN_UnsetCast: The '(unset)' type cast is deprecated, use 'null' instead
+      let tree = PhpSyntaxTree.fromText('<?php (unset)$a;');
+      assert.equal(tree.root.hasError, false);
+    });
+  });
+
+  describe('#hasLeadingTrivia', function() {
+    it('should have leading trivia', () => {
+      let tree = PhpSyntaxTree.fromText('<?php ;');
+      assert.equal(tree.root.hasLeadingTrivia, true);
+    });
+    it('should not have leading trivia', () => {
+      let tree = PhpSyntaxTree.fromText('hello world');
+      assert.equal(tree.root.hasLeadingTrivia, false);
+    });
+  });
+
+  describe('#span', function() {
+    it('should not include leading trivia', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if() {}');
+      let statements = tree.root.childNodes();
+      let node = <IfSyntaxNode>statements[0];
+      assert.equal(node instanceof IfSyntaxNode, true);
+      assert.equal(node.span.equals(new TextSpan(6, 7)), true);
+    });
+    it('empty span', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if() {}');
+      let statements = tree.root.childNodes();
+      let node = <IfSyntaxNode>statements[0];
+      assert.equal(node instanceof IfSyntaxNode, true);
+      assert.equal(node.condition.span.equals(new TextSpan(9, 0)), true);
+    });
+  });
+
   describe('#findChildNode()', function() {
     // @todo Disabled. Works when debugging, fails otherwise???
     // it('should get root node if span is at eof', function() {
@@ -143,6 +199,38 @@ describe('SyntaxNode', function() {
       let ifNode = <IfSyntaxNode>tree.root.childNodes()[0];
       assert.equal(ifNode instanceof IfSyntaxNode, true);
       assert.strictEqual(ifNode.statement.firstToken(), null);
+    });
+  });
+
+  describe('#getChildNodes()', function() {
+    it('should return child node', () => {
+      let tree = PhpSyntaxTree.fromText('<?php $a = 1;');
+      let children = Array.from(tree.root.getChildNodes());
+      // The nested AssignmentSyntaxNode should not be returned.
+      assert.equal(children.length, 1);
+      assert.equal(children[0] instanceof ExpressionStatementSyntaxNode, true);
+    });
+    it('should return multiple child nodes', () => {
+      let tree = PhpSyntaxTree.fromText('<?php $a = 1; if ($a) { return; }');
+      let children = Array.from(tree.root.getChildNodes());
+      assert.equal(children.length, 2);
+      assert.equal(children[0] instanceof ExpressionStatementSyntaxNode, true);
+      assert.equal(children[1] instanceof IfSyntaxNode, true);
+    });
+    it('should not return nodes if there are no children', () => {
+      let tree = PhpSyntaxTree.fromText('');
+      let children = Array.from(tree.root.getChildNodes());
+      assert.equal(children.length, 0);
+    });
+  });
+
+  describe('#getChildTokens()', function() {
+    it('should return child token', () => {
+      let tree = PhpSyntaxTree.fromText('<?php 1;');
+      let tokens = Array.from(tree.root.getChildTokens());
+      // There shouldn't be any tokens from child nodes.
+      assert.equal(tokens.length, 1);
+      assert.equal(tokens[0].kind, TokenKind.EOF);
     });
   });
 

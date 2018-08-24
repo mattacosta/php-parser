@@ -26,6 +26,41 @@ describe('TextSpan', function() {
   const medium = new TextSpan(3, 4);  // 0 1 2 { 3 4 5 6 } 7 8 9
   const small  = new TextSpan(4, 2);  // 0 1 2 3 { 4 5 } 6 7 8 9
 
+  describe('#constructor()', function() {
+    it('should throw if start is negative', () => {
+      assert.throws(() => new TextSpan(-1, 0));
+    });
+    it('should throw if length is negative', () => {
+      assert.throws(() => new TextSpan(0, -1));
+    });
+  });
+
+  describe('#compareTo()', function() {
+    it('should be less than span before start', () => {
+      let a = new TextSpan(0, 2);
+      let b = new TextSpan(1, 2);
+      assert.equal(a.compareTo(b), -1);
+    });
+    it('should be less than larger span', () => {
+      let a = new TextSpan(2, 2);
+      let b = new TextSpan(2, 3);
+      assert.equal(a.compareTo(b), -1);
+    });
+    it('should be equal to equivalent span', () => {
+      assert.equal(medium.compareTo(medium), 0);
+    });
+    it('should be greater than span after start', () => {
+      let a = new TextSpan(2, 2);
+      let b = new TextSpan(2, 3);
+      assert.equal(b.compareTo(a), 1);
+    });
+    it('should be greater than smaller span', () => {
+      let a = new TextSpan(2, 2);
+      let b = new TextSpan(2, 3);
+      assert.equal(b.compareTo(a), 1);
+    })
+  });
+
   // Is all of span B in span A?
   describe('#contains()', function() {
     it('should contain an equivalent span', () => {

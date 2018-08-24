@@ -24,6 +24,14 @@ import { TextSpan } from '../../../src/text/TextSpan';
 
 describe('SegmentedText', function() {
 
+  describe('#constructor()', function() {
+    it('should throw if span is not in text', () => {
+      let text = new StringText('abcde');
+      assert.throws(() => new SegmentedText(text, new TextSpan(6, 1)));
+      assert.throws(() => new SegmentedText(text, new TextSpan(3, 3)));
+    });
+  });
+
   describe('#charCodeAt()', function() {
     let text = new StringText('abcde');
     let segment = new SegmentedText(text, new TextSpan(0, 3));
@@ -75,6 +83,9 @@ describe('SegmentedText', function() {
     });
     it('should get substring if starting position is equal to text length', () => {
       assert.equal(segment.substring(3, 0), '');
+    });
+    it('should get substring if length is negative', () => {
+      assert.equal(segment.substring(3, -1), '');
     });
     it('should throw exception if starting position is greater than text length', () => {
       assert.throws(() => { segment.substring(4, 0); });

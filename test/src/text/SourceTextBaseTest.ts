@@ -24,6 +24,25 @@ import { TextSpan } from '../../../src/text/TextSpan';
 
 describe('SourceTextBase', function() {
 
+  describe('#equals()', function() {
+    it('should equal the same text', () => {
+      let a = SourceTextFactory.from('abc');
+      let b = SourceTextFactory.from('abc');
+      assert.equal(a.equals(a), true);  // Reference equality.
+      assert.equal(a.equals(b), true);
+    });
+    it('should not equal text with different length', () => {
+      let a = SourceTextFactory.from('abc');
+      let b = SourceTextFactory.from('abcabc');
+      assert.equal(a.equals(b), false);
+    });
+    it('should not equal different text', () => {
+      let a = SourceTextFactory.from('abc');
+      let b = SourceTextFactory.from('xyz');
+      assert.equal(a.equals(b), false);
+    });
+  });
+
   describe('#withChanges()', function() {
     let text = SourceTextFactory.from('abc');
 
