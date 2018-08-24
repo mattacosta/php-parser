@@ -105,6 +105,7 @@ function assertOutput(doneFn) {
     e.showStack = false;
     throw e;
   }
+  doneFn();
 }
 
 /**
