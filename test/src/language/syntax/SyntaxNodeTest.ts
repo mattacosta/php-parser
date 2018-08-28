@@ -51,9 +51,13 @@ describe('SyntaxNode', function() {
   });
 
   describe('#hasError', function() {
+    it('no diagnostic', () => {
+      let tree = PhpSyntaxTree.fromText('<?php $a;');
+      assert.equal(tree.root.hasError, false);
+    });
     it('error diagnostic', () => {
       // ERR_SemicolonExpected: ';' expected
-      let tree = PhpSyntaxTree.fromText('<?php 1');
+      let tree = PhpSyntaxTree.fromText('<?php $a');
       assert.equal(tree.root.hasError, true);
     });
     it('warning diagnostic', () => {
@@ -88,6 +92,67 @@ describe('SyntaxNode', function() {
       let node = <IfSyntaxNode>statements[0];
       assert.equal(node instanceof IfSyntaxNode, true);
       assert.equal(node.condition.span.equals(new TextSpan(9, 0)), true);
+    });
+  });
+
+  describe('#ancestors()', function() {
+    it('should return a list of parent nodes', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a == 1) {}');
+      let node = tree.root.findChildNode(new TextSpan(10, 2));
+      assert.equal(node instanceof LocalVariableSyntaxNode, true);
+      let ancestors = node.ancestors();
+      assert.equal(ancestors.length, 3);
+    });
+    it('should return an empty list for root nodes', () => {
+      let tree = PhpSyntaxTree.fromText('<?php $a = 1;');
+      let ancestors = tree.root.ancestors();
+      assert.equal(ancestors.length, 0);
+    });
+  });
+
+  describe('#ancestorsAndSelf()', function() {
+    it('should return the current node and its parents', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a) {}');
+      let statements = tree.root.childNodes();
+      let ifNode = <IfSyntaxNode>statements[0];
+      assert.equal(ifNode instanceof IfSyntaxNode, true);
+      let ancestors = ifNode.ancestorsAndSelf();
+      assert.equal(ancestors.length, 2);
+      assert.strictEqual(ancestors[0], ifNode);
+      assert.strictEqual(ancestors[1], tree.root);
+    });
+  });
+
+  describe('#contains()', function() {
+    it('should contain child node', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a) {}');
+      let statements = tree.root.childNodes();
+      let ifNode = <IfSyntaxNode>statements[0];
+      assert.equal(ifNode instanceof IfSyntaxNode, true);
+      assert.equal(ifNode.contains(ifNode.condition), true);
+    });
+    it('should contain itself', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a) {}');
+      let statements = tree.root.childNodes();
+      let ifNode = <IfSyntaxNode>statements[0];
+      assert.equal(ifNode instanceof IfSyntaxNode, true);
+      assert.equal(ifNode.contains(ifNode), true);
+    });
+    it('should not contain sibling', () => {
+      let tree = PhpSyntaxTree.fromText('<?php $a = 1; $b = 2;');
+      let statements = tree.root.childNodes();
+      let firstExpr = <ExpressionStatementSyntaxNode>statements[0];
+      assert.equal(firstExpr instanceof ExpressionStatementSyntaxNode, true);
+      let secondExpr = <ExpressionStatementSyntaxNode>statements[1];
+      assert.equal(secondExpr instanceof ExpressionStatementSyntaxNode, true);
+      assert.equal(firstExpr.contains(secondExpr), false);
+    });
+    it('should not contain parent', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a) {}');
+      let statements = tree.root.childNodes();
+      let ifNode = <IfSyntaxNode>statements[0];
+      assert.equal(ifNode instanceof IfSyntaxNode, true);
+      assert.equal(ifNode.contains(tree.root), false);
     });
   });
 
@@ -199,6 +264,21 @@ describe('SyntaxNode', function() {
       let ifNode = <IfSyntaxNode>tree.root.childNodes()[0];
       assert.equal(ifNode instanceof IfSyntaxNode, true);
       assert.strictEqual(ifNode.statement.firstToken(), null);
+    });
+  });
+
+  describe('#getAncestors()', function() {
+    it('should return a list of parent nodes', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a == 1) {}');
+      let node = tree.root.findChildNode(new TextSpan(10, 2));
+      assert.equal(node instanceof LocalVariableSyntaxNode, true);
+      let ancestors = Array.from(node.getAncestors());
+      assert.equal(ancestors.length, 3);
+    });
+    it('should return an empty list for root nodes', () => {
+      let tree = PhpSyntaxTree.fromText('<?php $a = 1;');
+      let ancestors = Array.from(tree.root.getAncestors());
+      assert.equal(ancestors.length, 0);
     });
   });
 

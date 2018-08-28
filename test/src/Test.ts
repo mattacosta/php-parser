@@ -20,12 +20,12 @@ import * as assert from 'assert';
 
 import { ErrorCode } from '../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../src/language/syntax/ISyntaxNode';
+import { ISyntaxToken } from '../../src/language/syntax/ISyntaxToken';
+import { ISyntaxTrivia } from '../../src/language/syntax/ISyntaxTrivia';
 import { PhpLexer } from '../../src/parser/PhpLexer';
 import { PhpLexerState } from '../../src/parser/PhpLexerState';
 import { PhpSyntaxTree } from '../../src/parser/PhpSyntaxTree';
 import { SourceTextFactory } from '../../src/text/SourceTextFactory';
-import { ISyntaxToken } from '../../src/language/syntax/ISyntaxToken';
-import { TextSpan } from '../../src/text/TextSpan';
 import { Token } from '../../src/parser/Token';
 import { TokenKind, TokenKindInfo } from '../../src/language/TokenKind';
 
@@ -114,7 +114,7 @@ export class Test {
 
   public static assertSyntaxToken(token: ISyntaxToken | null, sourceText: string, expectedKind: TokenKind, expectedText: string, allowMissing = false) {
     assert.notStrictEqual(token, null, 'token not found');
-    if (!token) {
+    if (token === null) {
       return;
     }
     if (!allowMissing) {
@@ -122,9 +122,22 @@ export class Test {
       assert.equal(token.isMissing, false, 'is missing');
     }
     assert.equal(token.kind, expectedKind, 'token kind');
-    let span = token.span ? token.span : new TextSpan(0, 0);
+    let span = token.span;
     let text = sourceText.substr(span.start, span.length);
     assert.equal(text, expectedText, 'token text');
+  }
+
+  public static assertSyntaxTrivia(trivia: ISyntaxTrivia | null, sourceText: string, expectedKind: TokenKind, expectedText: string, isSkippedToken = false, hasStructure = false) {
+    assert.notStrictEqual(trivia, null, 'trivia not found');
+    if (trivia === null) {
+      return;
+    }
+    assert.equal(trivia.kind, expectedKind, 'trivia kind');
+    assert.equal(trivia.containsSkippedText, isSkippedToken);
+    assert.equal(trivia.containsStructuredTrivia, hasStructure);
+    let span = trivia.span;
+    let text = sourceText.substr(span.start, span.length);
+    assert.equal(text, expectedText, 'trivia text');
   }
 
   public static assertTokens(tests: LexerTestArgs[], customLexer?: PhpLexer) {
