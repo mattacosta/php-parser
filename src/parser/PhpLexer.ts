@@ -533,8 +533,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       return true;
     }
 
-    offset = offset + label.length;
-
     // Optional semicolon.
     if (this.peek(offset) == Character.Semicolon) {
       offset++;
