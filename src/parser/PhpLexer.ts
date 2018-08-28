@@ -1450,7 +1450,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         this.offset++;
       }
-      if (this.startsWith('from')) {
+      if (this.startsWith('from') && !CharacterInfo.isIdentifierPart(this.peek(this.offset + 4), this.phpVersion)) {
         this.offset = this.offset + 4;
         this.tokenKind = TokenKind.YieldFrom;
       }

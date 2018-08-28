@@ -132,6 +132,7 @@ describe('PhpLexer', function() {
         // Multiple words.
         new LexerTestArgs('<?php yield from', 'yield from', [TokenKind.YieldFrom]),
         new LexerTestArgs('<?php yield\n\nfrom', 'yield from (multiple new lines)', [TokenKind.YieldFrom]),
+        new LexerTestArgs('<?php yield from_', 'should not match partial identifier (yield from)', [TokenKind.Yield, TokenKind.Identifier]),
         // False positives.
         new LexerTestArgs('<?php catchable', 'should not match keyword at start of string (catch in catchable)', [TokenKind.Identifier], ['catchable']),
         new LexerTestArgs('<?php refuse', 'should not match keyword at end of string (use in refuse)', [TokenKind.Identifier], ['refuse']),
