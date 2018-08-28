@@ -62,6 +62,7 @@ export class HeredocLabelInfo {
  * |--------|----------|-------|--------|-----|
  * | 1.12   | 1.6.6    | 7.4.0 | 56.0   | 5.6 |
  * | 1.16   | 1.7.3    | 7.9.0 | 58.0   | 5.8 |
+ * | 1.26   | 2.0.5    | 8.9.3 | 61.0   | 6.1 |
  */
 export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
