@@ -90,7 +90,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
   }
 
   /**
-   * Attempts to get the first token form a trivia node containing structure.
+   * Attempts to get the first token from a trivia node containing structure.
    *
    * @param {ISyntaxTriviaList} triviaList
    *   The list of trivia to search.
