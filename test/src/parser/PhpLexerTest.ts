@@ -21,9 +21,11 @@ import * as mocha from 'mocha';
 
 import {
   LexerTestArgs,
-  Test
+  LexerDiagnosticTestArgs,
+  Test,
 } from '../Test';
 
+import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 describe('PhpLexer', function() {
@@ -41,7 +43,7 @@ describe('PhpLexer', function() {
       //new LexerTestArgs('<h1><?', 'should match short open tag after inline text', [TokenKind.InlineText, TokenKind.ShortOpenTag], [], false),
         new LexerTestArgs('<?php?>', 'should match close tag', [TokenKind.OpenTag, TokenKind.CloseTag], [], false),
         new LexerTestArgs('<?php?></h1>', 'should match inline text after close tag', [TokenKind.OpenTag, TokenKind.CloseTag, TokenKind.InlineText], [], false),
-        new LexerTestArgs('?>', 'should not match close tag without open tag', [TokenKind.InlineText], [], false)
+        new LexerTestArgs('?>', 'should not match close tag without open tag', [TokenKind.InlineText], [], false),
       ];
       Test.assertTokens(tests);
     });
@@ -55,13 +57,17 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php /* */', 'multiple line comment on single line', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
         new LexerTestArgs('<?php /*\n*/', 'multiple line comment on multiple lines', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
         new LexerTestArgs('<?php /**/', 'multiple line comment without whitespace', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
-        new LexerTestArgs('<?php /*', 'unterminated multiple line comment', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
 
         new LexerTestArgs('<?php /** */', 'documentation comment', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.DocumentationComment], [], false),
         new LexerTestArgs('<?php /****/', 'documentation comment requires whitespace', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
-        new LexerTestArgs('<?php /** ', 'unterminated documentation comment', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.DocumentationComment], [], false)
       ];
       Test.assertTokens(tests);
+
+      let diagnosticTests = [
+        new LexerDiagnosticTestArgs('<?php /*', 'unterminated multiple line comment', TokenKind.MultipleLineComment, ErrorCode.WRN_UnterminatedComment),
+        new LexerDiagnosticTestArgs('<?php /** ', 'unterminated documentation comment', TokenKind.DocumentationComment, ErrorCode.WRN_UnterminatedComment),
+      ];
+      Test.assertTokenDiagnostics(diagnosticTests);
     });
 
     describe('keywords', function() {
@@ -136,7 +142,7 @@ describe('PhpLexer', function() {
         // False positives.
         new LexerTestArgs('<?php catchable', 'should not match keyword at start of string (catch in catchable)', [TokenKind.Identifier], ['catchable']),
         new LexerTestArgs('<?php refuse', 'should not match keyword at end of string (use in refuse)', [TokenKind.Identifier], ['refuse']),
-        new LexerTestArgs('<?php window', 'should not match keyword in middle of string (do in window)', [TokenKind.Identifier], ['window'])
+        new LexerTestArgs('<?php window', 'should not match keyword in middle of string (do in window)', [TokenKind.Identifier], ['window']),
       ];
       Test.assertTokens(tests);
     });
@@ -163,8 +169,6 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php 0x00', 'hexadecimal number (all zeroes)', [TokenKind.LNumber], ['0x00']),
         new LexerTestArgs('<?php 0xF0', 'hexadecimal number with trailing zero', [TokenKind.LNumber], ['0xF0']),
         new LexerTestArgs('<?php 0x0F', 'hexadecimal number with leading zero', [TokenKind.LNumber], ['0x0F']),
-        new LexerTestArgs('<?php 0xYZ', 'hexadecimal number with invalid digits', [TokenKind.LNumber, TokenKind.Identifier], ['0x', 'YZ']),
-        new LexerTestArgs('<?php 0x', 'hexadecimal number with missing digits', [TokenKind.LNumber], ['0x']),
       //new LexerTestArgs('<?php 0x7FFFFFFF', 'hex max int (32-bit)', [TokenKind.LNumber]),
       //new LexerTestArgs('<?php 0x8FFFFFFF', 'hex max int overflow (32-bit)', [TokenKind.DNumber]),
         new LexerTestArgs('<?php 0x7FFFFFFFFFFFFFFF', 'hex max int (64-bit)', [TokenKind.LNumber]),
@@ -173,8 +177,6 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php 0b00', 'binary number (all zeroes)', [TokenKind.LNumber], ['0b00']),
         new LexerTestArgs('<?php 0b10', 'binary number with trailing zero', [TokenKind.LNumber], ['0b10']),
         new LexerTestArgs('<?php 0b01', 'binary number with leading zero', [TokenKind.LNumber], ['0b01']),
-        new LexerTestArgs('<?php 0bAA', 'binary number with invalid digits', [TokenKind.LNumber, TokenKind.Identifier], ['0b', 'AA']),
-        new LexerTestArgs('<?php 0b', 'binary number with missing digits', [TokenKind.LNumber], ['0b']),
       //new LexerTestArgs('<?php 0b01111111111111111111111111111111', 'bin max int (32-bit)', [TokenKind.LNumber]),
       //new LexerTestArgs('<?php 0b11111111111111111111111111111111', 'bin max int overflow (32-bit)', [TokenKind.DNumber]),
         new LexerTestArgs('<?php 0b0111111111111111111111111111111111111111111111111111111111111111', 'bin max int (64-bit)', [TokenKind.LNumber]),
@@ -195,6 +197,15 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php 0.1.2', 'floating-point with multiple decimal points and leading digits', [TokenKind.DNumber, TokenKind.DNumber], ['0.1', '.2']),
       ];
       Test.assertTokens(tests);
+
+      let diagnosticTests = [
+        new LexerDiagnosticTestArgs('<?php 0xYZ', 'hexadecimal number with invalid digits', TokenKind.LNumber, ErrorCode.ERR_InvalidNumber),
+        new LexerDiagnosticTestArgs('<?php 0x', 'hexadecimal number with missing digits', TokenKind.LNumber, ErrorCode.ERR_InvalidNumber),
+
+        new LexerDiagnosticTestArgs('<?php 0bAA', 'binary number with invalid digits', TokenKind.LNumber, ErrorCode.ERR_InvalidNumber),
+        new LexerDiagnosticTestArgs('<?php 0b', 'binary number with missing digits', TokenKind.LNumber, ErrorCode.ERR_InvalidNumber),
+      ];
+      Test.assertTokenDiagnostics(diagnosticTests);
     });
 
     describe('punctuation', function() {
@@ -291,6 +302,23 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php (\nint)', 'should not match with new lines', [TokenKind.OpenParen, TokenKind.Identifier, TokenKind.CloseParen]),
       ];
       Test.assertTokens(tests);
+    });
+
+    describe('variables', function() {
+      let tests = [
+        new LexerTestArgs('<?php $a', 'variable', [TokenKind.Variable], ['$a']),
+        new LexerTestArgs('<?php $_', 'variable (underscore)', [TokenKind.Variable], ['$_']),
+        new LexerTestArgs('<?php $\x80', 'variable (lowest extended character)', [TokenKind.Variable], ['$\x80']),
+        new LexerTestArgs('<?php $\xFF', 'variable (highest extended character)', [TokenKind.Variable], ['$\xFF']),
+        new LexerTestArgs('<?php $1', 'should not start with a number', [TokenKind.Dollar, TokenKind.LNumber], ['$', '1']),
+      ];
+      Test.assertTokens(tests);
+
+      let diagnosticTests = [
+        // @todo Requires PHP 7.1 or later.
+        new LexerDiagnosticTestArgs('<?php $a\x7Fb', 'variable with delete control character', TokenKind.Unknown, ErrorCode.ERR_UnexpectedCharacter),
+      ];
+      Test.assertTokenDiagnostics(diagnosticTests);
     });
 
   });

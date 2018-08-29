@@ -43,6 +43,15 @@ export class LexerTestArgs {
 
 }
 
+export class LexerDiagnosticTestArgs {
+
+  /**
+   * @todo Add support for testing multiple diagnostics.
+   */
+  constructor(public text: string, public description: string, public expectedToken: TokenKind, public expectedCode: ErrorCode) {}
+
+}
+
 export class ParserTestArgs {
 
   constructor(public text: string, public description?: string, public testCallback?: TestCallback) {}
@@ -156,6 +165,7 @@ export class Test {
             continue;
           }
           assert.equal(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]]);
+          assert.equal(token.diagnostics.length, 0, 'contains diagnostics');
           if (args.expectedText[tokenCount]) {
             assert.equal(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
           }
@@ -163,6 +173,36 @@ export class Test {
         } while (token.kind != TokenKind.EOF && tokenCount < args.expectedTokens.length);
 
         assert.equal(tokenCount, args.expectedTokens.length, 'unexpected end of text');
+      });
+    }
+  }
+
+  public static assertTokenDiagnostics(tests: LexerDiagnosticTestArgs[]) {
+    for (let testIndex = 0; testIndex < tests.length; testIndex++) {
+      let args = tests[testIndex];
+      it(args.description || args.text, () => {
+        let lexer = new PhpLexer(SourceTextFactory.from(args.text));
+        let state = lexer.currentState;
+
+        let token: Token;
+        let found = false;
+        do {
+          token = lexer.lex(state);
+          state = lexer.currentState;
+          if (token.kind == args.expectedToken) {
+            found = true;
+            assert.equal(token.diagnostics.length > 0, true, 'diagnostic not found');
+            assert.equal(token.diagnostics[0].code, args.expectedCode, 'diagnostic code');
+            // if (args.expectedOffset === void 0) {
+            //   assert.equal(token.diagnostics[0].offset, 0, 'diagnostic offset');
+            // }
+            break;
+          }
+        } while (token.kind != TokenKind.EOF);
+
+        if (!found) {
+          assert.fail('token not found');
+        }
       });
     }
   }
