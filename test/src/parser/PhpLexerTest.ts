@@ -323,6 +323,13 @@ describe('PhpLexer', function() {
       Test.assertTokens(tests, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
+    describe('unknown', function() {
+      let diagnosticTests = [
+        new LexerDiagnosticTestArgs('<?php \v', 'should skip unexpected characters (at EOF)', TokenKind.Unknown, ErrorCode.ERR_UnexpectedCharacter),
+      ];
+      Test.assertTokenDiagnostics(diagnosticTests);
+    });
+
   });
 
 });

@@ -1152,9 +1152,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           return this.state;
         }
 
+        this.addError(0, 1, ErrorCode.ERR_UnexpectedCharacter, '0x' + ch.toString(16).toUpperCase(), this.text.substring(this.offset, 1));
+
         this.offset++;
         this.tokenKind = TokenKind.Unknown;
-        this.addError(0, 1, ErrorCode.ERR_UnexpectedCharacter, '0x' + ch.toString(16).toUpperCase(), this.text.substring(this.offset, 1));
         return this.state;
     }
   }
