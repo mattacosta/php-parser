@@ -17,5 +17,8 @@ install:
 
 script:
   - npm test
+  - PHP_PARSER_VERSION=7_2 npm test
+  - PHP_PARSER_VERSION=7_1 npm test
+  - PHP_PARSER_VERSION=7_0 npm test
 
 after_success: npm run test:coverage
