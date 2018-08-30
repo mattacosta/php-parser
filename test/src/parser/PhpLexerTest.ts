@@ -26,6 +26,7 @@ import {
 } from '../Test';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 describe('PhpLexer', function() {
@@ -313,12 +314,13 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php $1', 'should not start with a number', [TokenKind.Dollar, TokenKind.LNumber], ['$', '1']),
       ];
       Test.assertTokens(tests);
+    });
 
-      let diagnosticTests = [
-        // @todo Requires PHP 7.1 or later.
-        new LexerDiagnosticTestArgs('<?php $a\x7Fb', 'variable with delete control character', TokenKind.Unknown, ErrorCode.ERR_UnexpectedCharacter),
+    describe('variables (7.0)', function() {
+      let tests = [
+        new LexerTestArgs('<?php $\x7F', 'variable (lowest extended character)', [TokenKind.Variable], ['$\x7F']),
       ];
-      Test.assertTokenDiagnostics(diagnosticTests);
+      Test.assertTokens(tests, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
   });

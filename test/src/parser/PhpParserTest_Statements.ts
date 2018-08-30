@@ -363,7 +363,7 @@ describe('PhpParser', function() {
         assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
       }),
     ];
-    Test.assertSyntaxNodes(syntaxTests, true, true);
+    Test.assertSyntaxNodesWithShortOpen(syntaxTests);
 
     let diagnosticTests = [
       // Diagnostic locations are asserted using the entire opening tag, which
@@ -373,7 +373,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('$a', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [2]),
       new DiagnosticTestArgs('$a,', 'missing expression after comma', [ErrorCode.ERR_ExpressionExpectedEOF], [3]),
     ];
-    Test.assertDiagnostics(diagnosticTests, true);
+    Test.assertDiagnosticsWithShortOpen(diagnosticTests);
   });
 
   describe('unset-statement', function() {

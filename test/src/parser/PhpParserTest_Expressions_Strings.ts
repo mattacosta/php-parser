@@ -44,6 +44,7 @@ import {
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent: string, templateText?: string | null): ISyntaxNode[] {
@@ -402,7 +403,7 @@ describe('PhpParser', function() {
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
     ];
-    Test.assertSyntaxNodes(syntaxTests);
+    Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_3);
 
     let diagnosticTests = [
       new DiagnosticTestArgs('<<<LABEL\na\n  LABEL;', 'missing indent', [ErrorCode.ERR_IndentExpected], [9]),
@@ -417,7 +418,7 @@ describe('PhpParser', function() {
       // @todo Recovery tests.
       new DiagnosticTestArgs('<<<LABEL\n  {$a $b}\n  LABEL;', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [14]),
     ];
-    Test.assertDiagnostics(diagnosticTests);
+    Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP7_3);
   });
 
 });

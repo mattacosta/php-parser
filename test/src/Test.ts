@@ -24,7 +24,9 @@ import { ISyntaxToken } from '../../src/language/syntax/ISyntaxToken';
 import { ISyntaxTrivia } from '../../src/language/syntax/ISyntaxTrivia';
 import { PhpLexer } from '../../src/parser/PhpLexer';
 import { PhpLexerState } from '../../src/parser/PhpLexerState';
+import { PhpParserOptions } from '../../src/parser/PhpParserOptions';
 import { PhpSyntaxTree } from '../../src/parser/PhpSyntaxTree';
+import { PhpVersion, PhpVersionInfo } from '../../src/parser/PhpVersion';
 import { SourceTextFactory } from '../../src/text/SourceTextFactory';
 import { Token } from '../../src/parser/Token';
 import { TokenKind, TokenKindInfo } from '../../src/language/TokenKind';
@@ -60,65 +62,47 @@ export class ParserTestArgs {
 
 export class Test {
 
-  public static assertDiagnostics(argList: DiagnosticTestArgs[], openTagWithEcho = false) {
-    for (let i = 0; i < argList.length; i++) {
-      const args = argList[i];
-      const desc = args.description || args.text;
-      if (args.expectedCodes.length > 0) {
-        it(desc, () => {
-          const prefix = openTagWithEcho ? '<?= ' : '<?php ';
-          const tree = PhpSyntaxTree.fromText(prefix + args.text);
+  /**
+   * A test callback that always passes.
+   */
+  private static Pass = () => {};
 
-          let n = 0;
-          for (let d of tree.getDiagnostics()) {
-            // All expected diagnostics have been tested, skip the rest.
-            if (n >= args.expectedCodes.length) {
-              break;
-            }
-            // The diagnostic at this position can be ignored.
-            if (args.expectedCodes[n] === void 0) {
-              n++;
-              continue;
-            }
-            assert.equal(d.code, args.expectedCodes[n], 'diagnostic code');
-            assert.equal(d.offset, args.expectedOffsets[n] + prefix.length, 'diagnostic offset');
-            n++;
-          }
-
-          // Finished early...
-          assert.equal(n, args.expectedCodes.length, 'diagnostic not found');
-        });
-      }
-      else {
-        it(desc);
-      }
+  /**
+   * The version of PHP to test. Defaults to `PhpVersion.Latest`.
+   */
+  protected static get phpVersion(): PhpVersion {
+    // Windows (PowerShell):
+    // - `$env:PHP_PARSER_VERSION = '7_0'; npm test`
+    // Linux:
+    // - `PHP_PARSER_VERSION=7_0 npm test`
+    switch (process.env.PHP_PARSER_VERSION) {
+      case '7_0':
+        return PhpVersion.PHP7_0;
+      case '7_1':
+        return PhpVersion.PHP7_1;
+      case '7_2':
+        return PhpVersion.PHP7_2;
+      case '7_3':
+        return PhpVersion.PHP7_3;
+      default:
+        return PhpVersion.Latest;
     }
   }
 
-  public static assertSyntaxNodes(argList: ParserTestArgs[], assertDiagnostics = true, openTagWithEcho = false) {
-    for (let i = 0; i < argList.length; i++) {
-      const args = argList[i];
-      const desc = args.description || args.text;
-      const testFn = args.testCallback;
-      if (testFn) {
-        it(desc, () => {
-          const text = (openTagWithEcho ? '<?= ' : '<?php ') + args.text;
-          const tree = PhpSyntaxTree.fromText(text);
-          const statements = tree.root.statements;
-          if (assertDiagnostics) {
-            assert.equal(tree.root.containsDiagnostics, false, 'contains diagnostics');
-          }
-          assert.notStrictEqual(statements, null, 'statements not found');
-          if (!statements) {
-            return;
-          }
-          testFn(statements.childNodes(), text);
-        });
-      }
-      else {
-        it(desc);
-      }
-    }
+  public static assertDiagnostics(tests: DiagnosticTestArgs[], minVersion = PhpVersion.PHP7_0) {
+    Test.assertDiagnosticsWithTag(tests, '<?php ', minVersion);
+  }
+
+  public static assertDiagnosticsWithShortOpen(tests: DiagnosticTestArgs[], minVersion = PhpVersion.PHP7_0) {
+    Test.assertDiagnosticsWithTag(tests, '<?= ', minVersion);
+  }
+
+  public static assertSyntaxNodes(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0) {
+    Test.assertSyntaxNodesWithTag(tests, '<?php ', minVersion);
+  }
+
+  public static assertSyntaxNodesWithShortOpen(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0) {
+    Test.assertSyntaxNodesWithTag(tests, '<?= ', minVersion);
   }
 
   public static assertSyntaxToken(token: ISyntaxToken | null, sourceText: string, expectedKind: TokenKind, expectedText: string, allowMissing = false) {
@@ -149,14 +133,19 @@ export class Test {
     assert.equal(text, expectedText, 'trivia text');
   }
 
-  public static assertTokens(tests: LexerTestArgs[], customLexer?: PhpLexer) {
+  public static assertTokens(tests: LexerTestArgs[], minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
     for (let i = 0; i < tests.length; i++) {
       let args = tests[i];
-      it(args.description || args.text, () => {
+      let desc = args.description || args.text;
+      if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
+        it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
+        continue;
+      }
+      it(desc, () => {
         let state = PhpLexerState.InHostLanguage;
         let token: Token;
         let tokenCount: number = 0;
-        let lexer = !customLexer ? new PhpLexer(SourceTextFactory.from(args.text)) : customLexer;
+        let lexer = new PhpLexer(SourceTextFactory.from(args.text), Test.phpVersion);
 
         do {
           token = lexer.lex(state);
@@ -180,8 +169,9 @@ export class Test {
   public static assertTokenDiagnostics(tests: LexerDiagnosticTestArgs[]) {
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
       let args = tests[testIndex];
-      it(args.description || args.text, () => {
-        let lexer = new PhpLexer(SourceTextFactory.from(args.text));
+      let desc = args.description || args.text;
+      it(desc, () => {
+        let lexer = new PhpLexer(SourceTextFactory.from(args.text), Test.phpVersion);
         let state = lexer.currentState;
 
         let token: Token;
@@ -205,6 +195,79 @@ export class Test {
         }
       });
     }
+  }
+
+  protected static assertDiagnosticsWithTag(argList: DiagnosticTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0) {
+    for (let i = 0; i < argList.length; i++) {
+      const args = argList[i];
+      const desc = args.description || args.text;
+      if (!Test.isPhpVersionInRange(minVersion)) {
+        it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
+        continue;
+      }
+      if (args.expectedCodes.length > 0) {
+        it(desc, () => {
+          const options = new PhpParserOptions(Test.phpVersion);
+          const tree = PhpSyntaxTree.fromText(openTag + args.text, '', options);
+
+          let n = 0;
+          for (let d of tree.getDiagnostics()) {
+            // All expected diagnostics have been tested, skip the rest.
+            if (n >= args.expectedCodes.length) {
+              break;
+            }
+            // The diagnostic at this position can be ignored.
+            if (args.expectedCodes[n] === void 0) {
+              n++;
+              continue;
+            }
+            assert.equal(d.code, args.expectedCodes[n], 'diagnostic code');
+            assert.equal(d.offset, args.expectedOffsets[n] + openTag.length, 'diagnostic offset');
+            n++;
+          }
+
+          // Finished early...
+          assert.equal(n, args.expectedCodes.length, 'diagnostic not found');
+        });
+      }
+      else {
+        it(desc);
+      }
+    }
+  }
+
+  protected static assertSyntaxNodesWithTag(argList: ParserTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0) {
+    for (let i = 0; i < argList.length; i++) {
+      const args = argList[i];
+      const desc = args.description || args.text;
+      const testFn = args.testCallback;
+      if (testFn) {
+        if (!Test.isPhpVersionInRange(minVersion)) {
+          it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
+          continue;
+        }
+        it(desc, () => {
+          const text = openTag + args.text;
+          const options = new PhpParserOptions(Test.phpVersion);
+          const tree = PhpSyntaxTree.fromText(text, '', options);
+          const statements = tree.root.statements;
+          assert.equal(tree.root.hasError, false, 'has error');
+          assert.notStrictEqual(statements, null, 'statements not found');
+          if (!statements) {
+            return;
+          }
+          testFn(statements.childNodes(), text);
+        });
+      }
+      else {
+        it(desc);
+      }
+    }
+  }
+
+  protected static isPhpVersionInRange(minVersion: PhpVersion, maxVersion = PhpVersion.Latest): boolean {
+    let version = Test.phpVersion;
+    return version >= minVersion && version <= maxVersion;
   }
 
 }
