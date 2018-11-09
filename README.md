@@ -13,7 +13,7 @@ code analysis and transformation features.
 - Supports the latest PHP 7 features.
 - Works anywhere a JavaScript environment is available.
 - Optimized for [V8](https://en.wikipedia.org/wiki/Chrome_V8) to be faster and use
-  less memory than other parsers.
+  less memory than other parsers (see [benchmarks][Wiki_Benchmarks]).
 
 ## Installation
 
