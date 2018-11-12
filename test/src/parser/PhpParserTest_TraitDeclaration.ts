@@ -423,8 +423,7 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(syntaxTests);
 
       let diagnosticTests = [
-        // @todo Improve error message.
-        new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameExpected], [18]),
+        new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
         new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
         new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
         new DiagnosticTestArgs('trait A { function b( }', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [21]),

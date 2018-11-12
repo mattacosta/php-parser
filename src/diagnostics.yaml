@@ -219,6 +219,8 @@ diagnostics:
   text: "A method reference requires a '::' after a class name"
 - name: ERR_MethodNameExpected
   text: "Method name expected"
+- name: ERR_MethodNameOrAmpersandExpected
+  text: "Method name or '&' expected"
 - name: ERR_MultipleBaseTypes
   text: "Cannot have multiple base classes"
 - name: ERR_MultipleDefaultSwitchLabels

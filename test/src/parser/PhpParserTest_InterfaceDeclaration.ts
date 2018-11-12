@@ -339,8 +339,7 @@ describe('PhpParser', function() {
       //   'interface A { function b() { public $c; }'
 
       let diagnosticTests = [
-        // @todo Improve error message.
-        new DiagnosticTestArgs('interface A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameExpected], [22]),
+        new DiagnosticTestArgs('interface A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [22]),
         new DiagnosticTestArgs('interface A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [24]),
         new DiagnosticTestArgs('interface A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [24]),
         new DiagnosticTestArgs('interface A { function b( }', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [25]),

@@ -2663,7 +2663,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseMethodDeclaration(modifiers: TokenNode[], modifierFlags: ModifierFlags, context: ParseContext): MethodDeclarationNode {
     let functionKeyword = this.eat(TokenKind.Function);
     let ampersand = this.eatOptional(TokenKind.Ampersand);
-    let identifier = this.parseClassMemberName(ErrorCode.ERR_MethodNameExpected);
+    let identifier = this.parseClassMemberName(ampersand ? ErrorCode.ERR_MethodNameExpected : ErrorCode.ERR_MethodNameOrAmpersandExpected);
 
     let openParen = this.eat(TokenKind.OpenParen);
     let parameters: Array<ParameterNode | TokenNode> = [];
