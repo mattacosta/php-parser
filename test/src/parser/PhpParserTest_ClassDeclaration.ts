@@ -680,15 +680,14 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('class A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
         new DiagnosticTestArgs('class A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
         new DiagnosticTestArgs('class A { function b( }', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [21]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('class A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceExpected], [22]),
+        new DiagnosticTestArgs('class A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
         new DiagnosticTestArgs('class A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
         new DiagnosticTestArgs('class A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
 
         new DiagnosticTestArgs('class A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
         new DiagnosticTestArgs('class A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
         new DiagnosticTestArgs('class A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
-        new DiagnosticTestArgs('class A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceExpected], [22]),
+        new DiagnosticTestArgs('class A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
 
         new DiagnosticTestArgs('class A { abstract function b() }', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [31]),
         new DiagnosticTestArgs('class A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),

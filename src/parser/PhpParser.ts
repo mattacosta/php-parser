@@ -2689,7 +2689,28 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       semicolon = this.parseStatementEnd();
     }
     else {
-      statements = this.parseStatementBlock(modifierFlags, context);
+      let openBrace: TokenNode;
+      if (this.currentToken.kind == TokenKind.OpenBrace) {
+        openBrace = this.eat(TokenKind.OpenBrace);
+        if (context == ParseContext.InterfaceMembers) {
+          // @todo Test: Diagnostic priority over ERR_AbstractMethodHasBody.
+          openBrace = this.addError(openBrace, ErrorCode.ERR_InterfaceMethodDefinition);
+        }
+        if (modifierFlags & ModifierFlags.Abstract) {
+          openBrace = this.addError(openBrace, ErrorCode.ERR_AbstractMethodHasBody);
+        }
+      }
+      else {
+        let code = colon ? ErrorCode.ERR_OpenBraceExpected : ErrorCode.ERR_OpenBraceOrColonExpected;
+        openBrace = this.createMissingTokenWithError(TokenKind.OpenBrace, code);
+      }
+
+      let statementList = this.parseList(ParseContext.CompoundStatementElements);
+      let closeBrace = openBrace.isMissing
+        ? this.createMissingToken(TokenKind.CloseBrace, this.currentToken.kind, false)
+        : this.eat(TokenKind.CloseBrace);
+
+      statements = new StatementBlockNode(openBrace, statementList, closeBrace);
     }
 
     // A method body must be present or explicitly ommitted (even if the
@@ -3143,17 +3164,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *
    * Alias: `compound-statement`
    */
-  protected parseStatementBlock(modifierFlags = ModifierFlags.None, context?: ParseContext): StatementBlockNode {
+  protected parseStatementBlock(): StatementBlockNode {
     let openBrace = this.eat(TokenKind.OpenBrace);
-
-    if (context && context == ParseContext.InterfaceMembers) {
-      // @todo Test: Diagnostic priority over ERR_AbstractMethodHasBody.
-      openBrace = this.addError(openBrace, ErrorCode.ERR_InterfaceMethodDefinition);
-    }
-    if (modifierFlags & ModifierFlags.Abstract) {
-      openBrace = this.addError(openBrace, ErrorCode.ERR_AbstractMethodHasBody);
-    }
-
     let statements = this.parseList(ParseContext.CompoundStatementElements);
     let closeBrace = openBrace.isMissing
       ? this.createMissingToken(TokenKind.CloseBrace, this.currentToken.kind, false)
@@ -3704,7 +3716,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let closeParen = this.eat(TokenKind.CloseParen);
-    let statements = this.parseStatementBlock(ModifierFlags.None);
+    let statements = this.parseStatementBlock();
     return new TryCatchNode(
       catchKeyword,
       openParen,
