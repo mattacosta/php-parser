@@ -40,6 +40,7 @@ import {
   PropertyElementSyntaxNode,
   ReferencedTraitAliasSyntaxNode,
   RelativeNameSyntaxNode,
+  StatementBlockSyntaxNode,
   TraitPrecedenceSyntaxNode,
   TraitUseGroupSyntaxNode,
   TraitUseSyntaxNode,
@@ -122,6 +123,13 @@ describe('PhpParser', function() {
       //   assert.strictEqual(classNode.interfaces, null);
       //   assert.strictEqual(classNode.members, null);
       // }),
+      new ParserTestArgs('{ class A {} }', 'should parse a class declaration in statement block', (statements) => {
+        let block = <StatementBlockSyntaxNode>statements[0];
+        assert.equal(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        let innerStatements = block.childNodes();
+        assert.equal(innerStatements.length, 1);
+        assert.equal(innerStatements[0] instanceof ClassDeclarationSyntaxNode, true);
+      }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
 

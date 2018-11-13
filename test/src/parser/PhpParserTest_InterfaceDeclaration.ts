@@ -35,6 +35,7 @@ import {
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   RelativeNameSyntaxNode,
+  StatementBlockSyntaxNode,
   TypeSyntaxNode
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
@@ -72,6 +73,13 @@ describe('PhpParser', function() {
         Test.assertSyntaxToken(interfaceNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(interfaceNode.baseInterfaces, null);
         assert.strictEqual(interfaceNode.members, null);
+      }),
+      new ParserTestArgs('{ interface A {} }', 'should parse an interface declaration in statement block', (statements) => {
+        let block = <StatementBlockSyntaxNode>statements[0];
+        assert.equal(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        let innerStatements = block.childNodes();
+        assert.equal(innerStatements.length, 1);
+        assert.equal(innerStatements[0] instanceof InterfaceDeclarationSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);

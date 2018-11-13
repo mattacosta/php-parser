@@ -37,6 +37,7 @@ import {
   PropertyElementSyntaxNode,
   ReferencedTraitAliasSyntaxNode,
   RelativeNameSyntaxNode,
+  StatementBlockSyntaxNode,
   TraitDeclarationSyntaxNode,
   TraitPrecedenceSyntaxNode,
   TraitUseGroupSyntaxNode,
@@ -97,6 +98,13 @@ describe('PhpParser', function() {
         assert.equal(traitNode instanceof TraitDeclarationSyntaxNode, true, 'TraitDeclarationSyntaxNode');
         Test.assertSyntaxToken(traitNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(traitNode.members, null);
+      }),
+      new ParserTestArgs('{ trait A {} }', 'should parse a trait declaration in statement block', (statements) => {
+        let block = <StatementBlockSyntaxNode>statements[0];
+        assert.equal(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        let innerStatements = block.childNodes();
+        assert.equal(innerStatements.length, 1);
+        assert.equal(innerStatements[0] instanceof TraitDeclarationSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
