@@ -647,8 +647,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('static', 'missing double colon, function, or variable', [ErrorCode.ERR_StaticExpressionExpected], [6]),
-      // Technically, an assignment to a constant expression is also possible.
-      new DiagnosticTestArgs('static $a', 'missing equals, comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [9]),
+      new DiagnosticTestArgs('static $a', 'missing equals, comma or semicolon', [ErrorCode.ERR_IncompleteStaticDeclaration], [9]),
       new DiagnosticTestArgs('static $a=', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
       new DiagnosticTestArgs('static $a=1', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [11]),
       new DiagnosticTestArgs('static $a,', 'missing variable in list', [ErrorCode.ERR_VariableExpected], [10]),

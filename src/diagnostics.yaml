@@ -179,8 +179,8 @@ diagnostics:
 #   text: "Variable, '&' or '...' expected"
 - name: ERR_IncompletePropertyDeclaration
   text: "Property list, initializer, or ';' expected"
-# - name: ERR_IncompleteStaticDeclaration
-#   text: "Assignment to constant expression, ',' or ';' expected"
+- name: ERR_IncompleteStaticDeclaration
+  text: "Static variable list, initializer, or ';' expected"
 - name: ERR_IncompleteTraitAdaptation
   text: "Expected 'as' or '::' in trait adaptation"
 - name: ERR_IncompleteTraitUse

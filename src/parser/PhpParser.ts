@@ -3130,9 +3130,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       variables.push(this.parseStaticElement());
     }
 
-    let semicolon = this.isStatementEnd(this.currentToken.kind)
-      ? this.parseStatementEnd()
-      : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_CommaOrSemicolonExpected);
+    let semicolon: TokenNode;
+    if (this.isStatementEnd(this.currentToken.kind)) {
+      semicolon = this.parseStatementEnd();
+    }
+    else {
+      let lastVariable = <StaticElementNode>variables[variables.length - 1];
+      let code = lastVariable.equal ? ErrorCode.ERR_CommaOrSemicolonExpected : ErrorCode.ERR_IncompleteStaticDeclaration;
+      semicolon = this.createMissingTokenWithError(TokenKind.Semicolon, code);
+    }
 
     return new StaticNode(staticKeyword, this.factory.createList(variables), semicolon);
   }
