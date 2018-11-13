@@ -175,8 +175,8 @@ diagnostics:
   text: "Base clause or '{' expected"
 - name: ERR_IncompleteNamespace
   text: "Expected a namespace declaration or relative name"
-# - name: ERR_IncompleteParameter
-#   text: "Variable, '&' or '...' expected"
+- name: ERR_IncompleteParameter
+  text: "Variable, '&' or '...' expected"
 - name: ERR_IncompletePropertyDeclaration
   text: "Property list, initializer, or ';' expected"
 - name: ERR_IncompleteStaticDeclaration
@@ -237,6 +237,8 @@ diagnostics:
   text: "'{' or ';' expected"
 - name: ERR_OpenParenExpected
   text: "'(' expected"
+- name: ERR_ParameterExpected
+  text: "Parameter expected"
 - name: ERR_ParameterOrCloseParenExpected
   text: "Parameter or ')' expected"
 - name: ERR_PropertyExpected

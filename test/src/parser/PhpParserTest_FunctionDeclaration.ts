@@ -263,12 +263,10 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function a(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [11]),
       new DiagnosticTestArgs('function a(&', 'missing ellipsis or variable', [ErrorCode.ERR_VariableOrEllipsisExpected], [12]),
       new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_TypeExpected], [12]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_VariableExpected], [12]),
+      new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_IncompleteParameter], [12]),
       // @todo Improve error message.
       new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_CloseParenExpected], [13]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_VariableExpected], [14]),
+      new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_ParameterExpected], [14]),
       new DiagnosticTestArgs('function a(...', 'missing variable', [ErrorCode.ERR_VariableExpected], [14]),
       new DiagnosticTestArgs('function a(...$b', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
 

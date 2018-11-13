@@ -2841,9 +2841,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
     else {
       if (this.currentToken.kind != TokenKind.Variable) {
-        let code = ampersand && !variadic
-          ? ErrorCode.ERR_VariableOrEllipsisExpected
-          : ErrorCode.ERR_VariableExpected;
+        // From right to left, determine what could still be expected.
+        let code: ErrorCode;
+        if (variadic) {
+          code = ErrorCode.ERR_VariableExpected;
+        }
+        else if (ampersand) {
+          code = ErrorCode.ERR_VariableOrEllipsisExpected;
+        }
+        else {
+          code = type ? ErrorCode.ERR_IncompleteParameter : ErrorCode.ERR_ParameterExpected;
+        }
         variable = this.createMissingTokenWithError(TokenKind.Variable, code);
       }
       else {
