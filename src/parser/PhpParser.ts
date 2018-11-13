@@ -2964,21 +2964,27 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       property = this.addError(property, ErrorCode.ERR_InterfaceProperty);
     }
 
-    let nodes: Node[] = [];
-    let semicolon: TokenNode;
-
     // Shouldn't be able to parse a property without seeing one of these first.
     // @todo Attempt to parse for error recovery and assume 'public'?
     Debug.assert(modifiers.length > 0);
 
+    let nodes: Node[] = [];
     nodes.push(property);
     while (this.currentToken.kind == TokenKind.Comma) {
       nodes.push(this.eat(TokenKind.Comma));
       nodes.push(this.parsePropertyElement());
     }
 
-    // @todo Use custom error like in parseStaticDeclaration()?
-    semicolon = this.parseStatementEnd();
+    let semicolon: TokenNode;
+    if (this.isStatementEnd(this.currentToken.kind)) {
+      semicolon = this.parseStatementEnd();
+    }
+    else {
+      let lastProperty = <PropertyElementNode>nodes[nodes.length - 1];
+      let code = lastProperty.equal ? ErrorCode.ERR_CommaOrSemicolonExpected : ErrorCode.ERR_IncompletePropertyDeclaration;
+      semicolon = this.createMissingTokenWithError(TokenKind.Semicolon, code);
+    }
+
     return new PropertyDeclarationNode(
       this.factory.createList(modifiers),
       this.factory.createList(nodes),

@@ -177,8 +177,8 @@ diagnostics:
   text: "Expected a namespace declaration or relative name"
 # - name: ERR_IncompleteParameter
 #   text: "Variable, '&' or '...' expected"
-# - name: ERR_IncompletePropertyDeclaration
-#   text: ""
+- name: ERR_IncompletePropertyDeclaration
+  text: "Property list, initializer, or ';' expected"
 # - name: ERR_IncompleteStaticDeclaration
 #   text: "Assignment to constant expression, ',' or ';' expected"
 - name: ERR_IncompleteTraitAdaptation

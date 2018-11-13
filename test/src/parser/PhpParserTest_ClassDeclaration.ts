@@ -489,10 +489,9 @@ describe('PhpParser', function() {
 
       let diagnosticTests = [
         new DiagnosticTestArgs('class A { public $ }', 'incomplete property name', [ErrorCode.ERR_PropertyNameExpected], [17]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('class A { public $b', 'missing assignment, comma, or semicolon', [ErrorCode.ERR_SemicolonExpected], [19]),
+        new DiagnosticTestArgs('class A { public $b', 'missing assignment, comma, or semicolon', [ErrorCode.ERR_IncompletePropertyDeclaration], [19]),
         new DiagnosticTestArgs('class A { public $b = }', 'missing expression', [ErrorCode.ERR_ExpressionExpected], [21]),
-        new DiagnosticTestArgs('class A { public $b = 1 }', 'missing comma or semicolon', [ErrorCode.ERR_SemicolonExpected], [23]),
+        new DiagnosticTestArgs('class A { public $b = 1 }', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [23]),
         new DiagnosticTestArgs('class A { public $b, }', 'missing property in list', [ErrorCode.ERR_PropertyExpected], [20]),
         new DiagnosticTestArgs('class A { public $b = 1, }', 'missing property in list (after assignment)', [ErrorCode.ERR_PropertyExpected], [24]),
         new DiagnosticTestArgs('class A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadPropertyModifier], [10]),
