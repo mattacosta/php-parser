@@ -2168,7 +2168,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let firstSemicolon: TokenNode;
     if (!this.isStatementEnd(this.currentToken.kind)) {
-      // Skip diagnostic if no '('.
       if (openParen.isMissing) {
         firstSemicolon = this.createMissingToken(TokenKind.Semicolon, this.currentToken.kind, false);
       }
@@ -2185,7 +2184,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let secondSemicolon: TokenNode;
     if (!this.isStatementEnd(this.currentToken.kind)) {
-      // Skip diagnostic if no '(' or missing first ';'.
       if (openParen.isMissing || firstSemicolon.isMissing) {
         secondSemicolon = this.createMissingToken(TokenKind.Semicolon, this.currentToken.kind, false);
       }
@@ -2200,11 +2198,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let iterationExpressions = this.parseForExpressionList(TokenKind.CloseParen);
 
-    // Skip diagnostic if no '(' or missing either ';'.
-    let missingSemicolon = firstSemicolon.isMissing || secondSemicolon.isMissing;
-    let closeParen = this.currentToken.kind != TokenKind.CloseParen && (openParen.isMissing || (!openParen.isMissing && missingSemicolon))
-      ? this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false)
-      : this.eat(TokenKind.CloseParen);
+    let closeParen: TokenNode;
+    if (this.currentToken.kind == TokenKind.CloseParen) {
+      closeParen = this.eat(TokenKind.CloseParen);
+    }
+    else if (openParen.isMissing || firstSemicolon.isMissing || secondSemicolon.isMissing) {
+      closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
+    }
+    else {
+      let code = iterationExpressions ? ErrorCode.ERR_CloseParenExpected : ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
+    }
 
     // Alternate syntax.
     if (this.currentToken.kind == TokenKind.Colon) {
@@ -4582,7 +4586,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       let arrayKeyword = this.eat(TokenKind.Array);
       let openParen = this.eat(TokenKind.OpenParen);
       let arrayList = this.parseArrayElementList(TokenKind.CloseParen);
-      let closeParen = this.eat(TokenKind.CloseParen);
+      let closeParen: TokenNode;
+      // Suppress TS2365: Current token changed after previous method call.
+      if (<TokenKind>this.currentToken.kind == TokenKind.CloseParen) {
+        closeParen = this.eat(TokenKind.CloseParen);
+      }
+      else {
+        let code = arrayList.length == 0
+          ? ErrorCode.ERR_ExpressionOrCloseParenExpected
+          : ErrorCode.ERR_CloseParenExpected;
+        closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
+      }
       return new ArrayNode(
         arrayKeyword,
         openParen,
@@ -4971,7 +4985,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
     let openParen = this.eat(TokenKind.OpenParen);
     let expr = this.isExpressionStart(this.currentToken.kind) ? this.parseExpression() : null;
-    let closeParen = this.eat(TokenKind.CloseParen);
+    let closeParen: TokenNode;
+    // Suppress TS2365: Current token changed after previous method call.
+    if (<TokenKind>this.currentToken.kind == TokenKind.CloseParen) {
+      closeParen = this.eat(TokenKind.CloseParen);
+    }
+    else {
+      let code = expr ? ErrorCode.ERR_CloseParenExpected : ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
+    }
     return new ExitIntrinsicNode(exitKeyword, openParen, expr, closeParen);
   }
 
@@ -5310,7 +5332,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let code = variables[variables.length - 1] instanceof TokenNode
-      ? ErrorCode.ERR_CloseParenExpected
+      ? ErrorCode.ERR_ExpressionOrCloseParenExpected
       : ErrorCode.ERR_CommaOrCloseParenExpected;
 
     let closeParen = this.currentToken.kind == TokenKind.CloseParen

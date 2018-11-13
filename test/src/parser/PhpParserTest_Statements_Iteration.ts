@@ -223,8 +223,7 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('for ($a', 'missing comma or semicolon (initializer)', [ErrorCode.ERR_CommaOrSemicolonExpected], [7]),
         new DiagnosticTestArgs('for (;', 'missing expression or semicolon (condition)', [ErrorCode.ERR_ExpressionOrSemicolonExpected], [6]),
         new DiagnosticTestArgs('for (;$a', 'missing comma or semicolon (condition)', [ErrorCode.ERR_CommaOrSemicolonExpected], [8]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('for (;;', 'missing expression or close paren', [ErrorCode.ERR_CloseParenExpected], [7]),
+        new DiagnosticTestArgs('for (;;', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [7]),
         new DiagnosticTestArgs('for (;;)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [8]),
         new DiagnosticTestArgs('for (;;):', 'missing statement or endfor', [ErrorCode.ERR_Syntax], [9]),
         new DiagnosticTestArgs('for (;;): endfor', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [16]),

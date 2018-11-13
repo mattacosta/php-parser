@@ -644,11 +644,10 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(syntaxTests);
 
       let diagnosticTests = [
-        new DiagnosticTestArgs('list', 'missin open paren', [ErrorCode.ERR_OpenParenExpected], [4]),
+        new DiagnosticTestArgs('list', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [4]),
         new DiagnosticTestArgs('list(', 'missing expression', [ErrorCode.ERR_DeconstructVariableMissing], [5]),
         new DiagnosticTestArgs('list($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [7]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('list($a,', 'missing expression or close paren', [ErrorCode.ERR_CloseParenExpected], [8]),
+        new DiagnosticTestArgs('list($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [8]),
         new DiagnosticTestArgs('list($a)', 'missing equals', [ErrorCode.ERR_Syntax], [8]),
         new DiagnosticTestArgs('list($a) =', 'missing expression (operand)', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
 

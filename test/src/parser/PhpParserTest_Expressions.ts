@@ -367,8 +367,7 @@ describe('PhpParser', function() {
 
       let diagnosticTests = [
         new DiagnosticTestArgs('exit', 'missing open paren or semicolon', [ErrorCode.ERR_SemicolonExpected], [4]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('exit(', 'missing close paren or expression', [ErrorCode.ERR_CloseParenExpected], [5]),
+        new DiagnosticTestArgs('exit(', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [5]),
         new DiagnosticTestArgs('exit(1', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [6]),
       ];
       Test.assertDiagnostics(diagnosticTests);
@@ -405,8 +404,7 @@ describe('PhpParser', function() {
 
       let diagnosticTests = [
         new DiagnosticTestArgs('die', 'missing open paren or semicolon', [ErrorCode.ERR_SemicolonExpected], [3]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('die(', 'missing close paren or expression', [ErrorCode.ERR_CloseParenExpected], [4]),
+        new DiagnosticTestArgs('die(', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [4]),
         new DiagnosticTestArgs('die(1', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [5]),
       ];
       Test.assertDiagnostics(diagnosticTests);
@@ -847,8 +845,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('array', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('array(', 'missing expression or close paren', [ErrorCode.ERR_CloseParenExpected], [6]),
+      new DiagnosticTestArgs('array(', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [6]),
       // @todo Improve error message.
       new DiagnosticTestArgs('array(1', 'missing comma, close paren, or double arrow', [ErrorCode.ERR_CloseParenExpected], [7]),
       new DiagnosticTestArgs('array(&1);', 'should expect explicit byref value', [ErrorCode.ERR_ExpressionNotAddressable], [7]),
