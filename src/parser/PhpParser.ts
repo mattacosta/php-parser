@@ -1669,22 +1669,23 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let baseType: NameNode | null = null;
     if (extendsKeyword) {
       baseType = this.parseTypeName();
-    }
-
-    // @todo Experimental.
-    if (this.currentToken.kind == TokenKind.Comma) {
-      this.skipTokenWithError(ErrorCode.ERR_MultipleBaseTypes);
+      if (this.currentToken.kind == TokenKind.Comma) {
+        // @todo Skip all remaining types in the base clause?
+        //
+        // class A extends B, C {}
+        //                  ~~~
+        //
+        this.skipTokenWithError(ErrorCode.ERR_MultipleInheritance);
+      }
     }
 
     let implementsKeyword = this.eatOptional(TokenKind.Implements);
     let interfaces: NodeList | null = null;
     if (implementsKeyword) {
       interfaces = this.parseQualifiedNameList();
-    }
-
-    // @todo Experimental.
-    if (this.currentToken.kind == TokenKind.Extends) {
-      this.skipTokenWithError(ErrorCode.ERR_BaseClassAfterImplements);
+      if (this.currentToken.kind == TokenKind.Extends && !extendsKeyword) {
+        this.skipTokenWithError(ErrorCode.ERR_BaseClauseAfterImplements);
+      }
     }
 
     let openBrace = this.currentToken.kind != TokenKind.OpenBrace && !extendsKeyword && !implementsKeyword

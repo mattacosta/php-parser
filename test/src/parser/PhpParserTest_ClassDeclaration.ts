@@ -216,8 +216,11 @@ describe('PhpParser', function() {
     let diagnosticTests = [
       new DiagnosticTestArgs('class A extends', 'missing base type', [ErrorCode.ERR_TypeExpected], [15]),
       new DiagnosticTestArgs('class A extends \\', 'missing identifier in fully qualified base type', [ErrorCode.ERR_IdentifierExpected], [17]),
-      new DiagnosticTestArgs('class A extends B, {}', 'multiple base types', [ErrorCode.ERR_MultipleBaseTypes], [17]),
-      new DiagnosticTestArgs('class A implements B extends {}', 'base clause after implements', [ErrorCode.ERR_BaseClassAfterImplements], [21]),
+      new DiagnosticTestArgs('class A extends B, {}', 'multiple base types', [ErrorCode.ERR_MultipleInheritance], [17]),
+      new DiagnosticTestArgs('class A implements B extends {}', 'base clause after implements', [ErrorCode.ERR_BaseClauseAfterImplements], [21]),
+
+      new DiagnosticTestArgs('class A , B {}', 'should not have base clause diagnostic if extends is missing', [ErrorCode.ERR_IncompleteClassDeclaration], [7]),
+      new DiagnosticTestArgs('class A extends B implements C extends {}', 'should not have interface list diagnostic if base clause is already present', [ErrorCode.ERR_OpenBraceExpected], [30]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });

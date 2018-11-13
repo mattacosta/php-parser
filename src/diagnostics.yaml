@@ -112,8 +112,8 @@ diagnostics:
   text: "The modifier '%s' cannot be used on a trait alias"
 - name: ERR_BadTypeModifier
   text: "The modifier '%s' cannot be used on a class, interface, or trait"
-- name: ERR_BaseClassAfterImplements
-  text: "Base class must come before any interfaces"
+- name: ERR_BaseClauseAfterImplements
+  text: "Base clause must precede an interface list"
 # @todo Alternative: "A case label must be followed by a ':' or ';'"
 - name: ERR_CaseLabelSeparatorExpected
   text: "Expected ':' or ';' after case label"
@@ -221,10 +221,10 @@ diagnostics:
   text: "Method name expected"
 - name: ERR_MethodNameOrAmpersandExpected
   text: "Method name or '&' expected"
-- name: ERR_MultipleBaseTypes
-  text: "Cannot have multiple base classes"
 - name: ERR_MultipleDefaultSwitchLabels
   text: "Switch statements may only contain one 'default' label"
+- name: ERR_MultipleInheritance
+  text: "Classes may only inherit from one base class"
 - name: ERR_MultipleVisibilityModifiers
   text: "The modifier '%s' cannot be used with another visibility modifier"
 - name: ERR_NamespaceIsNested
