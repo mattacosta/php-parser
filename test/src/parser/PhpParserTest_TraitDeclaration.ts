@@ -434,7 +434,7 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
         new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
         new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
-        new DiagnosticTestArgs('trait A { function b( }', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [21]),
+        new DiagnosticTestArgs('trait A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
         new DiagnosticTestArgs('trait A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
 
         new DiagnosticTestArgs('trait A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),

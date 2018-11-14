@@ -350,7 +350,7 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [22]),
         new DiagnosticTestArgs('interface A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [24]),
         new DiagnosticTestArgs('interface A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [24]),
-        new DiagnosticTestArgs('interface A { function b( }', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [25]),
+        new DiagnosticTestArgs('interface A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
         // @todo Improve error message.
         new DiagnosticTestArgs('interface A { function b() }', 'missing colon or semicolon', [ErrorCode.ERR_SemicolonExpected], [26]),
 

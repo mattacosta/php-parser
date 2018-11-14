@@ -149,6 +149,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('function', 'missing ampersand, identifier, or open paren', [ErrorCode.ERR_IncompleteFunctionDeclaration], [8]),
+      new DiagnosticTestArgs('function &', 'missing identifier or open paren', [ErrorCode.ERR_IdentifierOrOpenParenExpected], [10]),
       new DiagnosticTestArgs('function a()', 'missing colon or open brace', [ErrorCode.ERR_OpenBraceOrColonExpected], [12]),
       new DiagnosticTestArgs('function a():', 'missing type', [ErrorCode.ERR_TypeExpected], [13]),
       new DiagnosticTestArgs('function a(): B', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [15]),
@@ -264,8 +265,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function a(&', 'missing ellipsis or variable', [ErrorCode.ERR_VariableOrEllipsisExpected], [12]),
       new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_TypeExpected], [12]),
       new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_IncompleteParameter], [12]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_CloseParenExpected], [13]),
+      new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_IncompleteParameterList], [13]),
       new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_ParameterExpected], [14]),
       new DiagnosticTestArgs('function a(...', 'missing variable', [ErrorCode.ERR_VariableExpected], [14]),
       new DiagnosticTestArgs('function a(...$b', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),

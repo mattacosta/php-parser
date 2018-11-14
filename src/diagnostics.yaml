@@ -163,6 +163,8 @@ diagnostics:
   text: "Identifier expected, '%s' is a keyword"
 - name: ERR_IdentifierOrCloseBraceExpected
   text: "Identifier or '}' expected"
+- name: ERR_IdentifierOrOpenParenExpected
+  text: "Identifier or '(' expected"
 - name: ERR_IncompleteAnonymousClassDeclaration
   text: "Argument list, base clause, interface list, or '{' expected"
 - name: ERR_IncompleteClassDeclaration
@@ -177,6 +179,8 @@ diagnostics:
   text: "Expected a namespace declaration or relative name"
 - name: ERR_IncompleteParameter
   text: "Variable, '&' or '...' expected"
+- name: ERR_IncompleteParameterList
+  text: "Parameter list, initializer, or ')' expected"
 - name: ERR_IncompletePropertyDeclaration
   text: "Property list, initializer, or ';' expected"
 - name: ERR_IncompleteStaticDeclaration

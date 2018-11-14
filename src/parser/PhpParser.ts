@@ -192,6 +192,15 @@ export class InvocationArguments {
 }
 
 /**
+ * A container for the parameters of a function or method declaration.
+ */
+export class Parameters {
+
+  constructor(public readonly openParen: TokenNode, public readonly parameterList: NodeList | null, public readonly closeParen: TokenNode) {}
+
+}
+
+/**
  * Parses a PHP file into an abstract syntax tree.
  */
 export class PhpParser implements IParser<SourceTextSyntaxNode> {
@@ -2429,13 +2438,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     Debug.assert(this.isFunctionIdentifier(this.currentToken.kind));
 
     let identifier = this.eat(this.currentToken.kind);
-    let openParen = this.eat(TokenKind.OpenParen);
     let parameters = this.parseParameterList();
-    let hasParameter = parameters.length > 0 && !this.isParameterMissing(<ParameterNode>parameters[parameters.length - 1]);
-    let closeParen = this.currentToken.kind != TokenKind.CloseParen && !hasParameter
-      ? this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_ParameterOrCloseParenExpected)
-      : this.eat(TokenKind.CloseParen);
-
     let colon = this.eatOptional(TokenKind.Colon);
     let returnType = colon ? this.parseType() : null;
 
@@ -2450,9 +2453,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       functionKeyword,
       ampersand,
       identifier,
-      openParen,
-      parameters.length > 0 ? this.factory.createList(parameters) : null,
-      closeParen,
+      parameters.openParen,
+      parameters.parameterList,
+      parameters.closeParen,
       colon,
       returnType,
       new StatementBlockNode(openBrace, statements, closeBrace)
@@ -2669,16 +2672,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let functionKeyword = this.eat(TokenKind.Function);
     let ampersand = this.eatOptional(TokenKind.Ampersand);
     let identifier = this.parseClassMemberName(ampersand ? ErrorCode.ERR_MethodNameExpected : ErrorCode.ERR_MethodNameOrAmpersandExpected);
-
-    let openParen = this.eat(TokenKind.OpenParen);
-    let parameters: Array<ParameterNode | TokenNode> = [];
-    // @todo Needs testing in IDE scenarios. If problematic, try skipping the
-    //   parameter list when both the identifier and parenthesis are missing.
-    if (!openParen.isMissing && this.isParameterStart(this.currentToken.kind)) {
-      parameters = this.parseParameterList();
-    }
-    let closeParen = this.eat(TokenKind.CloseParen);
-
+    let parameters = this.parseParameterList();
     let colon = this.eatOptional(TokenKind.Colon);
     let returnType = colon ? this.parseType() : null;
 
@@ -2727,9 +2721,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       functionKeyword,
       ampersand,
       identifier,
-      openParen,
-      parameters.length > 0 ? this.factory.createList(parameters) : null,
-      closeParen,
+      parameters.openParen,
+      parameters.parameterList,
+      parameters.closeParen,
       colon,
       returnType,
       statements,
@@ -2874,15 +2868,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a comma separated list of parameters.
    *
-   * Syntax: `parameter-list`
+   * Syntax: `( parameter-list )`
    *
    * Where `parameter-list` is:
    * - `parameter-list , parameter`
    * - `parameter`
    */
-  protected parseParameterList(): Array<ParameterNode | TokenNode> {
+  protected parseParameterList(): Parameters {
     let parameters: Array<ParameterNode | TokenNode> = [];
     let variadicIndex = -1;
+
+    let openParen = this.eat(TokenKind.OpenParen);
 
     // const savedContext = this.currentContext;
     // this.addParseContext(ParseContext.ParameterListElements);
@@ -2922,7 +2918,40 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     // this.currentContext = savedContext;
 
-    return parameters;
+    let closeParen: TokenNode;
+    if (openParen.isMissing) {
+      closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
+    }
+    else if (this.currentToken.kind == TokenKind.CloseParen) {
+      closeParen = this.eat(TokenKind.CloseParen);
+    }
+    else {
+      let code: ErrorCode;
+      if (parameters.length > 0) {
+        let lastParameter = <ParameterNode>parameters[parameters.length - 1];
+        if (lastParameter.ellipsis) {
+          code = ErrorCode.ERR_CloseParenExpected;
+        }
+        else if (lastParameter.equal) {
+          code = ErrorCode.ERR_CommaOrCloseParenExpected;
+        }
+        else {
+          code = ErrorCode.ERR_IncompleteParameterList;
+        }
+      }
+      else {
+        code = ErrorCode.ERR_ParameterOrCloseParenExpected;
+      }
+      closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
+    }
+
+    // NOTE: Just like `InvocationArguments`, this temporary object is used to
+    // standardize how parameter lists are parsed.
+    return new Parameters(
+      openParen,
+      parameters.length > 0 ? this.factory.createList(parameters) : null,
+      closeParen
+    );
   }
 
   /**
@@ -4812,11 +4841,24 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `STATIC FUNCTION & ( parameter-list ) closure-use return-type statement-block`
    */
   protected parseClosure(staticKeyword: TokenNode | null, functionKeyword: TokenNode, ampersand: TokenNode | null): AnonymousFunctionNode {
-    let openParen = this.currentToken.kind == TokenKind.OpenParen
-      ? this.eat(TokenKind.OpenParen)
-      : this.createMissingTokenWithError(TokenKind.OpenParen, ErrorCode.ERR_IncompleteFunctionDeclaration);
-    let parameters = !openParen.isMissing && this.isParameterStart(this.currentToken.kind) ? this.parseParameterList() : [];
-    let closeParen = this.eat(TokenKind.CloseParen);
+    let openParen: TokenNode;
+    let parameters: NodeList | null;
+    let closeParen: TokenNode;
+
+    if (this.currentToken.kind == TokenKind.OpenParen) {
+      let parameterList = this.parseParameterList();
+      openParen = parameterList.openParen;
+      parameters = parameterList.parameterList;
+      closeParen = parameterList.closeParen;
+    }
+    else {
+      // If there is no open parenthesis, then the parser cannot determine if
+      // the existing tokens are for a function declaration or a closure.
+      let code = ampersand ? ErrorCode.ERR_IdentifierOrOpenParenExpected : ErrorCode.ERR_IncompleteFunctionDeclaration;
+      openParen = this.createMissingTokenWithError(TokenKind.OpenParen, code);
+      parameters = null;
+      closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
+    }
 
     let useClause: ClosureUseNode | null = null;
     if (this.currentToken.kind == TokenKind.Use) {
@@ -4843,7 +4885,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       functionKeyword,
       ampersand,
       openParen,
-      parameters.length > 0 ? this.factory.createList(parameters) : null,
+      parameters,
       closeParen,
       useClause,
       colon,

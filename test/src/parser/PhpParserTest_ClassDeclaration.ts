@@ -688,7 +688,7 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('class A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
         new DiagnosticTestArgs('class A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
         new DiagnosticTestArgs('class A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
-        new DiagnosticTestArgs('class A { function b( }', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [21]),
+        new DiagnosticTestArgs('class A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
         new DiagnosticTestArgs('class A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
         new DiagnosticTestArgs('class A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
         new DiagnosticTestArgs('class A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
