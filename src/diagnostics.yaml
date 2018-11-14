@@ -257,6 +257,13 @@ diagnostics:
 # @todo Improve text?
 - name: ERR_StaticMemberExpected
   text: "Identifier, variable, or '{' expected"  # ...in scoped access expression
+- name: ERR_StringOffsetExpected
+  text: "An interpolated element access expression must specify an offset"
+# @todo Improve text?
+- name: ERR_StringOffsetNumberExpected
+  text: "Integer offset expected"
+- name: ERR_StringVariableNameExpected
+  text: "Expected an expression or the name of a variable"
 - name: ERR_TraitAdaptationKeywordExpected
   text: "Expected 'as' or 'insteadof' after method reference"
 - name: ERR_TraitConstant

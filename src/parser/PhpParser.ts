@@ -5963,7 +5963,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let dollarOpenBrace = this.eat(TokenKind.DollarOpenBrace);
 
     if (this.currentToken.kind != TokenKind.StringIdentifier) {
-      let expr = this.parseExpression();
+      let expr: ExpressionNode;
+      if (this.isExpressionStart(this.currentToken.kind)) {
+        expr = this.parseExpression();
+      }
+      else {
+        let identifier = this.createMissingTokenWithError(TokenKind.StringIdentifier, ErrorCode.ERR_StringVariableNameExpected);
+        expr = new StringVariableNode(identifier);
+      }
       let closeBrace = this.eat(TokenKind.CloseBrace);
       return new IndirectStringVariableNode(dollarOpenBrace, expr, closeBrace);
     }
@@ -6017,11 +6024,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       // Suppress TS2365: Current token changed after previous method call.
       else if (<TokenKind>this.currentToken.kind == TokenKind.Minus) {
         minus = this.eat(TokenKind.Minus);
-        offset = this.eat(TokenKind.StringNumber);
+        // Suppress TS2365: Current token changed after previous method call.
+        offset = <TokenKind>this.currentToken.kind == TokenKind.StringNumber
+          ? this.eat(TokenKind.StringNumber)
+          : this.createMissingTokenWithError(TokenKind.StringNumber, ErrorCode.ERR_StringOffsetNumberExpected);
       }
       else {
-        // @todo Use custom error.
-        offset = this.createMissingToken(TokenKind.Variable, this.currentToken.kind, true);
+        offset = this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_StringOffsetExpected);
       }
       let closeBracket = this.eat(TokenKind.CloseBracket);
       return new StringElementAccessNode(variable, openBracket, minus, offset, closeBracket);

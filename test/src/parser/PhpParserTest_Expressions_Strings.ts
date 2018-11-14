@@ -175,15 +175,12 @@ describe('PhpParser', function() {
       // All incomplete variables are just plain variables followed by strings.
 
       // Variable with element access.
-      // @todo Improve error message.
-      new DiagnosticTestArgs('"$a[]";', 'missing identifier, variable, minus, or string number', [ErrorCode.ERR_Syntax], [4]),
+      new DiagnosticTestArgs('"$a[]";', 'missing identifier, variable, minus, or string number', [ErrorCode.ERR_StringOffsetExpected], [4]),
       new DiagnosticTestArgs('"$a[0";', 'missing close bracket', [ErrorCode.ERR_Syntax], [5]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('"$a[-";', 'missing string number', [ErrorCode.ERR_Syntax], [5]),
+      new DiagnosticTestArgs('"$a[-";', 'missing string number', [ErrorCode.ERR_StringOffsetNumberExpected], [5]),
 
       // Indirect variable.
-      // @todo Improve error message.
-      new DiagnosticTestArgs('"${}";', 'missing expression or string identifier', [ErrorCode.ERR_ExpressionExpected], [3]),
+      new DiagnosticTestArgs('"${}";', 'missing expression or string identifier', [ErrorCode.ERR_StringVariableNameExpected], [3]),
       new DiagnosticTestArgs('"${$}";', 'partial variable name (indirect variable)', [ErrorCode.ERR_IncompleteVariable], [3]),
 
       // Expression.
