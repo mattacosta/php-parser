@@ -138,8 +138,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('interface A extends', 'missing base type', [ErrorCode.ERR_TypeExpected], [19]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('interface A extends B', 'missing comma or open brace', [ErrorCode.ERR_OpenBraceExpected], [21]),
+      new DiagnosticTestArgs('interface A extends B', 'missing comma or open brace', [ErrorCode.ERR_CommaOrOpenBraceExpected], [21]),
       new DiagnosticTestArgs('interface A extends B,', 'missing base type (in list)', [ErrorCode.ERR_TypeExpected], [22]),
     ];
     Test.assertDiagnostics(diagnosticTests);

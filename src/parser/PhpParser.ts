@@ -1697,9 +1697,19 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
     }
 
-    let openBrace = this.currentToken.kind != TokenKind.OpenBrace && !extendsKeyword && !implementsKeyword
-      ? this.createMissingTokenWithError(TokenKind.OpenBrace, ErrorCode.ERR_IncompleteClassDeclaration)
-      : this.eat(TokenKind.OpenBrace);
+    let openBrace: TokenNode;
+    if (this.currentToken.kind != TokenKind.OpenBrace) {
+      if (!implementsKeyword) {
+        let code = extendsKeyword ? ErrorCode.ERR_OpenBraceExpected : ErrorCode.ERR_IncompleteClassDeclaration;
+        openBrace = this.createMissingTokenWithError(TokenKind.OpenBrace, code);
+      }
+      else {
+        openBrace = this.createMissingTokenWithError(TokenKind.OpenBrace, ErrorCode.ERR_CommaOrOpenBraceExpected);
+      }
+    }
+    else {
+      openBrace = this.eat(TokenKind.OpenBrace);
+    }
 
     let members: NodeList | null = null;
     if (!identifier.isMissing && !openBrace.isMissing) {
@@ -2628,9 +2638,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       this.skipTokenWithError(ErrorCode.ERR_InterfaceImplementsList);
     }
 
-    let openBrace = this.currentToken.kind != TokenKind.OpenBrace && !extendsKeyword
-      ? this.createMissingTokenWithError(TokenKind.OpenBrace, ErrorCode.ERR_IncompleteInterfaceDeclaration)
-      : this.eat(TokenKind.OpenBrace);
+    let openBrace: TokenNode;
+    if (this.currentToken.kind != TokenKind.OpenBrace) {
+      let code = extendsKeyword ? ErrorCode.ERR_CommaOrOpenBraceExpected : ErrorCode.ERR_IncompleteInterfaceDeclaration;
+      openBrace = this.createMissingTokenWithError(TokenKind.OpenBrace, code);
+    }
+    else {
+      openBrace = this.eat(TokenKind.OpenBrace);
+    }
 
     let members: NodeList | null = null;
     if (!identifier.isMissing && !openBrace.isMissing) {
