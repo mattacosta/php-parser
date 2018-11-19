@@ -129,6 +129,8 @@ diagnostics:
   text: "']' expected"
 - name: ERR_CloseParenExpected
   text: "')' expected"
+- name: ERR_ColonOrSemicolonExpected
+  text: "':' or ';' expected"
 - name: ERR_CommaOrCloseBraceExpected
   text: "',' or '}' expected"
 - name: ERR_CommaOrCloseParenExpected

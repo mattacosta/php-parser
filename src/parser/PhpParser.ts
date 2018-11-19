@@ -2702,7 +2702,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // and prevent the parser from getting too far off track.
     let isInterfaceOrAbstract = context == ParseContext.InterfaceMembers || modifierFlags & ModifierFlags.Abstract;
     if (this.currentToken.kind != TokenKind.OpenBrace && isInterfaceOrAbstract) {
-      semicolon = this.parseStatementEnd();
+      semicolon = this.isStatementEnd(this.currentToken.kind)
+        ? this.parseStatementEnd()
+        : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_ColonOrSemicolonExpected);
     }
     else {
       let openBrace: TokenNode;

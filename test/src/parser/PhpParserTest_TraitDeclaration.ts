@@ -442,8 +442,7 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('trait A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
         new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
 
-        // @todo Improve error message.
-        new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_SemicolonExpected], [31]),
+        new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
         new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
         new DiagnosticTestArgs('trait A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
         new DiagnosticTestArgs('trait A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
