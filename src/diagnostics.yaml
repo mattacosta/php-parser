@@ -145,6 +145,8 @@ diagnostics:
   text: "At least one variable is required to deconstruct an expression"
 - name: ERR_DeconstructVariableReference
   text: "A destructuring variable cannot be assigned by reference"
+- name: ERR_DoubleArrowOrCloseParenExpected
+  text: "'=>' or ')' expected"
 - name: ERR_DuplicateModifier
   text: "Duplicate '%s' modifier"
 - name: ERR_EllipsisOrCloseParenExpected

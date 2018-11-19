@@ -291,11 +291,9 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('foreach', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [7]),
         new DiagnosticTestArgs('foreach (', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
         new DiagnosticTestArgs('foreach ($a', 'missing as', [ErrorCode.ERR_Syntax], [11]),
-        // @todo Technically "&" is expected too.
         new DiagnosticTestArgs('foreach ($a as', 'missing key or value expression', [ErrorCode.ERR_ExpressionExpectedEOF], [14]),
-        // @todo Improve error message.
-        new DiagnosticTestArgs('foreach ($a as $v', 'missing double arrow or close paren', [ErrorCode.ERR_CloseParenExpected], [17]),
-        new DiagnosticTestArgs('foreach ($a as $k =>', 'missing value expression', [ErrorCode.ERR_ExpressionExpectedEOF], [20]),
+        new DiagnosticTestArgs('foreach ($a as $v', 'missing double arrow or close paren', [ErrorCode.ERR_DoubleArrowOrCloseParenExpected], [17]),
+        new DiagnosticTestArgs('foreach ($a as $k =>', 'missing value expression', [ErrorCode.ERR_ExpressionExpectedEOF, ErrorCode.ERR_CloseParenExpected], [20, 20]),
         new DiagnosticTestArgs('foreach ($a as $v)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [18]),
         new DiagnosticTestArgs('foreach ($a as $v):', 'missing endforeach', [ErrorCode.ERR_Syntax], [19]),
         new DiagnosticTestArgs('foreach ($a as $v): endforeach', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [30]),

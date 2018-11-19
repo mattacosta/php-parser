@@ -2365,7 +2365,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
     }
 
-    let closeParen = this.eat(TokenKind.CloseParen);
+    let code = !isValue && doubleArrow === null
+      ? ErrorCode.ERR_DoubleArrowOrCloseParenExpected
+      : ErrorCode.ERR_CloseParenExpected;
+    let closeParen = this.currentToken.kind == TokenKind.CloseParen
+      ? this.eat(TokenKind.CloseParen)
+      : this.createMissingTokenWithError(TokenKind.CloseParen, code);
 
     if (this.currentToken.kind == TokenKind.Colon) {
       let colon = this.eat(TokenKind.Colon);
