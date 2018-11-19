@@ -562,6 +562,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return ErrorCode.ERR_SemicolonExpected;
       case TokenKind.CloseBrace:
         return ErrorCode.ERR_CloseBraceExpected;
+      case TokenKind.CloseBracket:
+        return ErrorCode.ERR_CloseBracketExpected;
       case TokenKind.CloseParen:
         return ErrorCode.ERR_CloseParenExpected;
       case TokenKind.OpenBrace:
@@ -4636,7 +4638,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         closeParen = this.eat(TokenKind.CloseParen);
       }
       else {
-        let code = arrayList.length == 0
+        let code = arrayList.length == 0 || (arrayList[arrayList.length - 1] instanceof TokenNode)
           ? ErrorCode.ERR_ExpressionOrCloseParenExpected
           : ErrorCode.ERR_CloseParenExpected;
         closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
@@ -4651,7 +4653,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let openBracket = this.eat(TokenKind.OpenBracket);
     let arrayList = this.parseArrayElementList(TokenKind.CloseBracket);
-    let closeBracket = this.eat(TokenKind.CloseBracket);
+
+    let code = arrayList.length == 0 || (arrayList[arrayList.length - 1] instanceof TokenNode)
+      ? ErrorCode.ERR_IncompleteArrayOrDestructure
+      : ErrorCode.ERR_CloseBracketExpected;
+    let closeBracket = this.currentToken.kind == TokenKind.CloseBracket
+      ? this.eat(TokenKind.CloseBracket)
+      : this.createMissingTokenWithError(TokenKind.CloseBracket, code);
+
     return new ArrayNode(
       null,
       openBracket,

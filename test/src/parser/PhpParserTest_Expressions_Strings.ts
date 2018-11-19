@@ -176,7 +176,7 @@ describe('PhpParser', function() {
 
       // Variable with element access.
       new DiagnosticTestArgs('"$a[]";', 'missing identifier, variable, minus, or string number', [ErrorCode.ERR_StringOffsetExpected], [4]),
-      new DiagnosticTestArgs('"$a[0";', 'missing close bracket', [ErrorCode.ERR_Syntax], [5]),
+      new DiagnosticTestArgs('"$a[0";', 'missing close bracket', [ErrorCode.ERR_CloseBracketExpected], [5]),
       new DiagnosticTestArgs('"$a[-";', 'missing string number', [ErrorCode.ERR_StringOffsetNumberExpected], [5]),
 
       // Indirect variable.
@@ -187,7 +187,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('"{$}";', 'partial variable name (expression)', [ErrorCode.ERR_IncompleteVariable], [2]),
 
       // @todo These should be recovery tests.
-      new DiagnosticTestArgs('"${a[0 1]}";', 'missing close bracket (in malformed string offset)', [ErrorCode.ERR_Syntax], [6]),
+      new DiagnosticTestArgs('"${a[0 1]}";', 'missing close bracket (in malformed string offset)', [ErrorCode.ERR_CloseBracketExpected], [6]),
       new DiagnosticTestArgs('"{$a $b}";', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [4]),
     ];
     Test.assertDiagnostics(diagnosticTests);

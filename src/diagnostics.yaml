@@ -125,6 +125,8 @@ diagnostics:
   text: "Expected a class name or a reference to evaluate as a class name"
 - name: ERR_CloseBraceExpected
   text: "'}' expected"
+- name: ERR_CloseBracketExpected
+  text: "']' expected"
 - name: ERR_CloseParenExpected
   text: "')' expected"
 - name: ERR_CommaOrCloseBraceExpected
@@ -169,6 +171,8 @@ diagnostics:
   text: "Identifier or '(' expected"
 - name: ERR_IncompleteAnonymousClassDeclaration
   text: "Argument list, base clause, interface list, or '{' expected"
+- name: ERR_IncompleteArrayOrDestructure
+  text: "Expected an array initialization expression or destructuring assignment"
 - name: ERR_IncompleteClassDeclaration
   text: "Base clause, interface list, or '{' expected"
 - name: ERR_IncompleteClosure

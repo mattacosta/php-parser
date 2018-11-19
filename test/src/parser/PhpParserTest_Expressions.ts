@@ -848,6 +848,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('array(', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [6]),
       // @todo Improve error message.
       new DiagnosticTestArgs('array(1', 'missing comma, close paren, or double arrow', [ErrorCode.ERR_CloseParenExpected], [7]),
+      new DiagnosticTestArgs('array(1,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [8]),
       new DiagnosticTestArgs('array(&1);', 'should expect explicit byref value', [ErrorCode.ERR_ExpressionNotAddressable], [7]),
 
       // @todo Recovery tests.
@@ -941,8 +942,15 @@ describe('PhpParser', function() {
 
     // NOTE: See array-creation-expression for array element tests.
     let diagnosticTests = [
+      new DiagnosticTestArgs('[', 'missing list deconstruction element, expression, or close bracket', [ErrorCode.ERR_IncompleteArrayOrDestructure], [1]),
       // @todo Improve error message.
-      new DiagnosticTestArgs('[', 'missing expression or close bracket', [ErrorCode.ERR_Syntax], [1]),
+      new DiagnosticTestArgs('[1', 'missing comma, close bracket, or double arrow', [ErrorCode.ERR_CloseBracketExpected], [2]),
+      new DiagnosticTestArgs('[1,', 'missing list deconstruction element, expression, or close bracket (in list)', [ErrorCode.ERR_IncompleteArrayOrDestructure], [3]),
+
+      // This could be a bad array initializer or a good destructuring
+      // assignment. There is no way to tell until a ']' is parsed, so don't
+      // jump to any conclusions by adding `ERR_DeconstructVariableMissing`.
+      new DiagnosticTestArgs('[,', 'should not parse as a destructuring assignment if expression is missing', [ErrorCode.ERR_IncompleteArrayOrDestructure], [2]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
