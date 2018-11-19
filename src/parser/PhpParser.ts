@@ -1702,7 +1702,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let openBrace: TokenNode;
     if (this.currentToken.kind != TokenKind.OpenBrace) {
       if (!implementsKeyword) {
-        let code = extendsKeyword ? ErrorCode.ERR_OpenBraceExpected : ErrorCode.ERR_IncompleteClassDeclaration;
+        let code = extendsKeyword ? ErrorCode.ERR_IncompleteClassDeclarationWithExtends : ErrorCode.ERR_IncompleteClassDeclaration;
         openBrace = this.createMissingTokenWithError(TokenKind.OpenBrace, code);
       }
       else {

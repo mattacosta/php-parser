@@ -224,8 +224,7 @@ describe('PhpParser', function() {
     let diagnosticTests = [
       new DiagnosticTestArgs('class A extends', 'missing base type', [ErrorCode.ERR_TypeExpected], [15]),
       new DiagnosticTestArgs('class A extends \\', 'missing identifier in fully qualified base type', [ErrorCode.ERR_IdentifierExpected], [17]),
-      // @todo Improve error message.
-      new DiagnosticTestArgs('class A extends B', 'missing implements or open brace', [ErrorCode.ERR_OpenBraceExpected], [17]),
+      new DiagnosticTestArgs('class A extends B', 'missing implements or open brace', [ErrorCode.ERR_IncompleteClassDeclarationWithExtends], [17]),
 
       new DiagnosticTestArgs('class A extends B, {}', 'should not parse multiple base types', [ErrorCode.ERR_MultipleInheritance], [17]),
       new DiagnosticTestArgs('class A implements B extends {}', 'should not parse base clause after implements', [ErrorCode.ERR_BaseClauseAfterImplements], [21]),
