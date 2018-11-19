@@ -183,7 +183,7 @@ diagnostics:
 - name: ERR_IncompleteClassDeclarationWithExtends
   text: "Interface list or '{' expected"
 - name: ERR_IncompleteClosure
-  text: "Lexical variables, return type or '{' expected"
+  text: "Lexical variables, return type, or '{' expected"
 - name: ERR_IncompleteFunctionDeclaration
   text: "Function name, closure parameters, or '&' expected"
 - name: ERR_IncompleteInterfaceDeclaration
