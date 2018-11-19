@@ -175,6 +175,7 @@ diagnostics:
   text: "Identifier or '(' expected"
 - name: ERR_IncompleteAnonymousClassDeclaration
   text: "Argument list, base clause, interface list, or '{' expected"
+# @todo Improve text?
 - name: ERR_IncompleteArrayOrDestructure
   text: "Expected an array initialization expression or destructuring assignment"
 - name: ERR_IncompleteClassDeclaration
@@ -292,8 +293,10 @@ diagnostics:
   text: "Type expected"
 - name: ERR_UseTypeAlreadySpecified
   text: "A use type has already been specified"
+# @todo Improve text?
 - name: ERR_UseTypeExpected
   text: "Expected an imported type, constant, or function"
+# @todo Improve text?
 - name: ERR_UseTypeOrCloseBraceExpected
   text: "Expected an imported type, constant, function, or '}'"
 - name: ERR_VariableExpected
