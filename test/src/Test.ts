@@ -89,12 +89,12 @@ export class Test {
     }
   }
 
-  public static assertDiagnostics(tests: DiagnosticTestArgs[], minVersion = PhpVersion.PHP7_0) {
-    Test.assertDiagnosticsWithTag(tests, '<?php ', minVersion);
+  public static assertDiagnostics(tests: DiagnosticTestArgs[], minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+    Test.assertDiagnosticsWithTag(tests, '<?php ', minVersion, maxVersion);
   }
 
-  public static assertDiagnosticsWithShortOpen(tests: DiagnosticTestArgs[], minVersion = PhpVersion.PHP7_0) {
-    Test.assertDiagnosticsWithTag(tests, '<?= ', minVersion);
+  public static assertDiagnosticsWithShortOpen(tests: DiagnosticTestArgs[], minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+    Test.assertDiagnosticsWithTag(tests, '<?= ', minVersion, maxVersion);
   }
 
   public static assertSyntaxNodes(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0) {
@@ -197,11 +197,11 @@ export class Test {
     }
   }
 
-  protected static assertDiagnosticsWithTag(argList: DiagnosticTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0) {
+  protected static assertDiagnosticsWithTag(argList: DiagnosticTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
-      if (!Test.isPhpVersionInRange(minVersion)) {
+      if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
         it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
         continue;
       }

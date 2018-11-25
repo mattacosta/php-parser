@@ -38,8 +38,10 @@ diagnostics:
 - name: ERR_FeatureIsExperimental
   text: "The '%s' feature is experimental and unsupported, use %s to enable"
   code: 200
+# @todo Requires support for localizing feature names.
 - name: ERR_FeatureNotAvailable
   text: "The '%s' feature requires PHP %s or later"
+  code: 201
 
 # -----------------------------------------------------------------------------
 # Lexer diagnostics

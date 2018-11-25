@@ -160,6 +160,7 @@ import { ParseContext } from './ParseContext';
 import { PhpLexer } from './PhpLexer';
 import { PhpLexerState } from './PhpLexerState';
 import { PhpParserOptions } from './PhpParserOptions';
+import { PhpVersion } from './PhpVersion';
 import { Precedence } from './Precedence';
 import { SourceTextNode } from '../language/node/SourceTextNode';
 import { SourceTextSyntaxNode } from '../language/syntax/SourceTextSyntaxNode';
@@ -310,6 +311,18 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // Finally, move the lexer to get the actual EOF token.
     this.lexer.setPosition(end);
     this.nextToken();
+  }
+
+  /**
+   * Determines if the given version requirements are satisfied.
+   *
+   * @param {PhpVersion} minVersion
+   *   The earliest supported PHP version.
+   * @param {PhpVersion} maxVersion
+   *   The latest supported PHP version.
+   */
+  protected isSupportedVersion(minVersion: PhpVersion, maxVersion = PhpVersion.Latest): boolean {
+    return this.options.version >= minVersion && this.options.version <= maxVersion;
   }
 
   /**
