@@ -4176,7 +4176,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       let unaryNode = new UnaryNode(operator, operand);
       if (kind == TokenKind.UnsetCast) {
-        // @todo Requires PHP 7.2 or later.
+        // No version check; deprecation warnings are retroactive.
         unaryNode = this.addError(unaryNode, ErrorCode.WRN_UnsetCast);
       }
 
