@@ -5476,7 +5476,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
-      // @todo Requires PHP 7.3 or later.
+      if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+        ampersand = this.addError(ampersand, ErrorCode.ERR_FeatureListDeconstructionByRef);
+      }
       let byRefValue = this.parseExpression(ExpressionType.Explicit);
       return new ListDestructureElementNode(null, null, ampersand, byRefValue);
     }
@@ -5508,7 +5510,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
-      // @todo Requires PHP 7.3 or later.
+      if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+        ampersand = this.addError(ampersand, ErrorCode.ERR_FeatureListDeconstructionByRef);
+      }
+      let byRefValue = this.parseExpression(ExpressionType.Explicit);
+      return new ListDestructureElementNode(key, doubleArrow, ampersand, byRefValue);
     }
 
     // Suppress TS2365: Current token changed after previous method call.
