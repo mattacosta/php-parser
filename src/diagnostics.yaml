@@ -43,6 +43,9 @@ diagnostics:
   text: "The '%s' feature requires PHP %s or later"
   code: 201
 
+- name: ERR_FeatureClassConstantModifiers
+  text: "The feature 'class constant modifiers' requires PHP 7.1 or later"
+
 # -----------------------------------------------------------------------------
 # Lexer diagnostics
 # -----------------------------------------------------------------------------

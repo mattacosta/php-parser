@@ -1604,10 +1604,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     for (let i = 0; i < modifiers.length; i++) {
       let modifier = this.getModifierFlag(modifiers[i].kind);
       if (modifier & ModifierFlags.VisibilityMask) {
-        // @todo Modifiers on class constants requires PHP 7.1 or later.
-        // if (!this.checkPhpVersion(PhpVersion.PHP7_1)) {
-        //   modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_FeatureClassConstantModifiers);
-        // }
+        if (!this.isSupportedVersion(PhpVersion.PHP7_1)) {
+          modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_FeatureClassConstantModifiers);
+        }
       }
       else {
         modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_BadConstantModifier);

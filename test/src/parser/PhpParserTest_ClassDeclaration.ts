@@ -49,6 +49,7 @@ import {
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstantDeclarationSyntaxNode {
@@ -321,6 +322,20 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(secondConst.identifierOrKeyword, text, TokenKind.Identifier, 'C');
           assert.equal(secondConst.expression instanceof LiteralSyntaxNode, true);
         }),
+        new ParserTestArgs('class A { const foreach = 1; }', 'should parse a class constant declaration with a semi-reserved name', (statements, text) => {
+          let declNode = assertClassConstantDeclaration(statements);
+          assert.strictEqual(declNode.modifiers, null);
+          let elements = declNode.elements ? declNode.elements.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let constNode = <ClassConstantElementSyntaxNode>elements[0];
+          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.ForEach, 'foreach');
+          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
         new ParserTestArgs('class A { public const B = 1; }', 'should parse a public class constant declaration', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
@@ -357,18 +372,8 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
           assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
         }),
-        new ParserTestArgs('class A { const foreach = 1; }', 'should parse a class constant declaration with a semi-reserved name', (statements, text) => {
-          let declNode = assertClassConstantDeclaration(statements);
-          assert.strictEqual(declNode.modifiers, null);
-          let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
-          let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
-          Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.ForEach, 'foreach');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
-        }),
       ];
-      Test.assertSyntaxNodes(syntaxTests);
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('class A { const }', 'missing identifier and assignment', [ErrorCode.ERR_IdentifierExpected], [15]),
@@ -381,6 +386,13 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('class A { const class = 1; }', 'should not parse a class constant declaration with a reserved name', [ErrorCode.ERR_IdentifierExpectedKeyword], [16]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTests7_0 = [
+        new DiagnosticTestArgs('class A { private const B = 1; }', 'private modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+        new DiagnosticTestArgs('class A { protected const B = 1; }', 'protected modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+        new DiagnosticTestArgs('class A { public const B = 1; }', 'public modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+      ];
+      Test.assertDiagnostics(diagnosticTests7_0, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('property-declaration', function() {
