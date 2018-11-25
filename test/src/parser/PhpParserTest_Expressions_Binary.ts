@@ -656,16 +656,17 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('list($a)', 'missing equals', [ErrorCode.ERR_Syntax], [8]),
         new DiagnosticTestArgs('list($a) =', 'missing expression (operand)', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
 
-        new DiagnosticTestArgs('list() = $a;', 'should not parse a deconstruction without a variable', [ErrorCode.ERR_DeconstructVariableMissing], [5]),
-        new DiagnosticTestArgs('list(,) = $a;', 'should not parse a deconstruction without a variable (with comma)', [ErrorCode.ERR_DeconstructVariableMissing], [6]),
-        new DiagnosticTestArgs('list([$a]) = $b;', 'should not parse a deconstruction using mixed syntax', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
+        new DiagnosticTestArgs('list() = $a;', 'should not parse a destructuring assignment without a variable', [ErrorCode.ERR_DeconstructVariableMissing], [5]),
+        new DiagnosticTestArgs('list(,) = $a;', 'should not parse a destructuring assignment without a variable (with comma)', [ErrorCode.ERR_DeconstructVariableMissing], [6]),
+        new DiagnosticTestArgs('list([$a]) = $b;', 'should not parse a nested deconstruction using mixed syntax', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
+
         new DiagnosticTestArgs('list(1) = $a;', 'should expect an explicit value', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
-        new DiagnosticTestArgs('list(&$a => $b) = $c;', 'should not parse deconstruction with byref key', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
+        new DiagnosticTestArgs('list(&$a => $b) = $c;', 'should not parse a destructuring assignment containing a byref key', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
       ];
       Test.assertDiagnostics(diagnosticTests);
 
       let diagnosticTestsKeys = [
-        new DiagnosticTestArgs('list($a => 1) = $b;', 'should expect an explicit value (key-value pair)', [ErrorCode.ERR_FeatureListDeconstructionKeys, ErrorCode.ERR_ExpressionNotAddressable], [8, 11]),
+        new DiagnosticTestArgs('list($a => 1) = $b;', 'should expect an explicit value in key-value pair', [ErrorCode.ERR_FeatureListDeconstructionKeys, ErrorCode.ERR_ExpressionNotAddressable], [8, 11]),
       ];
       Test.assertDiagnostics(diagnosticTestsKeys, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
