@@ -3872,15 +3872,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let unsetKeyword = this.eat(TokenKind.Unset);
     let openParen = this.eat(TokenKind.OpenParen);
 
-    let expressions = [];
+    let expressions: Array<ExpressionNode | TokenNode> = [];
     expressions.push(this.parseExpression(ExpressionType.Explicit));
 
     while (this.currentToken.kind == TokenKind.Comma) {
-      expressions.push(this.eat(TokenKind.Comma));
+      let comma = this.eat(TokenKind.Comma);
       if (!this.isExpressionStart(this.currentToken.kind)) {
-        break;  // @todo Requires PHP 7.3 or later.
+        if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+          comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
+        }
+        expressions.push(comma);
+        break;
       }
-      expressions.push(this.parseExpression(ExpressionType.Explicit));
+      else {
+        expressions.push(comma);
+        expressions.push(this.parseExpression(ExpressionType.Explicit));
+      }
     }
 
     let closeParen = this.currentToken.kind == TokenKind.CloseParen
@@ -4585,11 +4592,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       while (this.currentToken.kind != TokenKind.CloseParen && this.currentToken.kind != TokenKind.EOF) {
         if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
-          args.push(this.eat(TokenKind.Comma));
+          let comma = this.eat(TokenKind.Comma);
 
-            if (!this.isArgumentStart(this.currentToken.kind)) {
-              break;  // @todo Requires PHP 7.3 or later.
+          if (!this.isArgumentStart(this.currentToken.kind)) {
+            if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+              comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
             }
+            args.push(comma);
+            break;
+          }
+
+          args.push(comma);
 
           let ellipsis = this.eatOptional(TokenKind.Ellipsis);
           let value = this.parseExpression();
@@ -5333,11 +5346,18 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     expressions.push(this.parseExpression());
 
     while (this.currentToken.kind == TokenKind.Comma) {
-      expressions.push(this.eat(TokenKind.Comma));
+      let comma = this.eat(TokenKind.Comma);
       if (!this.isExpressionStart(this.currentToken.kind)) {
-        break;  // @todo Requires PHP 7.3 or later.
+        if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+          comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
+        }
+        expressions.push(comma);
+        break;
       }
-      expressions.push(this.parseExpression());
+      else {
+        expressions.push(comma);
+        expressions.push(this.parseExpression());
+      }
     }
 
     let closeParen = this.currentToken.kind == TokenKind.CloseParen

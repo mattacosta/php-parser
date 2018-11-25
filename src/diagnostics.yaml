@@ -45,6 +45,8 @@ diagnostics:
 
 - name: ERR_FeatureClassConstantModifiers
   text: "The feature 'class constant modifiers' requires PHP 7.1 or later"
+- name: ERR_FeatureTrailingCommasInArgumentLists
+  text: "The feature 'trailing commas in argument lists' requires PHP 7.3 or later"
 
 # -----------------------------------------------------------------------------
 # Lexer diagnostics

@@ -51,6 +51,7 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 import { TokenKind } from '../../../src/language/TokenKind';
 
@@ -399,6 +400,10 @@ describe('PhpParser', function() {
         assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests7_3 = [
       new ParserTestArgs('unset($a,);', 'should parse an unset statement with trailing comma', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
         assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
@@ -421,17 +426,22 @@ describe('PhpParser', function() {
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
     ];
-    Test.assertSyntaxNodes(syntaxTests);
+    Test.assertSyntaxNodes(syntaxTests7_3, PhpVersion.PHP7_3);
 
     let diagnosticTests = [
       new DiagnosticTestArgs('unset', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
       new DiagnosticTestArgs('unset(', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
       new DiagnosticTestArgs('unset($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
-      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
-      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
       new DiagnosticTestArgs('unset(1);', 'should expect an explicit expression', [ErrorCode.ERR_ExpressionNotAddressable], [6]),
+      new DiagnosticTestArgs('unset(...$a);', 'should not parse an unpacked argument', [ErrorCode.ERR_ExpressionExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTestsTrailingComma = [
+      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
+      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [12, 13]),
+    ];
+    Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
   });
 
   describe('const-declaration', function() {
