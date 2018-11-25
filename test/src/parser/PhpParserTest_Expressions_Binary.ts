@@ -44,6 +44,7 @@ import {
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertArrayDeconstruction(statements: ISyntaxNode[]): ArraySyntaxNode {
@@ -611,6 +612,10 @@ describe('PhpParser', function() {
           assert.strictEqual(element.key, null);
           assert.equal(element.value instanceof ListDestructureSyntaxNode, true);
         }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
         new ParserTestArgs('list($a => $b) = $c;', 'should parse a destructuring assignment with a key-value pair', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
@@ -641,7 +646,7 @@ describe('PhpParser', function() {
           assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
         }),
       ];
-      Test.assertSyntaxNodes(syntaxTests);
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('list', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [4]),
@@ -655,10 +660,14 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('list(,) = $a;', 'should not parse a deconstruction without a variable (with comma)', [ErrorCode.ERR_DeconstructVariableMissing], [6]),
         new DiagnosticTestArgs('list([$a]) = $b;', 'should not parse a deconstruction using mixed syntax', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
         new DiagnosticTestArgs('list(1) = $a;', 'should expect an explicit value', [ErrorCode.ERR_ExpressionNotAddressable], [5]),
-        new DiagnosticTestArgs('list($a => 1) = $b;', 'should expect an explicit value (key-value pair)', [ErrorCode.ERR_ExpressionNotAddressable], [11]),
         new DiagnosticTestArgs('list(&$a => $b) = $c;', 'should not parse deconstruction with byref key', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTestsKeys = [
+        new DiagnosticTestArgs('list($a => 1) = $b;', 'should expect an explicit value (key-value pair)', [ErrorCode.ERR_FeatureListDeconstructionKeys, ErrorCode.ERR_ExpressionNotAddressable], [8, 11]),
+      ];
+      Test.assertDiagnostics(diagnosticTestsKeys, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('destructuring-assignment-expression (short-syntax)', function() {

@@ -5496,9 +5496,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       return new ListDestructureElementNode(null, null, null, variable);
     }
 
-    // @todo Requires PHP 7.1 or later (see https://wiki.php.net/rfc/list_keys).
     let key = <ExpressionNode>expr.node;
     let doubleArrow = this.eat(TokenKind.DoubleArrow);
+
+    if (!this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      // The parser considers '=> $v' to be invalid, but it would also be
+      // acceptable to place this error on the key, since the logical solution
+      // is to remove '$k =>' instead.
+      doubleArrow = this.addError(doubleArrow, ErrorCode.ERR_FeatureListDeconstructionKeys);
+    }
 
     ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
