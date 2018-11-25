@@ -34,6 +34,7 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQualified: boolean, type: string | null, alias: string | null) {
@@ -199,12 +200,6 @@ describe('PhpParser', function() {
           assert.equal(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
-        new ParserTestArgs('use function A\\{ B, };', 'should parse a use function group declaration with trailing comma', (statements, text) => {
-          let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
-          let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
-          assertUseElement(declarations[0], text, false, null, null);
-        }),
         new ParserTestArgs('use function A\\{ B, C };', 'should parse a use function group declaration with list of names', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
@@ -232,12 +227,6 @@ describe('PhpParser', function() {
           assertUseElement(declarations[1], text, false, null, null);
         }),
         new ParserTestArgs('use const A\\{ B };', 'should parse a use const group declaration', (statements, text) => {
-          let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
-          let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
-          assertUseElement(declarations[0], text, false, null, null);
-        }),
-        new ParserTestArgs('use const A\\{ B, };', 'should parse a use const group declaration with trailing comma', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
           assert.equal(declarations.length, 1);
@@ -272,11 +261,26 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
+      let syntaxTests7_2 = [
+        new ParserTestArgs('use function A\\{ B, };', 'should parse a use function group declaration with trailing comma', (statements, text) => {
+          let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
+          let declarations = assertUseGroupDeclaration(useDecl, 2);
+          assert.equal(declarations.length, 1);
+          assertUseElement(declarations[0], text, false, null, null);
+        }),
+        new ParserTestArgs('use const A\\{ B, };', 'should parse a use const group declaration with trailing comma', (statements, text) => {
+          let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
+          let declarations = assertUseGroupDeclaration(useDecl, 2);
+          assert.equal(declarations.length, 1);
+          assertUseElement(declarations[0], text, false, null, null);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_2, PhpVersion.PHP7_2);
+
       let diagnosticTests = [
         new DiagnosticTestArgs('use function A\\', 'missing open brace or name in function import', [ErrorCode.ERR_IncompleteUseName], [15]),
         new DiagnosticTestArgs('use function A\\{', 'missing name in function import', [ErrorCode.ERR_IdentifierExpected], [16]),
         new DiagnosticTestArgs('use function A\\{ B', 'missing as, backslash, comma, or close brace in function import', [ErrorCode.ERR_IncompleteUseGroupDeclaration], [18]),
-        new DiagnosticTestArgs('use function A\\{ B,', 'missing name or close brace in function import', [ErrorCode.ERR_IdentifierOrCloseBraceExpected], [19]),
         new DiagnosticTestArgs('use function A\\{ B\\', 'missing identifier in function import', [ErrorCode.ERR_IdentifierExpected], [19]),
         new DiagnosticTestArgs('use function A\\{ B as', 'missing identifier in function import (alias)', [ErrorCode.ERR_IdentifierExpected], [21]),
         new DiagnosticTestArgs('use function A\\{ B as C', 'missing comma or close brace in function import', [ErrorCode.ERR_CommaOrCloseBraceExpected], [23]),
@@ -285,7 +289,6 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('use const A\\', 'missing open brace or name in constant import', [ErrorCode.ERR_IncompleteUseName], [12]),
         new DiagnosticTestArgs('use const A\\{', 'missing name in constant import', [ErrorCode.ERR_IdentifierExpected], [13]),
         new DiagnosticTestArgs('use const A\\{ B', 'missing as, backslash, comma, or close brace in constant import', [ErrorCode.ERR_IncompleteUseGroupDeclaration], [15]),
-        new DiagnosticTestArgs('use const A\\{ B,', 'missing name or close brace in constant import', [ErrorCode.ERR_IdentifierOrCloseBraceExpected], [16]),
         new DiagnosticTestArgs('use const A\\{ B\\', 'missing identifier in constant import', [ErrorCode.ERR_IdentifierExpected], [16]),
         new DiagnosticTestArgs('use const A\\{ B as', 'missing identifier in constant import (alias)', [ErrorCode.ERR_IdentifierExpected], [18]),
         new DiagnosticTestArgs('use const A\\{ B as C', 'missing comma or close brace in constant import', [ErrorCode.ERR_CommaOrCloseBraceExpected], [20]),
@@ -295,17 +298,17 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('use function A\\{ function B };', 'should not parse a use function group declaration with redeclared import type', [ErrorCode.ERR_UseTypeAlreadySpecified], [17]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTestsTrailingComma = [
+        new DiagnosticTestArgs('use function A\\{ B,', 'missing name or close brace in function import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_IdentifierOrCloseBraceExpected], [18, 19]),
+        new DiagnosticTestArgs('use const A\\{ B,', 'missing name or close brace in constant import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_IdentifierOrCloseBraceExpected], [15, 16]),
+      ];
+      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
     });
 
     describe('use-group-declaration (mixed types)', function() {
       let syntaxTests = [
         new ParserTestArgs('use A\\{ function B };', 'should parse a mixed use group declaration', (statements, text) => {
-          let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
-          let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 1);
-          assertUseElement(declarations[0], text, false, 'function', null);
-        }),
-        new ParserTestArgs('use A\\{ function B, };', 'should parse a mixed use group declaration with trailing comma', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
           assert.equal(declarations.length, 1);
@@ -361,19 +364,33 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
+      let syntaxTests7_2 = [
+        new ParserTestArgs('use A\\{ function B, };', 'should parse a mixed use group declaration with trailing comma', (statements, text) => {
+          let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
+          let declarations = assertUseGroupDeclaration(useDecl, 2, false);
+          assert.equal(declarations.length, 1);
+          assertUseElement(declarations[0], text, false, 'function', null);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_2, PhpVersion.PHP7_2);
+
       let diagnosticTests = [
         new DiagnosticTestArgs('use A\\{', 'missing identifier or import type', [ErrorCode.ERR_UseTypeExpected], [7]),
 
         new DiagnosticTestArgs('use A\\{ function', 'missing identifier', [ErrorCode.ERR_IdentifierExpected], [16]),
         new DiagnosticTestArgs('use A\\{ function B', 'missing as, backslash, comma, or close brace', [ErrorCode.ERR_IncompleteUseGroupDeclaration], [18]),
-        new DiagnosticTestArgs('use A\\{ function B,', 'missing identifier, import type, or close brace', [ErrorCode.ERR_UseTypeOrCloseBraceExpected], [19]),
         new DiagnosticTestArgs('use A\\{ function B as', 'missing identifier (alias)', [ErrorCode.ERR_IdentifierExpected], [21]),
         new DiagnosticTestArgs('use A\\{ function B as C', 'missing comma or close brace', [ErrorCode.ERR_CommaOrCloseBraceExpected], [23]),
-        new DiagnosticTestArgs('use A\\{ function B as C,', 'missing identifier, import type, or close brace (after aliased import)', [ErrorCode.ERR_UseTypeOrCloseBraceExpected], [24]),
 
         new DiagnosticTestArgs('use A\\{ function \\B', 'should not parse a fully qualified function name', [ErrorCode.ERR_IdentifierExpected], [16]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTestsTrailingComma = [
+        new DiagnosticTestArgs('use A\\{ function B,', 'missing identifier, import type, or close brace', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_UseTypeOrCloseBraceExpected], [18, 19]),
+        new DiagnosticTestArgs('use A\\{ function B as C,', 'missing identifier, import type, or close brace (after aliased import)', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_UseTypeOrCloseBraceExpected], [23, 24]),
+      ];
+      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
     });
 
   });

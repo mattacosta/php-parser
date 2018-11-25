@@ -3939,11 +3939,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
         // Suppress TS2365: Current token changed after previous method call.
         while (<TokenKind>this.currentToken.kind == TokenKind.Comma) {
-          elements.push(this.eat(TokenKind.Comma));
+          let comma = this.eat(TokenKind.Comma);
           if (!this.isUseGroupElementStart(this.currentToken.kind) && <TokenKind>this.currentToken.kind != TokenKind.Comma) {
-            break;  // @todo Requires PHP 7.2 or later.
+            if (!this.isSupportedVersion(PhpVersion.PHP7_2)) {
+              comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations);
+            }
+            elements.push(comma);
+            break;
           }
           else {
+            elements.push(comma);
             elements.push(this.parseUseGroupElement(hasUseType));
           }
         }
