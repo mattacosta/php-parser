@@ -3467,8 +3467,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         //   next token should be '::' if it was meant as a class name, or 'as'
         //   if it was meant as a method name.
         if (namespaces.length == 1) {
-          let methodName = new PartiallyQualifiedNameNode(this.factory.createList(namespaces));
-
           if (this.currentToken.kind == TokenKind.As) {
             let alias = this.parseTraitAlias(namespaces[0]);
             adaptations.push(alias);
