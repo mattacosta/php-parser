@@ -753,7 +753,12 @@ describe('PhpParser', function() {
           assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
       ];
-      Test.assertSyntaxNodes(syntaxTests);
+      Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_1);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('[$a] =', 'missing expression (operand)', [ErrorCode.ERR_FeatureListDeconstructionShortSyntax, ErrorCode.ERR_ExpressionExpectedEOF], [0, 6]),
+      ];
+      Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('compound-assignment-expression', function() {

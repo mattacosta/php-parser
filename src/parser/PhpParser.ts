@@ -4779,17 +4779,20 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @todo Document parseArrayOrDeconstruction().
    */
   protected parseArrayOrDeconstruction(): Expression {
-    let array: ArrayNode;
+    let arrayLiteral: ArrayNode;
     if (this.currentToken.kind == TokenKind.Array) {
-      array = this.parseArray();
+      arrayLiteral = this.parseArray();
     }
     else {
       // Short syntax.
-      array = this.parseArray();
+      arrayLiteral = this.parseArray();
       if (this.currentToken.kind == TokenKind.Equal) {
+        if (!this.isSupportedVersion(PhpVersion.PHP7_1)) {
+          arrayLiteral = this.addError(arrayLiteral, ErrorCode.ERR_FeatureListDeconstructionShortSyntax);
+        }
         let operator = this.eat(TokenKind.Equal);
         let rhs = this.parseExpression(ExpressionType.Any, Precedence.Assignment);
-        let assignment = new DestructuringAssignmentNode(array, operator, rhs);
+        let assignment = new DestructuringAssignmentNode(arrayLiteral, operator, rhs);
         return new Expression(assignment, ExpressionType.Implicit);
       }
     }
@@ -4809,7 +4812,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       type = ExpressionType.Explicit;
     }
 
-    return new Expression(array, type);
+    return new Expression(arrayLiteral, type);
   }
 
   /**
