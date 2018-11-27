@@ -3932,10 +3932,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         // Error recovery is greatly simplified when everything can end in a
         // closing brace. It is just a matter of picking the right message...
         let closeBrace: TokenNode;
-        if (openBrace.isMissing) {
-          closeBrace = this.createMissingToken(TokenKind.CloseBrace, this.currentToken.kind, false);
-        }
-        else if (<TokenKind>this.currentToken.kind == TokenKind.CloseBrace) {
+        if (<TokenKind>this.currentToken.kind == TokenKind.CloseBrace) {
           closeBrace = this.eat(TokenKind.CloseBrace);
         }
         else {
