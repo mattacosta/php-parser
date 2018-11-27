@@ -18,9 +18,9 @@
 
 const os = require('os');
 
-const es = require('event-stream');
 const filter = require('gulp-filter');
 const gulp = require('gulp');
+const through = require('through');
 
 const allFiles = [
   '*',
@@ -59,19 +59,17 @@ const assertLicense = function(options) {
   options = options || {};
   let errorCount = 0;
 
-  const assertFn = es.through(function write(file) {
-    if (file.contents.toString('utf8').indexOf(copyrightHeader) !== 0) {
-      console.error('Missing or incorrect license: ' + file.relative);
-      errorCount++;
-    }
-    this.emit('data', file);
-  });
-
   return gulp.src(allFiles, { base: '.' })
     .pipe(filter(f => !f.stat.isDirectory()))
     .pipe(filter(licenseExclude))
-    .pipe(assertFn)
-    .pipe(es.through(null, function end() {
+    .pipe(through(function write(file) {
+      if (file.contents.toString('utf8').indexOf(copyrightHeader) !== 0) {
+        console.error('Missing or incorrect license: ' + file.relative);
+        errorCount++;
+      }
+      this.emit('data', file);
+    }))
+    .pipe(through(undefined, function end() {
       if (errorCount > 0) {
         let e = new Error('All files must contain a supported copyright header (' + errorCount + ' failed)');
         e.showStack = false;
