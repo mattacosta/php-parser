@@ -3773,15 +3773,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let catchKeyword = this.eat(TokenKind.Catch);
     let openParen = this.eat(TokenKind.OpenParen);
 
-    let catchTypes = [];
-    catchTypes.push(this.parseTypeName());
+    let types: Array<NameNode | TokenNode> = [];
+    types.push(this.parseTypeName());
 
     // @todo Implement `CatchClause` parse context?
     let kind = this.currentToken.kind;
     while (kind != TokenKind.Dollar && kind != TokenKind.Variable && kind != TokenKind.CloseParen && kind != TokenKind.EOF) {
       if (kind == TokenKind.VerticalBar || this.isNameStart(kind)) {
-        catchTypes.push(this.eat(TokenKind.VerticalBar));
-        catchTypes.push(this.parseTypeName());
+        types.push(this.eat(TokenKind.VerticalBar));
+        types.push(this.parseTypeName());
         kind = this.currentToken.kind;
         continue;
       }
@@ -3792,6 +3792,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       this.skipToken();
       kind = this.currentToken.kind;
+    }
+
+    let typeUnion = this.factory.createList(types);
+    if (types.length > 1 && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      typeUnion = this.addError(typeUnion, ErrorCode.ERR_FeatureTryCatchUnionTypes);
     }
 
     let variable: TokenNode;  // See also: parseParameter().
@@ -3810,7 +3815,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     return new TryCatchNode(
       catchKeyword,
       openParen,
-      this.factory.createList(catchTypes),
+      typeUnion,
       variable,
       closeParen,
       statements

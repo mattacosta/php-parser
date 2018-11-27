@@ -53,6 +53,8 @@ diagnostics:
   text: "The feature 'trailing commas in argument lists' requires PHP 7.3 or later"
 - name: ERR_FeatureTrailingCommasInUseDeclarations
   text: "The feature 'trailing commas in use declarations' requires PHP 7.2 or later"
+- name: ERR_FeatureTryCatchUnionTypes
+  text: "The feature 'try-catch union types' requires PHP 7.1 or later"
 
 # -----------------------------------------------------------------------------
 # Lexer diagnostics
