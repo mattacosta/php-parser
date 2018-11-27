@@ -38,6 +38,7 @@ import {
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertFunctionWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
@@ -114,16 +115,6 @@ describe('PhpParser', function() {
         assert.strictEqual(returnType.question, null);
         assert.equal(returnType.typeName instanceof FullyQualifiedNameSyntaxNode, true);
       }),
-      new ParserTestArgs('function a(): ? B {}', 'should parse a function with nullable return type', (statements) => {
-        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
-        assert.strictEqual(funcDecl.ampersand, null);
-        assert.strictEqual(funcDecl.parameters, null);
-        let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
-        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
-        assert.notStrictEqual(returnType.question, null);
-        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
-      }),
       new ParserTestArgs('function a(): array {}', 'should parse a function with predefined return type (array)', (statements, text) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
         assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
@@ -146,6 +137,20 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests7_1 = [
+      new ParserTestArgs('function a(): ? B {}', 'should parse a function with nullable return type', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
+        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.notStrictEqual(returnType.question, null);
+        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
     let diagnosticTests = [
       new DiagnosticTestArgs('function', 'missing ampersand, identifier, or open paren', [ErrorCode.ERR_IncompleteFunctionDeclaration], [8]),
@@ -184,15 +189,6 @@ describe('PhpParser', function() {
         let type = <NamedTypeSyntaxNode>param.type;
         assert.equal(type instanceof NamedTypeSyntaxNode, true);
         assert.strictEqual(type.question, null);
-        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
-      }),
-      new ParserTestArgs('function a(?B $c) {}', 'should parse a parameter with nullable type', (statements) => {
-        let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
-        let param = assertParameter(parameters[0], true, false, false, false);
-        let type = <NamedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof NamedTypeSyntaxNode, true);
-        assert.notStrictEqual(type.question, null);
         assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
       new ParserTestArgs('function a(array $c) {}', 'should parse a parameter with predefined type (array)', (statements, text) => {
@@ -260,10 +256,22 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
+    let syntaxTests7_1 = [
+      new ParserTestArgs('function a(?B $c) {}', 'should parse a parameter with nullable type', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.equal(parameters.length, 1);
+        let param = assertParameter(parameters[0], true, false, false, false);
+        let type = <NamedTypeSyntaxNode>param.type;
+        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.notStrictEqual(type.question, null);
+        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+
     let diagnosticTests = [
       new DiagnosticTestArgs('function a(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [11]),
       new DiagnosticTestArgs('function a(&', 'missing ellipsis or variable', [ErrorCode.ERR_VariableOrEllipsisExpected], [12]),
-      new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_TypeExpected], [12]),
       new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_IncompleteParameter], [12]),
       new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_IncompleteParameterList], [13]),
       new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_ParameterExpected], [14]),
@@ -274,6 +282,11 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function a(...$b, $c) {}', 'should not parse parameter after variadic parameter', [ErrorCode.ERR_VariadicIsNotLastParameter], [11]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTestsNullableTypes = [
+      new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_FeatureNullableTypes, ErrorCode.ERR_TypeExpected], [11, 12]),
+    ];
+    Test.assertDiagnostics(diagnosticTestsNullableTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
   });
 
 });

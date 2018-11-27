@@ -32,15 +32,17 @@ import {
   InterfaceDeclarationSyntaxNode,
   LiteralSyntaxNode,
   MethodDeclarationSyntaxNode,
+  NamedTypeSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   RelativeNameSyntaxNode,
   StatementBlockSyntaxNode,
-  TypeSyntaxNode
+  TypeSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstantDeclarationSyntaxNode {
@@ -181,18 +183,6 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(secondConst.identifierOrKeyword, text, TokenKind.Identifier, 'C');
           assert.equal(secondConst.expression instanceof LiteralSyntaxNode, true);
         }),
-        new ParserTestArgs('interface A { public const B = 1; }', 'should parse a public class constant declaration', (statements, text) => {
-          let declNode = assertClassConstantDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
-          let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
-          Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
-        }),
         new ParserTestArgs('interface A { const foreach = 1; }', 'should parse a class constant declaration with a semi-reserved name', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           assert.strictEqual(declNode.modifiers, null);
@@ -205,6 +195,22 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
+        new ParserTestArgs('interface A { public const B = 1; }', 'should parse a public class constant declaration', (statements, text) => {
+          let declNode = assertClassConstantDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          let elements = declNode.elements ? declNode.elements.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let constNode = <ClassConstantElementSyntaxNode>elements[0];
+          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
+          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('interface A { const }', 'missing identifier and assignment', [ErrorCode.ERR_IdentifierExpected], [19]),
@@ -219,6 +225,11 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { const class = 1; }', 'should not parse a class constant declaration with a reserved name', [ErrorCode.ERR_IdentifierExpectedKeyword], [20]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTests7_0 = [
+        new DiagnosticTestArgs('class A { public const B = 1; }', 'public modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+      ];
+      Test.assertDiagnostics(diagnosticTests7_0, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('property-declaration', function() {
@@ -340,6 +351,20 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
+        new ParserTestArgs('interface A { function b(): ? C; }', 'should parse a method declaration with nullable return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <NamedTypeSyntaxNode>method.returnType;
+          assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.notStrictEqual(returnType.question, null);
+          assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
       // @todo Recovery tests:
       //   'interface A { function b() { }'

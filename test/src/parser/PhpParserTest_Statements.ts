@@ -51,6 +51,7 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 import { TokenKind } from '../../../src/language/TokenKind';
 
@@ -171,25 +172,6 @@ describe('PhpParser', function() {
 
         assert.strictEqual(tryNode.finallyClause, null);
       }),
-      new ParserTestArgs('try {} catch (A | B $e) {}', 'should parse a catch clause with type union', (statements, text) => {
-        let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
-        let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 1);
-
-        let catchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
-        let names = catchNode.typeNames ? catchNode.typeNames.allChildren() : [];
-        assert.equal(names.length, 3);
-        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-        Test.assertSyntaxToken(<any>names[1], text, TokenKind.VerticalBar, '|');
-        assert.equal(names[2] instanceof PartiallyQualifiedNameSyntaxNode, true);
-        Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
-
-        assert.strictEqual(tryNode.finallyClause, null);
-      }),
-    //new ParserTestArgs('try {} catch (A | \\B\\C $e) {}', ''),
-    //new ParserTestArgs('try {} catch (A | namespace\\B $e) {}', ''),
       new ParserTestArgs('try {} catch (A $e) {} catch (B $e) {}', 'should parse multiple catch clauses', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
         assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
@@ -236,6 +218,29 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
+    let syntaxTests7_1 = [
+      new ParserTestArgs('try {} catch (A | B $e) {}', 'should parse a catch clause with type union', (statements, text) => {
+        let tryNode = <TrySyntaxNode>statements[0];
+        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
+        assert.equal(catchClauses.length, 1);
+
+        let catchNode = <TryCatchSyntaxNode>catchClauses[0];
+        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
+        let names = catchNode.typeNames ? catchNode.typeNames.allChildren() : [];
+        assert.equal(names.length, 3);
+        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        Test.assertSyntaxToken(<any>names[1], text, TokenKind.VerticalBar, '|');
+        assert.equal(names[2] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
+
+        assert.strictEqual(tryNode.finallyClause, null);
+      }),
+    //new ParserTestArgs('try {} catch (A | \\B\\C $e) {}', ''),
+    //new ParserTestArgs('try {} catch (A | namespace\\B $e) {}', ''),
+    ];
+    Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+
     let diagnosticTests = [
       new DiagnosticTestArgs('try', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [3]),
       new DiagnosticTestArgs('try {', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [5]),
@@ -246,15 +251,19 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('try {} catch (A $e', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [18]),
       new DiagnosticTestArgs('try {} catch (A $e)', 'missing open brace (catch clause)', [ErrorCode.ERR_OpenBraceExpected], [19]),
       new DiagnosticTestArgs('try {} catch (A $e) {', 'missing close brace (catch clause)', [ErrorCode.ERR_CloseBraceExpected], [21]),
-      new DiagnosticTestArgs('try {} catch (A |', 'missing identifier after vertical bar', [ErrorCode.ERR_TypeExpected], [17]),
       new DiagnosticTestArgs('try {} finally', 'missing open brace (finally clause)', [ErrorCode.ERR_OpenBraceExpected], [14]),
       new DiagnosticTestArgs('try {} finally {', 'missing close brace (finally clause)', [ErrorCode.ERR_CloseBraceExpected], [16]),
 
-      new DiagnosticTestArgs('try {} catch (A B $e) {}', 'should expect vertical bar between catch types', [ErrorCode.ERR_Syntax], [15]),
       new DiagnosticTestArgs('try {} finally {} finally', 'should not parse multiple finally clauses', [ErrorCode.ERR_UnexpectedToken], [18]),
       new DiagnosticTestArgs('try {} finally {} catch', 'should not parse a catch clause after a finally clause', [ErrorCode.ERR_UnexpectedToken], [18]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTestsUnionTypes = [
+      new DiagnosticTestArgs('try {} catch (A |', 'missing identifier after vertical bar', [ErrorCode.ERR_FeatureTryCatchUnionTypes, ErrorCode.ERR_TypeExpected], [14, 17]),
+      new DiagnosticTestArgs('try {} catch (A B $e) {}', 'should expect vertical bar between catch types', [ErrorCode.ERR_FeatureTryCatchUnionTypes, ErrorCode.ERR_Syntax], [14, 15]),
+    ];
+    Test.assertDiagnostics(diagnosticTestsUnionTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
   });
 
   describe('declare-statement', function() {
@@ -399,6 +408,10 @@ describe('PhpParser', function() {
         assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests7_3 = [
       new ParserTestArgs('unset($a,);', 'should parse an unset statement with trailing comma', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
         assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
@@ -421,17 +434,22 @@ describe('PhpParser', function() {
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
     ];
-    Test.assertSyntaxNodes(syntaxTests);
+    Test.assertSyntaxNodes(syntaxTests7_3, PhpVersion.PHP7_3);
 
     let diagnosticTests = [
       new DiagnosticTestArgs('unset', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
       new DiagnosticTestArgs('unset(', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
       new DiagnosticTestArgs('unset($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
-      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
-      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
       new DiagnosticTestArgs('unset(1);', 'should expect an explicit expression', [ErrorCode.ERR_ExpressionNotAddressable], [6]),
+      new DiagnosticTestArgs('unset(...$a);', 'should not parse an unpacked argument', [ErrorCode.ERR_ExpressionExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTestsTrailingComma = [
+      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
+      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [12, 13]),
+    ];
+    Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
   });
 
   describe('const-declaration', function() {

@@ -160,6 +160,7 @@ import { ParseContext } from './ParseContext';
 import { PhpLexer } from './PhpLexer';
 import { PhpLexerState } from './PhpLexerState';
 import { PhpParserOptions } from './PhpParserOptions';
+import { PhpVersion } from './PhpVersion';
 import { Precedence } from './Precedence';
 import { SourceTextNode } from '../language/node/SourceTextNode';
 import { SourceTextSyntaxNode } from '../language/syntax/SourceTextSyntaxNode';
@@ -310,6 +311,18 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // Finally, move the lexer to get the actual EOF token.
     this.lexer.setPosition(end);
     this.nextToken();
+  }
+
+  /**
+   * Determines if the given version requirements are satisfied.
+   *
+   * @param {PhpVersion} minVersion
+   *   The earliest supported PHP version.
+   * @param {PhpVersion} maxVersion
+   *   The latest supported PHP version.
+   */
+  protected isSupportedVersion(minVersion: PhpVersion, maxVersion = PhpVersion.Latest): boolean {
+    return this.options.version >= minVersion && this.options.version <= maxVersion;
   }
 
   /**
@@ -1591,10 +1604,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     for (let i = 0; i < modifiers.length; i++) {
       let modifier = this.getModifierFlag(modifiers[i].kind);
       if (modifier & ModifierFlags.VisibilityMask) {
-        // @todo Modifiers on class constants requires PHP 7.1 or later.
-        // if (!this.checkPhpVersion(PhpVersion.PHP7_1)) {
-        //   modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_FeatureClassConstantModifiers);
-        // }
+        if (!this.isSupportedVersion(PhpVersion.PHP7_1)) {
+          modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_FeatureClassConstantModifiers);
+        }
       }
       else {
         modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_BadConstantModifier);
@@ -3756,15 +3768,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let catchKeyword = this.eat(TokenKind.Catch);
     let openParen = this.eat(TokenKind.OpenParen);
 
-    let catchTypes = [];
-    catchTypes.push(this.parseTypeName());
+    let types: Array<NameNode | TokenNode> = [];
+    types.push(this.parseTypeName());
 
     // @todo Implement `CatchClause` parse context?
     let kind = this.currentToken.kind;
     while (kind != TokenKind.Dollar && kind != TokenKind.Variable && kind != TokenKind.CloseParen && kind != TokenKind.EOF) {
       if (kind == TokenKind.VerticalBar || this.isNameStart(kind)) {
-        catchTypes.push(this.eat(TokenKind.VerticalBar));
-        catchTypes.push(this.parseTypeName());
+        types.push(this.eat(TokenKind.VerticalBar));
+        types.push(this.parseTypeName());
         kind = this.currentToken.kind;
         continue;
       }
@@ -3775,6 +3787,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       this.skipToken();
       kind = this.currentToken.kind;
+    }
+
+    let typeUnion = this.factory.createList(types);
+    if (types.length > 1 && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      typeUnion = this.addError(typeUnion, ErrorCode.ERR_FeatureTryCatchUnionTypes);
     }
 
     let variable: TokenNode;  // See also: parseParameter().
@@ -3793,7 +3810,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     return new TryCatchNode(
       catchKeyword,
       openParen,
-      this.factory.createList(catchTypes),
+      typeUnion,
       variable,
       closeParen,
       statements
@@ -3817,8 +3834,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax: `? type`
    */
   protected parseType(/* isNullable = true */): TypeNode {
-    // @todo Check feature availability (PHP 7.1 or later).
     let question = this.eatOptional(TokenKind.Question);
+    if (question && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      question = this.addError(question, ErrorCode.ERR_FeatureNullableTypes);
+    }
     if (this.currentToken.kind == TokenKind.Array || this.currentToken.kind == TokenKind.Callable) {
       let typeKeyword = this.eat(this.currentToken.kind);
       return new PredefinedTypeNode(question, typeKeyword);
@@ -3855,15 +3874,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let unsetKeyword = this.eat(TokenKind.Unset);
     let openParen = this.eat(TokenKind.OpenParen);
 
-    let expressions = [];
+    let expressions: Array<ExpressionNode | TokenNode> = [];
     expressions.push(this.parseExpression(ExpressionType.Explicit));
 
     while (this.currentToken.kind == TokenKind.Comma) {
-      expressions.push(this.eat(TokenKind.Comma));
+      let comma = this.eat(TokenKind.Comma);
       if (!this.isExpressionStart(this.currentToken.kind)) {
-        break;  // @todo Requires PHP 7.3 or later.
+        if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+          comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
+        }
+        expressions.push(comma);
+        break;
       }
-      expressions.push(this.parseExpression(ExpressionType.Explicit));
+      else {
+        expressions.push(comma);
+        expressions.push(this.parseExpression(ExpressionType.Explicit));
+      }
     }
 
     let closeParen = this.currentToken.kind == TokenKind.CloseParen
@@ -3915,11 +3941,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
         // Suppress TS2365: Current token changed after previous method call.
         while (<TokenKind>this.currentToken.kind == TokenKind.Comma) {
-          elements.push(this.eat(TokenKind.Comma));
+          let comma = this.eat(TokenKind.Comma);
           if (!this.isUseGroupElementStart(this.currentToken.kind) && <TokenKind>this.currentToken.kind != TokenKind.Comma) {
-            break;  // @todo Requires PHP 7.2 or later.
+            if (!this.isSupportedVersion(PhpVersion.PHP7_2)) {
+              comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations);
+            }
+            elements.push(comma);
+            break;
           }
           else {
+            elements.push(comma);
             elements.push(this.parseUseGroupElement(hasUseType));
           }
         }
@@ -4144,7 +4175,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       let unaryNode = new UnaryNode(operator, operand);
       if (kind == TokenKind.UnsetCast) {
-        // @todo Requires PHP 7.2 or later.
+        // No version check; deprecation warnings are retroactive.
         unaryNode = this.addError(unaryNode, ErrorCode.WRN_UnsetCast);
       }
 
@@ -4565,11 +4596,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       while (this.currentToken.kind != TokenKind.CloseParen && this.currentToken.kind != TokenKind.EOF) {
         if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
-          args.push(this.eat(TokenKind.Comma));
+          let comma = this.eat(TokenKind.Comma);
 
-            if (!this.isArgumentStart(this.currentToken.kind)) {
-              break;  // @todo Requires PHP 7.3 or later.
+          if (!this.isArgumentStart(this.currentToken.kind)) {
+            if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+              comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
             }
+            args.push(comma);
+            break;
+          }
+
+          args.push(comma);
 
           let ellipsis = this.eatOptional(TokenKind.Ellipsis);
           let value = this.parseExpression();
@@ -4734,17 +4771,20 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @todo Document parseArrayOrDeconstruction().
    */
   protected parseArrayOrDeconstruction(): Expression {
-    let array: ArrayNode;
+    let arrayLiteral: ArrayNode;
     if (this.currentToken.kind == TokenKind.Array) {
-      array = this.parseArray();
+      arrayLiteral = this.parseArray();
     }
     else {
       // Short syntax.
-      array = this.parseArray();
+      arrayLiteral = this.parseArray();
       if (this.currentToken.kind == TokenKind.Equal) {
+        if (!this.isSupportedVersion(PhpVersion.PHP7_1)) {
+          arrayLiteral = this.addError(arrayLiteral, ErrorCode.ERR_FeatureListDeconstructionShortSyntax);
+        }
         let operator = this.eat(TokenKind.Equal);
         let rhs = this.parseExpression(ExpressionType.Any, Precedence.Assignment);
-        let assignment = new DestructuringAssignmentNode(array, operator, rhs);
+        let assignment = new DestructuringAssignmentNode(arrayLiteral, operator, rhs);
         return new Expression(assignment, ExpressionType.Implicit);
       }
     }
@@ -4764,7 +4804,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       type = ExpressionType.Explicit;
     }
 
-    return new Expression(array, type);
+    return new Expression(arrayLiteral, type);
   }
 
   /**
@@ -5313,11 +5353,18 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     expressions.push(this.parseExpression());
 
     while (this.currentToken.kind == TokenKind.Comma) {
-      expressions.push(this.eat(TokenKind.Comma));
+      let comma = this.eat(TokenKind.Comma);
       if (!this.isExpressionStart(this.currentToken.kind)) {
-        break;  // @todo Requires PHP 7.3 or later.
+        if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+          comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
+        }
+        expressions.push(comma);
+        break;
       }
-      expressions.push(this.parseExpression());
+      else {
+        expressions.push(comma);
+        expressions.push(this.parseExpression());
+      }
     }
 
     let closeParen = this.currentToken.kind == TokenKind.CloseParen
@@ -5431,7 +5478,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
-      // @todo Requires PHP 7.3 or later.
+      if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+        ampersand = this.addError(ampersand, ErrorCode.ERR_FeatureListDeconstructionByRef);
+      }
       let byRefValue = this.parseExpression(ExpressionType.Explicit);
       return new ListDestructureElementNode(null, null, ampersand, byRefValue);
     }
@@ -5451,13 +5500,23 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       return new ListDestructureElementNode(null, null, null, variable);
     }
 
-    // @todo Requires PHP 7.1 or later (see https://wiki.php.net/rfc/list_keys).
     let key = <ExpressionNode>expr.node;
     let doubleArrow = this.eat(TokenKind.DoubleArrow);
 
+    if (!this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      // The parser considers '=> $v' to be invalid, but it would also be
+      // acceptable to place this error on the key, since the logical solution
+      // is to remove '$k =>' instead.
+      doubleArrow = this.addError(doubleArrow, ErrorCode.ERR_FeatureListDeconstructionKeys);
+    }
+
     ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
-      // @todo Requires PHP 7.3 or later.
+      if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+        ampersand = this.addError(ampersand, ErrorCode.ERR_FeatureListDeconstructionByRef);
+      }
+      let byRefValue = this.parseExpression(ExpressionType.Explicit);
+      return new ListDestructureElementNode(key, doubleArrow, ampersand, byRefValue);
     }
 
     // Suppress TS2365: Current token changed after previous method call.

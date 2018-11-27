@@ -49,6 +49,7 @@ import {
   LiteralSyntaxNode,
   LocalVariableSyntaxNode,
   NamedObjectCreationSyntaxNode,
+  NamedTypeSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PrintIntrinsicSyntaxNode,
   RelativeNameSyntaxNode,
@@ -60,6 +61,7 @@ import {
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertAnonymousClassDeclaration(statements: ISyntaxNode[], hasArgumentList: boolean, hasBaseType: boolean): AnonymousClassSyntaxNode {
@@ -431,6 +433,10 @@ describe('PhpParser', function() {
           assert.equal(expressions[0] instanceof LocalVariableSyntaxNode, true);
           assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
         }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_3 = [
         new ParserTestArgs('isset($a,);', 'should parse an isset expression with trailing comma', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
@@ -451,17 +457,22 @@ describe('PhpParser', function() {
           assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
         }),
       ];
-      Test.assertSyntaxNodes(syntaxTests);
+      Test.assertSyntaxNodes(syntaxTests7_3, PhpVersion.PHP7_3);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('isset', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
         new DiagnosticTestArgs('isset(', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
         new DiagnosticTestArgs('isset($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [8]),
-        new DiagnosticTestArgs('isset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
         new DiagnosticTestArgs('isset($a, $b', 'missing comma or close paren (in list)', [ErrorCode.ERR_CommaOrCloseParenExpected], [12]),
-        new DiagnosticTestArgs('isset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
+        new DiagnosticTestArgs('isset(...$a);', 'should not parse an unpacked argument', [ErrorCode.ERR_ExpressionExpected], [6]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTestsTrailingComma = [
+        new DiagnosticTestArgs('isset($a,', 'missing expression or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
+        new DiagnosticTestArgs('isset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [12, 13]),
+      ];
+      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
     });
 
     describe('print-intrinsic', function() {
@@ -580,16 +591,34 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
+    let syntaxTests7_1 = [
+      new ParserTestArgs('function(): ? A {};', 'should parse a closure with nullable return type', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
+        assert.equal(closure instanceof AnonymousFunctionSyntaxNode, true);
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.strictEqual(closure.useClause, null);
+        let returnType = <NamedTypeSyntaxNode>closure.returnType;
+        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.notStrictEqual(returnType.question, null);
+        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+
     // NOTE: See function-declaration for 'function' and 'function &' diagnostics.
     // NOTE: See static-declaration for 'static' diagnostics.
     let diagnosticTests = [
       new DiagnosticTestArgs('function()', 'missing colon, open brace, or use', [ErrorCode.ERR_IncompleteClosure], [10]),
-      new DiagnosticTestArgs('function():', 'missing name', [ErrorCode.ERR_TypeExpected], [11]),
+      new DiagnosticTestArgs('function():', 'missing type', [ErrorCode.ERR_TypeExpected], [11]),
       new DiagnosticTestArgs('function() use', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [14]),
       new DiagnosticTestArgs('function() use(', 'missing variable', [ErrorCode.ERR_VariableExpected], [15]),
       new DiagnosticTestArgs('function() use($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [17]),
       new DiagnosticTestArgs('function() use($a)', 'missing colon or open brace', [ErrorCode.ERR_OpenBraceOrColonExpected], [18]),
-      new DiagnosticTestArgs('function() use($a):', 'missing name (after lexical variables)', [ErrorCode.ERR_TypeExpected], [19]),
+      new DiagnosticTestArgs('function() use($a):', 'missing type (after lexical variables)', [ErrorCode.ERR_TypeExpected], [19]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
