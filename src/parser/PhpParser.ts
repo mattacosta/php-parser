@@ -3680,11 +3680,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let names = this.parseQualifiedNameList();
 
     if (this.currentToken.kind == TokenKind.OpenBrace) {
-      let adaptations: NodeList | null = null;
       let openBrace = this.eat(TokenKind.OpenBrace);
-      if (!openBrace.isMissing) {
-        adaptations = this.parseTraitAdaptationList();
-      }
+      let adaptations = this.parseTraitAdaptationList();
       let closeBrace = openBrace.isMissing
         ? this.createMissingToken(TokenKind.CloseBrace, this.currentToken.kind, false)
         : this.eat(TokenKind.CloseBrace);
