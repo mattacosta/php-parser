@@ -31,6 +31,7 @@ import {
   MethodDeclarationSyntaxNode,
   MethodReferenceSyntaxNode,
   NamedTraitAliasSyntaxNode,
+  NamedTypeSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   PropertyDeclarationSyntaxNode,
@@ -42,11 +43,12 @@ import {
   TraitPrecedenceSyntaxNode,
   TraitUseGroupSyntaxNode,
   TraitUseSyntaxNode,
-  TypeSyntaxNode
+  TypeSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { ISyntaxNode } from '../../../src/language/syntax/ISyntaxNode';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSyntaxNode {
@@ -429,6 +431,20 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
+        new ParserTestArgs('trait A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <NamedTypeSyntaxNode>method.returnType;
+          assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.notStrictEqual(returnType.question, null);
+          assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),

@@ -3839,8 +3839,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax: `? type`
    */
   protected parseType(/* isNullable = true */): TypeNode {
-    // @todo Check feature availability (PHP 7.1 or later).
     let question = this.eatOptional(TokenKind.Question);
+    if (question && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      question = this.addError(question, ErrorCode.ERR_FeatureNullableTypes);
+    }
     if (this.currentToken.kind == TokenKind.Array || this.currentToken.kind == TokenKind.Callable) {
       let typeKeyword = this.eat(this.currentToken.kind);
       return new PredefinedTypeNode(question, typeKeyword);
