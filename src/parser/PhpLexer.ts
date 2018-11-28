@@ -174,12 +174,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected defaultState = PhpLexerState.InHostLanguage;
 
   /**
-   * The location within the text to stop scanning (this does not have to be
-   * the last character).
-   */
-  protected end: number = 0;
-
-  /**
    * The indentation to remove from lines in a flexdoc template.
    */
   protected flexibleIndent: string = '';
@@ -190,34 +184,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected interpolations: TemplateSpan[] = [];
 
   /**
-   * The current location of the scanner.
-   */
-  protected offset: number = 0;
-
-  /**
    * The version of PHP to parse tokens as.
    */
   protected phpVersion: PhpVersion;
 
   /**
-   * The location within the text to start scanning.
-   */
-  protected start: number = 0;
-
-  /**
-   * The current lexing state of the scanner.
-   */
-  protected state!: PhpLexerState;
-
-  /**
    * A pre-defined list containing state transitions for a region of text.
    */
   protected templateStack: TemplateSpan[] = [];
-
-  /**
-   * The text to scan.
-   */
-  protected text!: ISourceText;
 
   /**
    * The kind of token that was scanned.
@@ -242,14 +216,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    *
    * @todo Support `start` and `length` parameters?
    */
-  constructor(text?: ISourceText, phpVersion = PhpVersion.Latest, is64Bit = true) {
-    super();
-    if (!text) {
-      text = SourceTextFactory.EmptyText;
-    }
-    // NOTE: This also sets the state and text fields, and by initializing all
-    // properties, the hidden class won't change after a method call.
-    this.setText(text);
+  constructor(text: ISourceText, phpVersion = PhpVersion.Latest, is64Bit = true) {
+    super(text, PhpLexerState.InHostLanguage);
     this.phpVersion = phpVersion;
     this.ptrSize = is64Bit ? 8 : 4;
   }
@@ -439,19 +407,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Sets the current lexer position.
-   *
-   * The caller is responsible for knowing the proper lexing state at this
-   * position.
-   */
-  public setPosition(offset: number) {
-    if (offset < this.start || offset > this.end) {
-      throw new ArgumentOutOfRangeException('Offset must be within scanning bounds');
-    }
-    this.offset = offset;
-  }
-
-  /**
    * Sets the source text to tokenize.
    *
    * @param {ISourceText} text
@@ -463,24 +418,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    *   of the text.
    */
   public setText(text: ISourceText, start?: number, length?: number) {
-    start = typeof start === 'undefined' ? 0 : start;
-    length = typeof length === 'undefined' ? text.length : length;
-
-    if (start < 0 || length < 0) {
-      throw new ArgumentOutOfRangeException();
-    }
-    if (start + length > text.length) {
-      throw new ArgumentOutOfRangeException();
-    }
-
-    // Set scanning bounds.
-    this.start = start;
-    this.end = start + length;
-    // Return to default state.
-    this.state = this.defaultState;
-    // Set text and current position.
     this.text = text;
-    this.offset = this.start;
+
+    start = start === void 0 ? 0 : start;
+    length = length === void 0 ? text.length : length;
+    this.setBounds(start, length);
+    this.setPosition(start);
   }
 
   /**
@@ -1327,23 +1270,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Reads the character code at the given location, but does not consume it.
-   *
-   * @param {number} offset
-   *   An offset into the scannable text.
-   *
-   * @return {number}
-   *   The character code at the specified offset, or -1 if the offset was
-   *   outside the allowed scan range.
-   */
-  protected peek(offset: number): number {
-    if (offset >= this.end) {
-      return -1;
-    }
-    return this.text.charCodeAt(offset);
-  }
-
-  /**
    * Scans the digits of a binary integer.
    */
   protected scanBinDigits(): number {
@@ -2024,32 +1950,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     return this.offset - start;
-  }
-
-  /**
-   * Determines if text at the given position starts with the specified string.
-   *
-   * @param {string} value
-   *   The text to search for.
-   * @param {boolean=} caseInsensitive
-   *   If a match should be case-insensitive. Defaults to `true`.
-   *
-   * @return {boolean}
-   *   If the scannable text starts with the given string `true`, otherwise
-   *   `false`.
-   */
-  protected startsWith(value: string, caseInsensitive = true): boolean {
-    // if (value.length == 0) {
-    //   return true;
-    // }
-    if (this.offset + value.length > this.end) {
-      return false;
-    }
-    let text = this.text.substring(this.offset, value.length);
-    if (caseInsensitive) {
-      return text.toLowerCase().startsWith(value);
-    }
-    return text.startsWith(value);
   }
 
   /**

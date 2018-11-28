@@ -61,7 +61,7 @@ class ModifierTestArgs {
 }
 
 function assertModifiers(args: ModifierTestArgs[]) {
-  const lexer = new PhpLexer();
+  const lexer = new PhpLexer(SourceTextFactory.EmptyText);
   const parser = new TestPhpParser(lexer);
   for (let i = 0; i < args.length; i++) {
     it(args[i].description, () => {

@@ -16,8 +16,11 @@
 
 'use strict';
 
+import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
+
 import { ErrorCode } from '../diagnostics/ErrorCode.Generated';
 import { ISourceText } from '../text/ISourceText';
+import { SourceTextFactory } from '../text/SourceTextFactory';
 import { SyntaxDiagnostic } from '../diagnostics/SyntaxDiagnostic';
 
 /**
@@ -65,6 +68,44 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
   protected diagnostics: SyntaxDiagnostic[] = [];
 
   /**
+   * The location within the text to stop scanning.
+   */
+  protected end: number = 0;
+
+  /**
+   * The current location of the scanner.
+   */
+  protected offset: number = 0;
+
+  /**
+   * The location within the text to start scanning.
+   */
+  protected start: number = 0;
+
+  /**
+   * The current lexing state of the scanner.
+   */
+  protected state: TState;
+
+  /**
+   * The text to scan.
+   */
+  protected text: ISourceText = SourceTextFactory.EmptyText;
+
+  /**
+   * Constructs a `LexerBase` object.
+   *
+   * @param {ISourceText=} text
+   *   The source text to tokenize.
+   * @param {TState} defaultState
+   *   The default scanning mode when starting to scan text.
+   */
+  public constructor(text: ISourceText, defaultState: TState) {
+    this.setText(text);
+    this.state = defaultState;
+  }
+
+  /**
    * @inheritDoc
    */
   public abstract lex(state: TState): T;
@@ -72,7 +113,12 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
   /**
    * @inheritDoc
    */
-  public abstract setPosition(offset: number): void;
+  public setPosition(offset: number) {
+    if (offset < this.start || offset > this.end) {
+      throw new ArgumentOutOfRangeException('Offset must be within scanning bounds');
+    }
+    this.offset = offset;
+  }
 
   /**
    * @inheritDoc
@@ -91,6 +137,68 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
    */
   protected createDiagnostic(relativeOffset: number, width: number, code: ErrorCode, ...args: any[]): SyntaxDiagnostic {
     return new SyntaxDiagnostic(relativeOffset, width, code, ...args);
+  }
+
+  /**
+   * Reads the character code at the given location, but does not consume it.
+   *
+   * @param {number} offset
+   *   An offset into the scannable text.
+   *
+   * @return {number}
+   *   The character code at the specified offset, or -1 if the offset was
+   *   outside the allowed scan range.
+   */
+  protected peek(offset: number): number {
+    if (offset >= this.end) {
+      return -1;
+    }
+    return this.text.charCodeAt(offset);
+  }
+
+  /**
+   * Sets the starting and ending locations of the text to tokenize.
+   *
+   * @param {number} start
+   *   The offset within the text to start tokenizing.
+   * @param {number} length
+   *   The maximum number of characters to tokenize.
+   */
+  protected setBounds(start: number, length: number) {
+    if (start < 0 || length < 0) {
+      throw new ArgumentOutOfRangeException();
+    }
+    if (start + length > this.text.length) {
+      throw new ArgumentOutOfRangeException();
+    }
+    this.start = start;
+    this.end = start + length;
+  }
+
+  /**
+   * Determines if text at the given position starts with the specified string.
+   *
+   * @param {string} value
+   *   The text to search for.
+   * @param {boolean=} caseInsensitive
+   *   If a match should be case-insensitive. Defaults to `true`.
+   *
+   * @return {boolean}
+   *   If the scannable text starts with the given string `true`, otherwise
+   *   `false`.
+   */
+  protected startsWith(value: string, caseInsensitive = true): boolean {
+    // if (value.length == 0) {
+    //   return true;
+    // }
+    if (this.offset + value.length > this.end) {
+      return false;
+    }
+    let text = this.text.substring(this.offset, value.length);
+    if (caseInsensitive) {
+      return text.toLowerCase().startsWith(value);
+    }
+    return text.startsWith(value);
   }
 
 }
