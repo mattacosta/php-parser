@@ -58,8 +58,9 @@ export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
    * @param {boolean=} is64Bit
    *   Determines if the parser should scan the text in 64-bit mode. Defaults
    *   to `true`.
-   * @param {*} documentationMode
-   *   Not implemented.
+   * @param {DocumentationMode=} documentationMode
+   *   Determines how the parser should handle documentation comments. Defaults
+   *   to `DocumentationMode.None`.
    * @param {ReadonlyMap<string, string>} features
    *   A map of enabled parser features.
    */
