@@ -19,7 +19,7 @@
 /**
  * Specifies how documentation comments should be parsed.
  */
-export const enum DocumentationMode {
+export enum DocumentationMode {
 
   /**
    * Do not parse documentation comments.

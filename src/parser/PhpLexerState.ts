@@ -19,7 +19,7 @@
 /**
  * Lexing states used when tokenizing PHP files.
  */
-export const enum PhpLexerState {
+export enum PhpLexerState {
 
   /**
    * The lexing state used when the lexer is within the host language that
