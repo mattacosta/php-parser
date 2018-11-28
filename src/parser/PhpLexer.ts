@@ -18,7 +18,6 @@
 
 import {
   ArgumentException,
-  ArgumentOutOfRangeException,
   Exception
 } from '@mattacosta/php-common';
 
@@ -28,7 +27,6 @@ import { ISourceText } from '../text/ISourceText';
 import { LexerBase } from './Lexer';
 import { PhpLexerState } from './PhpLexerState';
 import { PhpVersion } from './PhpVersion';
-import { SourceTextFactory } from '../text/SourceTextFactory';
 import { TemplateSpan } from './TemplateSpan';
 import { Token } from './Token';
 import { TokenKind } from '../language/TokenKind';

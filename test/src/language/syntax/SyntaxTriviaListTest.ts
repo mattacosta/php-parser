@@ -20,10 +20,6 @@ import * as assert from 'assert';
 
 import { Test } from '../../Test';
 
-import {
-  ExpressionStatementSyntaxNode
-} from '../../../../src/language/syntax/SyntaxNode.Generated';
-
 import { ISyntaxTriviaList } from '../../../../src/language/syntax/ISyntaxTriviaList';
 import { PhpSyntaxTree } from '../../../../src/parser/PhpSyntaxTree';
 import { TextSpan } from '../../../../src/text/TextSpan';

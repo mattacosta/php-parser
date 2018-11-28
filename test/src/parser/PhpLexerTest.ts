@@ -16,9 +16,6 @@
 
 'use strict';
 
-import * as assert from 'assert';
-import * as mocha from 'mocha';
-
 import {
   LexerTestArgs,
   LexerDiagnosticTestArgs,

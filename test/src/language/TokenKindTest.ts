@@ -17,7 +17,6 @@
 'use strict';
 
 import * as assert from 'assert';
-import * as mocha from 'mocha';
 
 import { TokenKind, TokenKindInfo } from '../../../src/language/TokenKind';
 
