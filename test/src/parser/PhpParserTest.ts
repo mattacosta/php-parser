@@ -25,6 +25,7 @@ import {
   FunctionDeclarationSyntaxNode
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
+import { DocumentationMode } from '../../../src/parser/DocumentationMode';
 import { ModifierFlags } from '../../../src/parser/ModifierFlags';
 import { PhpLexer } from '../../../src/parser/PhpLexer';
 import { PhpParser } from '../../../src/parser/PhpParser';
@@ -122,7 +123,7 @@ describe('PhpParser', function() {
 
   describe('feature: allowReservedNames', function() {
     const features = new Map<string, string>([['allowReservedNames', '']]);
-    const options = new PhpParserOptions(PhpVersion.Latest, true, null, features);
+    const options = new PhpParserOptions(PhpVersion.Latest, true, DocumentationMode.None, features);
 
     let syntaxTests = [
       new ParserTestArgs('function empty() {}', 'should parse function with reserved name', (statements, text) => {

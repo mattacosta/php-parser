@@ -16,6 +16,7 @@
 
 'use strict';
 
+import { DocumentationMode } from './DocumentationMode';
 import { PhpVersion } from './PhpVersion';
 
 /**
@@ -27,6 +28,11 @@ export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
    * A default set of parsing options.
    */
   public static readonly Default = new PhpParserOptions();
+
+  /**
+   * Determines how the parser should handle documentation comments.
+   */
+  public readonly documentationMode: DocumentationMode;
 
   /**
    * Determines if the parser should scan the text in 64-bit mode.
@@ -57,9 +63,10 @@ export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
    * @param {ReadonlyMap<string, string>} features
    *   A map of enabled parser features.
    */
-  constructor(version = PhpVersion.Latest, is64Bit = true, documentationMode?: any, features?: ReadonlyMap<string, string>) {
+  constructor(version = PhpVersion.Latest, is64Bit = true, documentationMode = DocumentationMode.None, features?: ReadonlyMap<string, string>) {
     this.version = version;
     this.is64Bit = is64Bit;
+    this.documentationMode = documentationMode;
     this.features = features ? features : new Map<string, string>();
   }
 

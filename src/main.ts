@@ -44,6 +44,7 @@ export * from './language/syntax/SyntaxWalker';
 export * from './language/syntax/SyntaxWalkerDepth';
 
 // export * from './parser/Character';
+export * from './parser/DocumentationMode';
 // export * from './parser/ExpressionType';
 export * from './parser/Lexer';
 // export * from './parser/ModifierFlags';
