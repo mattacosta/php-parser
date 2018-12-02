@@ -419,7 +419,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     start = start === void 0 ? 0 : start;
     length = length === void 0 ? text.length : length;
-    this.setBounds(start, length);
+    this.setBounds(start, start + length);
     this.setPosition(start);
   }
 

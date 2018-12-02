@@ -161,18 +161,18 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
    *
    * @param {number} start
    *   The offset within the text to start tokenizing.
-   * @param {number} length
-   *   The maximum number of characters to tokenize.
+   * @param {number} end
+   *   The offset within the text to stop tokenizing.
    */
-  protected setBounds(start: number, length: number) {
-    if (start < 0 || length < 0) {
+  protected setBounds(start: number, end: number) {
+    if (start < 0 || start > this.text.length) {
       throw new ArgumentOutOfRangeException();
     }
-    if (start + length > this.text.length) {
+    if (end < start || end > this.text.length) {
       throw new ArgumentOutOfRangeException();
     }
     this.start = start;
-    this.end = start + length;
+    this.end = end;
   }
 
   /**
