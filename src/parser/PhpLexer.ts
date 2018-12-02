@@ -16,10 +16,7 @@
 
 'use strict';
 
-import {
-  ArgumentException,
-  Exception
-} from '@mattacosta/php-common';
+import { ArgumentException, Exception } from '@mattacosta/php-common';
 
 import { Character, CharacterInfo } from './Character';
 import { ErrorCode } from '../diagnostics/ErrorCode.Generated';
@@ -44,23 +41,7 @@ export class HeredocLabelInfo {
  * Tokenizes PHP source text.
  *
  * IMPORTANT: This class is performance critical and must make every effort to
- * allow native optimization by the V8 engine. Unfortunately, many common coding
- * patterns will cause the optimizing compiler to bail out, which will affect
- * the entire containing function. These patterns include:
- * - Generator functions (fixed in V8 5.7 or later).
- * - Try (catch/finally) statements (fixed in V8 5.3 or later).
- * - Compound let/const assignments (fixed in V8 5.6 or later).
- * - Functions containing `__proto__`, `get`, or `set` declarations.
- *
- * NOTE: Various environments (including standalone installs of Node.js) may not
- * not have the same dependency map as VSCode. If a Node.js environment is being
- * used, run `console.log(process.versions)` to determine the version of V8.
- *
- * | VSCode | Electron | Node  | Chrome | V8  |
- * |--------|----------|-------|--------|-----|
- * | 1.12   | 1.6.6    | 7.4.0 | 56.0   | 5.6 |
- * | 1.16   | 1.7.3    | 7.9.0 | 58.0   | 5.8 |
- * | 1.26   | 2.0.5    | 8.9.3 | 61.0   | 6.1 |
+ * allow native optimization by the V8 engine.
  */
 export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
