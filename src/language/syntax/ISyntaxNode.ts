@@ -82,20 +82,6 @@ export interface ISyntaxNodeOrList extends IEquatable<ISyntaxNodeOrList>, ISynta
   ancestorsAndSelf(): ISyntaxNodeOrList[];
 
   /**
-   * Gets all descendants of the current node.
-   *
-   * @deprecated
-   */
-  descendants(): ISyntaxNodeOrList[];
-
-  /**
-   * Gets the current node and all of its descendants.
-   *
-   * @deprecated
-   */
-  descendantsAndSelf(): ISyntaxNodeOrList[];
-
-  /**
    * Gets all child nodes belonging to the current node.
    */
   childNodes(): ISyntaxNode[];

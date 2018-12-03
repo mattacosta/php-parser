@@ -16,8 +16,6 @@
 
 'use strict';
 
-import { NotImplementedException } from '@mattacosta/php-common';  // @todo Remove.
-
 import {
   ArgumentOutOfRangeException,
   Debug,
@@ -569,20 +567,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   /**
    * @inheritDoc
    */
-  public descendants(): ISyntaxNodeOrList[] {
-    throw new NotImplementedException();
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public descendantsAndSelf(): ISyntaxNodeOrList[] {
-    throw new NotImplementedException();
-  }
-
-  /**
-   * @inheritDoc
-   */
   public equals(value: ISyntaxNodeOrList): boolean {
     // Reference equality should be sufficient since nodes should not be
     // created multiple times while traversing through a syntax tree.
@@ -721,20 +705,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
         yield <ISyntaxToken>child;
       }
     }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getDescendants(): IterableIterator<ISyntaxNodeOrList> {
-    throw new NotImplementedException();
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public *getDescendantsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
-    throw new NotImplementedException();
   }
 
   /**

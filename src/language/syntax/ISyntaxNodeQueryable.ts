@@ -39,16 +39,6 @@ export interface ISyntaxNodeQueryable<T> extends ISyntaxTreeTraversable<T> {
   getAncestorsAndSelf(): IterableIterator<T>;
 
   /**
-   * Gets an iterator that lists all descendants of the current node.
-   */
-  getDescendants(): IterableIterator<T>;
-
-  /**
-   * Gets an iterator that lists the current node and all of its descendants.
-   */
-  getDescendantsAndSelf(): IterableIterator<T>;
-
-  /**
    * Finds the first ancestor (which may include the current node) that matches
    * the given filter.
    *
