@@ -354,6 +354,7 @@ nodes:
     inherited: true
   - name: objectOperator
     type: TokenNode
+    inherited: true
   - name: openBrace
     type: TokenNode
     optional: true
@@ -536,6 +537,7 @@ nodes:
     inherited: true
   - name: objectOperator
     type: TokenNode
+    inherited: true
   - name: identifierOrKeyword
     type: TokenNode
   - name: openParen
@@ -1142,6 +1144,12 @@ nodes:
   - name: semicolon
     type: TokenNode
   visitorName: visitIfBlock
+- name: IncompleteMember
+  extends: Statement
+  properties:
+  - name: modifiers
+    type: NodeList
+  visitorName: visitIncompleteMember
 - name: InterfaceDeclaration
   extends: TypeDeclaration
   properties:
@@ -1363,7 +1371,7 @@ nodes:
     type: TokenNode
   visitorName: visitTraitUse
 - name: TraitUseGroup
-  extens: Statement
+  extends: Statement
   properties:
   - name: useKeyword
     type: TokenNode
@@ -1655,11 +1663,6 @@ nodes:
     type: NodeList
     inherited: true
   visitorName: visitFullyQualifiedName
-- name: IncompleteMember
-  properties:
-  - name: modifiers
-    type: NodeList
-  visitorName: visitIncompleteMember
 - name: IncompleteNamedTraitAdaptation
   properties:
   - name: identifierOrKeyword
