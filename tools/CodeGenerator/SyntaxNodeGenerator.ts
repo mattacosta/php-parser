@@ -95,7 +95,7 @@ export class SyntaxNodeGenerator {
     return generator.text;
   }
 
-  protected addAcceptMethods(visitorName: string, className: string): string {
+  protected addAcceptMethods(visitorName: string | undefined, className: string): string {
     if (!visitorName) {
       console.log(className + 'SyntaxNode: Missing visitorName property.');
     }
@@ -275,7 +275,7 @@ export class SyntaxNodeGenerator {
     this.text += '\n';
   }
 
-  protected addProperties(properties: NodeProperty[], isAbstract: boolean): string {
+  protected addProperties(properties: NodeProperty[], isAbstract = false): string {
     let text = '';
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];

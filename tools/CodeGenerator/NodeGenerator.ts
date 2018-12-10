@@ -98,7 +98,7 @@ export class NodeGenerator {
     return generator.text;
   }
 
-  protected addAcceptMethods(visitorName: string, className: string): string {
+  protected addAcceptMethods(visitorName: string | undefined, className: string): string {
     if (!visitorName) {
       console.log(className + 'Node: Missing visitorName property.');
     }
@@ -140,6 +140,8 @@ export class NodeGenerator {
   }
 
   protected addClass(info: NodeClass, index: number) {
+    this.assertClass(info);
+
     let abstract = info.abstract ? ' abstract' : '';
     let baseClass = info.extends ? info.extends + 'Node' : 'Node';
 
@@ -310,7 +312,7 @@ export class NodeGenerator {
     this.text += '\n';
   }
 
-  protected addProperties(properties: NodeProperty[], isAbstractClass: boolean): string {
+  protected addProperties(properties: NodeProperty[], isAbstractClass = false): string {
     let text = '';
 
     // text += '  protected _flags = NodeFlags.IsNotMissing;\n';
@@ -320,15 +322,16 @@ export class NodeGenerator {
     // text += '  protected hash = 0;\n';
     // text += '\n';
 
-    if (properties) {
-      for (let i = 0; i < properties.length; i++) {
-        let prop = properties[i];
-        let abstract = isAbstractClass ? ' abstract' : '';
-        let optional = prop.optional ? ' | null' : '';
-        let type = this.getNodeTypes(prop);
-        text += '  public' + abstract + ' readonly ' + prop.name + ': ' + type + optional + ';\n';
-      }
+    for (let i = 0; i < properties.length; i++) {
+      this.assertProperty(properties[i]);
+
+      let prop = properties[i];
+      let abstract = isAbstractClass ? ' abstract' : '';
+      let optional = prop.optional ? ' | null' : '';
+      let type = this.getNodeTypes(prop);
+      text += '  public' + abstract + ' readonly ' + prop.name + ': ' + type + optional + ';\n';
     }
+
     return text;
   }
 
@@ -406,6 +409,24 @@ export class NodeGenerator {
       return type;
     }
     return type + 'Node';
+  }
+
+  private assertClass(info: NodeClass) {
+    let knownProperties = new Set(['name', 'abstract', 'extends', 'properties', 'visitorName', 'visitorType']);
+    for (let key of Object.keys(info)) {
+      if (!knownProperties.has(key)) {
+        throw new Error(`Unknown property: ${key}`);
+      }
+    }
+  }
+
+  private assertProperty(info: NodeProperty) {
+    let knownProperties = new Set(['name', 'type', 'inherited', 'optional']);
+    for (let key of Object.keys(info)) {
+      if (!knownProperties.has(key)) {
+        throw new Error(`Unknown property: ${key}`);
+      }
+    }
   }
 
 }

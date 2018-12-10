@@ -24,17 +24,17 @@ export interface NodeConfig {
 
 export interface NodeClass {
 
-  abstract: boolean;
-
-  extends: string;
-
   name: string;
 
-  properties: NodeProperty[];
+  abstract?: boolean;
 
-  visitorName: string;
+  extends?: string;
 
-  visitorType: string | undefined;
+  properties?: NodeProperty[];
+
+  visitorName?: string;
+
+  visitorType?: string;
 
 }
 
@@ -47,7 +47,5 @@ export interface NodeProperty {
   inherited?: boolean;
 
   optional?: boolean;
-
-  syntaxType?: string;
 
 }
