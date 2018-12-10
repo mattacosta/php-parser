@@ -359,7 +359,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *   error code (depending on the expected and actual tokens found).
    */
   protected createMissingToken(expected: TokenKind, actual: TokenKind, reportError: boolean): TokenNode {
-    let diagnostics = [];
+    let diagnostics: SyntaxDiagnostic[] = [];
     if (reportError) {
       let diagnostic = this.createExpectedDiagnostic(expected, actual, this.getOffsetForMissingToken(), 0);
       diagnostics.push(diagnostic);
@@ -1311,7 +1311,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     const savedContext = this.currentContext;
     this.addParseContext(context);
 
-    let nodes = [];
+    let nodes: Node[] = [];
     nodes.push(this.parseElement(context));
 
     // @todo Redesign the delimeter and terminator parameters into callbacks?
@@ -1613,7 +1613,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
     }
 
-    let nodes: Node[] = [];
+    let nodes: Array<ClassConstantElementNode | TokenNode> = [];
     let constKeyword = this.eat(TokenKind.Const);
     if (context == ParseContext.TraitMembers) {
       constKeyword = this.addError(constKeyword, ErrorCode.ERR_TraitConstant);
@@ -1764,7 +1764,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let varKeyword: TokenNode;  // Do not move, method optimization.
 
-    let members: Node[] = [];
+    let members: StatementNode[] = [];
     while (!this.tokenEndsContext(context, this.currentToken.kind)) {
       if (this.tokenStartsContext(context, this.currentToken.kind)) {
         switch (this.currentToken.kind) {
@@ -1807,7 +1807,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document parseClassMemberDeclaration().
    */
-  protected parseClassMemberDeclaration(context: ParseContext): Node {
+  protected parseClassMemberDeclaration(context: ParseContext): StatementNode {
     // Anything that is not a modifier should have been handled by the caller.
     Debug.assert(this.getModifierFlag(this.currentToken.kind) != ModifierFlags.None);
 
@@ -2003,7 +2003,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let declareKeyword = this.eat(TokenKind.Declare);
     let openParen = this.eat(TokenKind.OpenParen);
 
-    let directives = [];
+    let directives: Array<ConstantElementNode | TokenNode> = [];
     directives.push(this.parseConstantElement());
 
     // @todo Use parseDelimitedList() instead?
@@ -2093,7 +2093,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let echoKeyword = this.eat(this.currentToken.kind);
     let semicolon: TokenNode;
 
-    let expressions = [];
+    let expressions: Array<ExpressionNode | TokenNode> = [];
     expressions.push(this.parseExpression());
 
     while (this.currentToken.kind == TokenKind.Comma) {
@@ -2283,7 +2283,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Parses a comma-separated list of expressions within a for statement.
    */
   protected parseForExpressionList(terminator: TokenKind): NodeList | null {
-    let expressions: Node[] = [];
+    let expressions: Array<ExpressionNode | TokenNode> = [];
 
     if (this.isExpressionStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
       expressions.push(this.parseExpression());
@@ -3045,7 +3045,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // @todo Attempt to parse for error recovery and assume 'public'?
     Debug.assert(modifiers.length > 0);
 
-    let nodes: Node[] = [];
+    let nodes: Array<PropertyElementNode | TokenNode> = [];
     nodes.push(property);
     while (this.currentToken.kind == TokenKind.Comma) {
       nodes.push(this.eat(TokenKind.Comma));
@@ -3151,7 +3151,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Parses a comma separated list of qualified names.
    */
   protected parseQualifiedNameList(): NodeList {
-    let nodes: Node[] = [];
+    let nodes: Array<NameNode | TokenNode> = [];
 
     // Depending on the desired error code, an alternative is to directly use
     // `parseQualifiedName()` instead.
@@ -3724,7 +3724,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let catchClause: NodeList | null = null;
 
     if (this.currentToken.kind == TokenKind.Catch) {
-      let catches = [];
+      let catches: TryCatchNode[] = [];
       while (this.currentToken.kind == TokenKind.Catch) {
         catches.push(this.parseTryCatch());
       }
