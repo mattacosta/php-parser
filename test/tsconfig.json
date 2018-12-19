@@ -4,8 +4,5 @@
         "declaration": false,
         "outDir": "../out",
         "sourceMap": true
-    },
-    "exclude": [
-        "benchmarks/**"
-    ]
+    }
 }
