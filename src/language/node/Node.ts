@@ -16,12 +16,9 @@
 
 'use strict';
 
-import { InvalidOperationException } from '@mattacosta/php-common';
-
 import { INode } from './INode';
 import { INodeVisitorAccess } from './INodeVisitorAccess';
 import { NodeBase } from './NodeBase';
-import { NodeFlags } from './NodeFlags';
 import { NodeTransform } from './NodeTransform.Generated';
 import { NodeVisitor } from './NodeVisitor.Generated';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
@@ -84,23 +81,6 @@ export abstract class Node extends NodeBase implements INodeVisitorAccess {
     }
 
     return false;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: NodeBase) {
-    // @todo Merge back into updateFlagsAndWidth()?
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: Node) {
-    // Trivia should only be attached to tokens.
-    throw new InvalidOperationException('Unreachable');
   }
 
 }

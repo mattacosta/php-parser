@@ -151,28 +151,7 @@ export class TriviaNode extends Node {
   /**
    * @inheritDoc
    */
-  protected updateFromNode(child: Node) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: Node /* NodeList */) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromToken(child: Node /* TokenNode */) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: TriviaNode) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
     throw new InvalidOperationException('Unreachable');
   }
 

@@ -53,10 +53,10 @@ export class SourceTextNode extends Node {
     this.hash = 0;
     this.statements = statements;
     if (statements) {
-      this.updateFromNodeList(statements);
+      this.updateFlagsAndWidth(statements.flags, statements.fullWidth);
     }
     this.eof = eof;
-    this.updateFromToken(eof);
+    this.updateFlagsAndWidth(eof.flags, eof.fullWidth);
   }
 
   public get count(): number {
@@ -108,14 +108,9 @@ export class SourceTextNode extends Node {
     return new SourceTextNode(this.statements, this.eof, diagnostics);
   }
 
-  protected updateFromNode(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  protected updateFromToken(child: TokenNode) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+    this._flags = this._flags | (flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + fullWidth;
   }
 
 }

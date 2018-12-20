@@ -167,31 +167,9 @@ export class TokenNode extends Node {
   /**
    * @inheritDoc
    */
-  protected updateFromNode(child: Node) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: NodeList) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromToken(child: TokenNode) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+    this._flags = this._flags | (flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + fullWidth;
   }
 
 }
@@ -224,7 +202,7 @@ export class TokenWithTriviaNode extends TokenNode {
     super(kind, width, diagnostics);
     this._leadingTrivia = leadingTrivia;
     if (leadingTrivia !== null) {
-      this.updateFromNodeList(leadingTrivia);
+      this.updateFlagsAndWidth(leadingTrivia.flags, leadingTrivia.fullWidth);
     }
   }
 

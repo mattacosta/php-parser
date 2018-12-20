@@ -169,9 +169,7 @@ export class NodeGenerator {
         this.text += '\n';
         this.text += this.addWithDiagnostics(info.properties, info.name);
         this.text += '\n';
-        this.text += this.addUpdateFromNode();
-        this.text += '\n';
-        this.text += this.addUpdateFromToken();
+        this.text += this.addUpdateFlagsAndWidth();
       }
     }
     else if (this.debug && info.abstract) {
@@ -194,27 +192,11 @@ export class NodeGenerator {
       if (prop.optional) {
         paramList += ' | null';
         body += '    if (' + prop.name + ' !== null) {\n';
-        if (prop.type == 'NodeList') {
-          body += '      this.updateFromNodeList(' + prop.name + ');\n';
-        }
-        else if (prop.type == 'TokenNode') {
-          body += '      this.updateFromToken(' + prop.name + ');\n';
-        }
-        else {
-          body += '      this.updateFromNode(' + prop.name + ');\n';
-        }
+        body += '      this.updateFlagsAndWidth(' + prop.name + '.flags, ' + prop.name + '.fullWidth);\n';
         body += '    }\n';
       }
       else {
-        if (prop.type == 'NodeList') {
-          body += '    this.updateFromNodeList(' + prop.name + ');\n';
-        }
-        else if (prop.type == 'TokenNode') {
-          body += '    this.updateFromToken(' + prop.name + ');\n';
-        }
-        else {
-          body += '    this.updateFromNode(' + prop.name + ');\n';
-        }
+        body += '    this.updateFlagsAndWidth(' + prop.name + '.flags, ' + prop.name + '.fullWidth);\n';
       }
       paramList += ', ';
     }
@@ -351,20 +333,11 @@ export class NodeGenerator {
   //   return text;
   // }
 
-  protected addUpdateFromNode(): string {
+  protected addUpdateFlagsAndWidth(): string {
     let text = '';
-    text += '  protected updateFromNode(child: Node) {\n';
-    text += '    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);\n';
-    text += '    this._fullWidth = this._fullWidth + child.fullWidth;\n';
-    text += '  }\n';
-    return text;
-  }
-
-  protected addUpdateFromToken(): string {
-    let text = '';
-    text += '  protected updateFromToken(child: TokenNode) {\n';
-    text += '    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);\n';
-    text += '    this._fullWidth = this._fullWidth + child.fullWidth;\n';
+    text += '  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {\n';
+    text += '    this._flags = this._flags | (flags & NodeFlags.InheritMask);\n';
+    text += '    this._fullWidth = this._fullWidth + fullWidth;\n';
     text += '  }\n';
     return text;
   }

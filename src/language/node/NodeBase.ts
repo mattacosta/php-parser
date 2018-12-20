@@ -256,31 +256,11 @@ export abstract class NodeBase implements INode {
    */
   public abstract withDiagnostics(diagnostics: SyntaxDiagnostic[]): INode;
 
-  // Normally these 'updateFrom' methods would be a single method, but
-  // performance is critical and V8 can better optimize each method if only
-  // a subset of each type is given.
-
-  // @todo Determine if this is still necessary once Crankshaft is replaced by TurboFan.
-
   /**
-   * Updates the flags and width of a parent node from a child node.
+   * Updates the flags and width of the current node given the flags and width
+   * of a child node.
    */
-  protected abstract updateFromNode(child: NodeBase): void;
-
-  /**
-   * Updates the flags and width of a parent node from a list of children.
-   */
-  protected abstract updateFromNodeList(child: NodeBase): void;
-
-  /**
-   * Updates the flags and width of a parent node from a child token.
-   */
-  protected abstract updateFromToken(child: NodeBase): void;
-
-  /**
-   * Updates the flags and width of a parent node from its leading trivia.
-   */
-  protected abstract updateFromTrivia(child: NodeBase): void;
+  protected abstract updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void;
 
   /**
    * Gets the first node that does not have any children.

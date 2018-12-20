@@ -16,11 +16,7 @@
 
 'use strict';
 
-import {
-  ArgumentOutOfRangeException,
-  Hash,
-  InvalidOperationException
-} from '@mattacosta/php-common';
+import { ArgumentOutOfRangeException, Hash } from '@mattacosta/php-common';
 
 import { ISyntaxNode } from '../syntax/ISyntaxNode';
 import {
@@ -105,15 +101,7 @@ export class SingleChildListNode extends NodeList {
     this.hash = 0;
 
     this.child = child;
-    if (child.isToken) {
-      this.updateFromToken(child);
-    }
-    else if (child.isTrivia) {
-      this.updateFromTrivia(child);
-    }
-    else {
-      this.updateFromNode(child);
-    }
+    this.updateFlagsAndWidth(child.flags, child.fullWidth);
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {
       this._flags = this._flags | NodeFlags.ContainsDiagnostics;
@@ -183,32 +171,9 @@ export class SingleChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  protected updateFromNode(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: NodeBase) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromToken(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+    this._flags = this._flags | (flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + fullWidth;
   }
 
 }
@@ -240,26 +205,10 @@ export class TwoChildListNode extends NodeList {
     this.hash = 0;
 
     this.firstChild = firstChild;
-    if (firstChild.isToken) {
-      this.updateFromToken(firstChild);
-    }
-    else if (firstChild.isTrivia) {
-      this.updateFromTrivia(firstChild);
-    }
-    else {
-      this.updateFromNode(firstChild);
-    }
+    this.updateFlagsAndWidth(firstChild.flags, firstChild.fullWidth);
     this.secondChild = secondChild;
     if (secondChild) {
-      if (secondChild.isToken) {
-        this.updateFromToken(secondChild);
-      }
-      else if (secondChild.isTrivia) {
-        this.updateFromTrivia(secondChild);
-      }
-      else {
-        this.updateFromNode(secondChild);
-      }
+      this.updateFlagsAndWidth(secondChild.flags, secondChild.fullWidth);
     }
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {
@@ -346,32 +295,9 @@ export class TwoChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  protected updateFromNode(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: NodeBase) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromToken(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+    this._flags = this._flags | (flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + fullWidth;
   }
 
 }
@@ -550,15 +476,7 @@ export class ShortChildListNode extends ManyChildListNode {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       if (child !== null) {
-        if (child.isToken) {
-          this.updateFromToken(child);
-        }
-        else if (child.isTrivia) {
-          this.updateFromTrivia(child);
-        }
-        else {
-          this.updateFromNode(child);
-        }
+        this.updateFlagsAndWidth(child.flags, child.fullWidth);
       }
     }
   }
@@ -566,32 +484,9 @@ export class ShortChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  protected updateFromNode(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: NodeBase) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromToken(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+    this._flags = this._flags | (flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + fullWidth;
   }
 
 }
@@ -683,15 +578,7 @@ export class LongChildListNode extends ManyChildListNode {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       if (child !== null) {
-        if (child.isToken) {
-          this.updateFromToken(child);
-        }
-        else if (child.isTrivia) {
-          this.updateFromTrivia(child);
-        }
-        else {
-          this.updateFromNode(child);
-        }
+        this.updateFlagsAndWidth(child.flags, child.fullWidth);
       }
       this.offsets[i] = offset;
       offset += child ? child.fullWidth : 0;
@@ -701,32 +588,9 @@ export class LongChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  protected updateFromNode(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromNodeList(child: NodeBase) {
-    throw new InvalidOperationException('Unreachable');
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromToken(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected updateFromTrivia(child: Node) {
-    this._flags = this._flags | (child.flags & NodeFlags.InheritMask);
-    this._fullWidth = this._fullWidth + child.fullWidth;
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+    this._flags = this._flags | (flags & NodeFlags.InheritMask);
+    this._fullWidth = this._fullWidth + fullWidth;
   }
 
 }
