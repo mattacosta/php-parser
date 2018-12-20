@@ -78,10 +78,10 @@ export abstract class NodeBase implements INode {
   /**
    * Constructs a `NodeBase` object.
    *
-   * @param {SyntaxDiagnostic[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>} diagnostics
    *   A list of diagnostics associated with the token or token collection.
    */
-  constructor(diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+  constructor(diagnostics: ReadonlyArray<SyntaxDiagnostic>) {
     // IMPORTANT: This is a performance critical method.
 
     // Ideally, setting the width and flags would be performed here, but
@@ -90,7 +90,7 @@ export abstract class NodeBase implements INode {
     // which would fail. In terms of parse time, this is apparently the
     // second largest loss caused by the JS engine.
 
-    if (diagnostics && diagnostics.length > 0) {
+    if (diagnostics.length > 0) {
       NodeBase.DiagnosticWeakMap.set(this, diagnostics);
     }
   }

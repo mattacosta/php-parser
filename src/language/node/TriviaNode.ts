@@ -44,11 +44,11 @@ export class TriviaNode extends Node {
    *   The type of the trivia token.
    * @param {number} fullWidth
    *   The width of the trivia token.
-   * @param {SyntaxDiagnostic[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>=} diagnostics
    *   A list of diagnostics associated with the trivia token.
    */
   constructor(kind: TokenKind, fullWidth: number, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
-    super(diagnostics);
+    super(diagnostics || Node.EmptyDiagnosticList);
     this._flags = NodeFlags.None;
     this._fullWidth = fullWidth;
     this.hash = 0;
@@ -172,10 +172,10 @@ export class SkippedTokenNode extends TriviaNode {
    *   The type of the skipped token.
    * @param {number} fullWidth
    *   The width of the skipped token.
-   * @param {SyntaxDiagnostic[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>=} diagnostics
    *   A list of diagnostics associated with the skipped token.
    */
-  constructor(kind: TokenKind, fullWidth: number, diagnostics?: SyntaxDiagnostic[]) {
+  constructor(kind: TokenKind, fullWidth: number, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(kind, fullWidth, diagnostics);
     this._flags = this._flags | NodeFlags.ContainsSkippedText;
   }

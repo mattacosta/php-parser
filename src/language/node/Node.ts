@@ -31,10 +31,10 @@ export abstract class Node extends NodeBase implements INodeVisitorAccess {
   /**
    * Constructs a `Node` object.
    *
-   * @param {SyntaxDiagnostic[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>} diagnostics
    *   A list of diagnostics associated with the token or token collection.
    */
-  constructor(diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+  constructor(diagnostics: ReadonlyArray<SyntaxDiagnostic>) {
     // IMPORTANT: This is a performance critical method.
 
     // Even though this method is essentially empty, internally it allows for

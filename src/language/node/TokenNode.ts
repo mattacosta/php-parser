@@ -45,11 +45,11 @@ export class TokenNode extends Node {
    *   The type of the token.
    * @param {number} width
    *   The width of the token.
-   * @param {SyntaxDiagnostic[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>=} diagnostics
    *   A list of diagnostics associated with the trivia token.
    */
   constructor(kind: TokenKind, width: number, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
-    super(diagnostics);
+    super(diagnostics || Node.EmptyDiagnosticList);
     this._flags = NodeFlags.None;
     this._fullWidth = width;
     this.hash = 0;
@@ -195,7 +195,7 @@ export class TokenWithTriviaNode extends TokenNode {
    *   The width of the token.
    * @param {NodeList|null} leadingTrivia
    *   A collection of irrelevant tokens prior to the token.
-   * @param {SyntaxDiagnostic[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>=} diagnostics
    *   A list of diagnostics associated with the trivia token.
    */
   constructor(kind: TokenKind, width: number, leadingTrivia: NodeList | null, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {

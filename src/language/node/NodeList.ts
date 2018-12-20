@@ -40,7 +40,7 @@ export abstract class NodeList extends NodeBase {
    * NOTE: This constructor prevents TypeScript from emitting one with an
    *   unnecessary (and slow) rest parameter.
    */
-  constructor(diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+  constructor(diagnostics: ReadonlyArray<SyntaxDiagnostic>) {
     super(diagnostics);
   }
 
@@ -94,8 +94,8 @@ export class SingleChildListNode extends NodeList {
   /**
    * Constructs a `SingleChildListNode` object.
    */
-  constructor(child: Node, diagnostics?: SyntaxDiagnostic[]) {
-    super(diagnostics);
+  constructor(child: Node, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+    super(diagnostics || NodeList.EmptyDiagnosticList);
     this._flags = NodeFlags.None;
     this._fullWidth = 0;
     this.hash = 0;
@@ -198,8 +198,8 @@ export class TwoChildListNode extends NodeList {
   /**
    * Constructs a `TwoChildListNode` object.
    */
-  constructor(firstChild: Node, secondChild: Node | null, diagnostics?: SyntaxDiagnostic[]) {
-    super(diagnostics);
+  constructor(firstChild: Node, secondChild: Node | null, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+    super(diagnostics || NodeList.EmptyDiagnosticList);
     this._flags = NodeFlags.None;
     this._fullWidth = 0;
     this.hash = 0;
@@ -318,8 +318,8 @@ abstract class ManyChildListNode extends NodeList {
   /**
    * Constructs a `ManyChildListNode` object.
    */
-  constructor(children: Node[], diagnostics?: SyntaxDiagnostic[]) {
-    super(diagnostics);
+  constructor(children: Node[], diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+    super(diagnostics || NodeList.EmptyDiagnosticList);
     this._flags = NodeFlags.None;
     this._fullWidth = 0;
     this.hash = 0;
@@ -444,7 +444,7 @@ export class ShortChildListNode extends ManyChildListNode {
   /**
    * Constructs a `ShortChildListNode` object.
    */
-  constructor(children: Node[], diagnostics?: SyntaxDiagnostic[]) {
+  constructor(children: Node[], diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(children, diagnostics);
   }
 
@@ -510,7 +510,7 @@ export class LongChildListNode extends ManyChildListNode {
   /**
    * Constructs a `LongChildListNode` object.
    */
-  constructor(children: Node[], diagnostics?: SyntaxDiagnostic[]) {
+  constructor(children: Node[], diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(children, diagnostics);
   }
 

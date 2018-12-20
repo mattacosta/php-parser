@@ -43,11 +43,11 @@ export class SourceTextNode extends Node {
    *   A list of top-level statements in the parsed source text.
    * @param {TokenNode} eof
    *   The EOF token that contains any trailing trivia at the end of a file.
-   * @param {SyntaxDiagnostics[]=} diagnostics
+   * @param {ReadonlyArray<SyntaxDiagnostic>=} diagnostics
    *   A list of diagnostics associated with this node.
    */
-  constructor(statements: NodeList | null, eof: TokenNode, diagnostics?: SyntaxDiagnostic[]) {
-    super(diagnostics);
+  constructor(statements: NodeList | null, eof: TokenNode, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+    super(diagnostics || Node.EmptyDiagnosticList);
     this._flags = NodeFlags.None;
     this._fullWidth = 0;
     this.hash = 0;
