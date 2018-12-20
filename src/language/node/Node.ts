@@ -60,16 +60,16 @@ export abstract class Node extends NodeBase implements INodeVisitorAccess {
     // IMPORTANT: This is a performance critical method.
 
     // Reference equality, skip everything.
-    if (this == value) {
+    if (this === value) {
       return true;
     }
 
     const count = this.count;  // This property is actually a "getter".
-    if (this._flags == value.flags && this._fullWidth == value.fullWidth && count == value.count) {
+    if (this._flags === value.flags && this._fullWidth === value.fullWidth && count === value.count) {
       for (let i = 0; i < count; i++) {
         const child1 = this.childAt(i);
         const child2 = value.childAt(i);
-        if ((child1 !== null) != (child2 !== null)) {
+        if ((child1 !== null) !== (child2 !== null)) {
           return false;
         }
         // Suppress TS2345: Transitive property prevents value(s) from being `null`.

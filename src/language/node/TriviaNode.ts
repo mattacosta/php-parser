@@ -120,10 +120,10 @@ export class TriviaNode extends Node {
    */
   public equals(value: TriviaNode): boolean {
     // IMPORTANT: This is a performance critical method.
-    if (this == value) {
+    if (this === value) {
       return true;
     }
-    if (this.kind == value.kind && this._fullWidth == value.fullWidth && this._flags == value.flags) {
+    if (this.kind === value.kind && this._fullWidth === value.fullWidth && this._flags === value.flags) {
       return true;
     }
     return false;

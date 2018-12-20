@@ -55,16 +55,16 @@ export abstract class NodeList extends NodeBase {
    * @inheritDoc
    */
   public equals(value: NodeList): boolean {
-    if (this == value) {
+    if (this === value) {
       return true;
     }
 
     const count = this.count;
-    if (this._flags == value.flags && this._fullWidth == value.fullWidth && count == value.count) {
+    if (this._flags === value.flags && this._fullWidth === value.fullWidth && count === value.count) {
       for (let i = 0; i < count; i++) {
         const child1 = this.childAt(i);
         const child2 = value.childAt(i);
-        if ((child1 !== null) != (child2 !== null)) {
+        if ((child1 !== null) !== (child2 !== null)) {
           return false;
         }
         if (child1 && child2 && !child1.equals(child2)) {
@@ -361,12 +361,12 @@ abstract class ManyChildListNode extends NodeList {
    * @inheritDoc
    */
   public equals(value: ManyChildListNode): boolean {
-    if (this == value) {
+    if (this === value) {
       return true;
     }
 
     const count = this.children.length;
-    if (this._flags == value.flags && this._fullWidth == value.fullWidth && count == value.count) {
+    if (this._flags === value.flags && this._fullWidth === value.fullWidth && count === value.count) {
       for (let i = 0; i < count; i++) {
         if (!this.equalsChildInList(value, i)) {
           return false;

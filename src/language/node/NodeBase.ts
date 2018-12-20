@@ -99,14 +99,14 @@ export abstract class NodeBase implements INode {
    * @inheritDoc
    */
   public get containsDiagnostics(): boolean {
-    return (this._flags & NodeFlags.ContainsDiagnostics) != 0;
+    return (this._flags & NodeFlags.ContainsDiagnostics) !== 0;
   }
 
   /**
    * @inheritDoc
    */
   public get containsSkippedText(): boolean {
-    return (this._flags & NodeFlags.ContainsSkippedText) != 0;
+    return (this._flags & NodeFlags.ContainsSkippedText) !== 0;
   }
 
   /**
@@ -142,7 +142,7 @@ export abstract class NodeBase implements INode {
    * @inheritDoc
    */
   public get isMissing(): boolean {
-    return (this._flags & NodeFlags.IsMissing) != 0;
+    return (this._flags & NodeFlags.IsMissing) !== 0;
   }
 
   /**
@@ -177,7 +177,7 @@ export abstract class NodeBase implements INode {
    * @inheritDoc
    */
   public get leadingTriviaWidth(): number {
-    return this._fullWidth != 0 ? this.getFirstToken().leadingTriviaWidth : 0;
+    return this._fullWidth !== 0 ? this.getFirstToken().leadingTriviaWidth : 0;
   }
 
   /**
