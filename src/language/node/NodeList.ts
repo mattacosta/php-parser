@@ -351,7 +351,6 @@ abstract class ManyChildListNode extends NodeList {
    */
   public childAt(index: number): Node | null {
     if (index >= 0 && index < this.children.length) {
-      const child = this.children[index];
       return this.children[index];
     }
     return null;
