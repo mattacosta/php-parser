@@ -175,6 +175,10 @@ export class TokenNode extends Node {
    * Returns a new token with the given leading trivia.
    */
   public withLeadingTrivia(leadingTrivia: NodeList | null): TokenNode {
+    // This is already a token without trivia; do not create a new object.
+    if (leadingTrivia === null) {
+      return this;
+    }
     return new TokenWithTriviaNode(this.kind, this.width, leadingTrivia, this.diagnostics);
   }
 
