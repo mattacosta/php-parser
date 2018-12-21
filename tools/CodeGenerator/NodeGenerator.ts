@@ -165,9 +165,11 @@ export class NodeGenerator {
         this.text += '\n';
         this.text += this.addCreateNodeMethod(info.name),
         this.text += '\n';
-        this.text += this.addHashCode(info.properties, index);
+        this.text += this.addHashCode(info.name);
         this.text += '\n';
         this.text += this.addWithDiagnostics(info.properties, info.name);
+        this.text += '\n';
+        this.text += this.addComputeHashCode(info.properties, index);
         this.text += '\n';
         this.text += this.addUpdateFlagsAndWidth();
       }
@@ -177,6 +179,29 @@ export class NodeGenerator {
       this.text += '\n';
     }
     this.text += '}\n';
+  }
+
+  protected addComputeHashCode(properties: NodeProperty[], index: number): string {
+    // @todo Using the index as a sort of `NodeKind` property isn't exactly ideal.
+    index = index + 5;  // 1=Token, 2=Trivia, 3=List, 4=SourceTextNode
+
+    let text = '';
+    text += '  protected computeHashCode(): number {\n';
+    text += '    let hash = Hash.combine(this._flags ^ this._fullWidth, ' + index + ');\n';
+
+    for (let i = 0; i < properties.length; i++) {
+      let prop = properties[i];
+      if (prop.optional) {
+        text += '    hash = this.' + prop.name + ' !== null ? Hash.combine(this.' + prop.name + '.hashCode(), hash) : hash;\n';
+      }
+      else {
+        text += '    hash = Hash.combine(this.' + prop.name + '.hashCode(), hash);\n';
+      }
+    }
+
+    text += '    return hash;\n';
+    text += '  }\n';
+    return text;
   }
 
   protected addConstructor(properties: NodeProperty[], className: string): string {
@@ -250,22 +275,11 @@ export class NodeGenerator {
     return text;
   }
 
-  protected addHashCode(properties: NodeProperty[], index: number): string {
-    // @todo Using the index as a sort of `NodeKind` property isn't exactly ideal.
-    index = index + 5;  // 1=Token, 2=Trivia, 3=List, 4=SourceTextNode
-
+  protected addHashCode(className: string): string {
     let text = '';
     text += '  public hashCode(): number {\n';
     text += '    if (this.hash === 0) {\n';
-    text += '      let hash = Hash.combine(this._flags ^ this._fullWidth, ' + index + ');\n';
-    // text += '      hash = Hash.combine(hash, ' + index + ');\n';
-
-    for (let i = 0; i < properties.length; i++) {
-      let prop = properties[i];
-      text += '      hash = this.' + prop.name + ' !== null ? Hash.combine(this.' + prop.name + '.hashCode(), hash) : hash;\n';
-    }
-
-    text += '      this.hash = hash;\n';
+    text += '      this.hash = ' + className + 'Node.prototype.computeHashCode.call(this);\n';
     text += '    }\n';
     text += '    return this.hash;\n';
     text += '  }\n';

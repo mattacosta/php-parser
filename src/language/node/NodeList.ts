@@ -163,8 +163,7 @@ export class SingleChildListNode extends NodeList {
    */
   public hashCode(): number {
     if (this.hash === 0) {
-      let hash = Hash.combine(this._flags, this._fullWidth);
-      this.hash = Hash.combine(this.getChildHashCode(), hash);
+      this.hash = SingleChildListNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
   }
@@ -181,6 +180,15 @@ export class SingleChildListNode extends NodeList {
    */
   protected getChildHashCode(): number {
     return this.child.hashCode();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected computeHashCode(): number {
+    let hash = Hash.combine(this._flags ^ this._fullWidth, 3);
+    hash = Hash.combine(this.getChildHashCode(), hash);
+    return hash;
   }
 
   /**
@@ -293,10 +301,7 @@ export class TwoChildListNode extends NodeList {
    */
   public hashCode(): number {
     if (this.hash === 0) {
-      let hash = Hash.combine(this._flags, this._fullWidth);
-      hash = Hash.combine(this.getFirstChildHashCode(), hash);
-      hash = Hash.combine(this.getSecondChildHashCode(), hash);
-      this.hash = hash;
+      this.hash = TwoChildListNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
   }
@@ -306,6 +311,16 @@ export class TwoChildListNode extends NodeList {
    */
   public withDiagnostics(diagnostics: SyntaxDiagnostic[]): TwoChildListNode {
     return new TwoChildListNode(this.firstChild, this.secondChild, diagnostics);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected computeHashCode(): number {
+    let hash = Hash.combine(this._flags ^ this._fullWidth, 3);
+    hash = Hash.combine(this.getFirstChildHashCode(), hash);
+    hash = Hash.combine(this.getSecondChildHashCode(), hash);
+    return hash;
   }
 
   /**
@@ -403,17 +418,24 @@ abstract class ManyChildListNode extends NodeList {
   public hashCode(): number {
     // IMPORTANT: This is a performance critical method.
     if (this.hash === 0) {
-      let hash = Hash.combine(this._fullWidth, this._flags);
-      const length = this.count;
-      for (let i = 0; i < length; i++) {
-        const child = this.childAt(i);
-        if (child !== null) {
-          hash = Hash.combine(this.getChildHashCode(child), hash);
-        }
-      }
-      this.hash = hash;
+      this.hash = ManyChildListNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected computeHashCode(): number {
+    let hash = Hash.combine(this._fullWidth ^ this._flags, 3);
+    const length = this.count;
+    for (let i = 0; i < length; i++) {
+      const child = this.childAt(i);
+      if (child !== null) {
+        hash = Hash.combine(this.getChildHashCode(child), hash);
+      }
+    }
+    return hash;
   }
 
   /**

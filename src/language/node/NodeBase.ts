@@ -250,6 +250,11 @@ export abstract class NodeBase implements INode {
   public abstract withDiagnostics(diagnostics: SyntaxDiagnostic[]): INode;
 
   /**
+   * Calculates the hash code of the node.
+   */
+  protected abstract computeHashCode(): number;
+
+  /**
    * Updates the flags and width of the current node given the flags and width
    * of a child node.
    */

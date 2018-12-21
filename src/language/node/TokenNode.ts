@@ -159,8 +159,7 @@ export class TokenNode extends Node {
   public hashCode(): number {
     // IMPORTANT: This is a performance critical method.
     if (this.hash === 0) {
-      let hash = Hash.combine(this._flags, this._fullWidth);
-      this.hash = Hash.combine(this.kind, hash);
+      this.hash = TokenNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
   }
@@ -177,6 +176,13 @@ export class TokenNode extends Node {
    */
   public withLeadingTrivia(leadingTrivia: NodeList | null): TokenNode {
     return new TokenWithTriviaNode(this.kind, this.width, leadingTrivia, this.diagnostics);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected computeHashCode(): number {
+    return Hash.combine(this.kind, Hash.combine(this._flags ^ this._fullWidth, 1));
   }
 
   /**
@@ -258,12 +264,7 @@ export class TokenWithTriviaNode extends TokenNode {
   public hashCode(): number {
     // IMPORTANT: This is a performance critical method.
     if (this.hash === 0) {
-      let hash = Hash.combine(this._flags, this._fullWidth);
-      hash = Hash.combine(this.kind, hash);
-      if (this._leadingTrivia !== null) {
-        hash = Hash.combine(this._leadingTrivia.hashCode(), hash);
-      }
-      this.hash = hash;
+      this.hash = TokenWithTriviaNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
   }
@@ -280,6 +281,16 @@ export class TokenWithTriviaNode extends TokenNode {
    */
   public withLeadingTrivia(leadingTrivia: NodeList | null): TokenNode {
     return new TokenWithTriviaNode(this.kind, this.width, leadingTrivia, this.diagnostics);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected computeHashCode(): number {
+    let hash = Hash.combine(this._flags ^ this._fullWidth, 1);
+    hash = Hash.combine(this.kind, hash);
+    hash = this._leadingTrivia !== null ? Hash.combine(this._leadingTrivia.hashCode(), hash) : hash;
+    return hash;
   }
 
 }

@@ -100,17 +100,21 @@ export class SourceTextNode extends Node {
   }
 
   public hashCode(): number {
-    if (!this.hash) {
-      let hash = Hash.combine(this._flags, this._fullWidth);
-      hash = this.statements !== null ? Hash.combine(this.statements.hashCode(), hash) : hash;
-      hash = Hash.combine(this.eof.hashCode(), hash);
-      this.hash = hash;
+    if (this.hash === 0) {
+      this.hash = SourceTextNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
   }
 
   public withDiagnostics(diagnostics: SyntaxDiagnostic[]): SourceTextNode {
     return new SourceTextNode(this.statements, this.eof, diagnostics);
+  }
+
+  protected computeHashCode(): number {
+    let hash = Hash.combine(this._flags ^ this._fullWidth, 4);
+    hash = this.statements !== null ? Hash.combine(this.statements.hashCode(), hash) : hash;
+    hash = Hash.combine(this.eof.hashCode(), hash);
+    return hash;
   }
 
   protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {

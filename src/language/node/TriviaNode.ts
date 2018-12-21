@@ -150,8 +150,7 @@ export class TriviaNode extends Node {
   public hashCode(): number {
     // IMPORTANT: This is a performance critical method.
     if (this.hash === 0) {
-      let hash = Hash.combine(this._flags, this._fullWidth);
-      this.hash = Hash.combine(this.kind, hash);
+      this.hash = TriviaNode.prototype.computeHashCode.call(this);
     }
     return this.hash;
   }
@@ -161,6 +160,13 @@ export class TriviaNode extends Node {
    */
   public withDiagnostics(diagnostics: SyntaxDiagnostic[]): TriviaNode {
     return new TriviaNode(this.kind, this._fullWidth, diagnostics);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected computeHashCode(): number {
+    return Hash.combine(this.kind, Hash.combine(this._flags ^ this._fullWidth, 2));
   }
 
   /**
