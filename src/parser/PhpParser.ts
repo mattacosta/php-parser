@@ -4111,13 +4111,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses an expression.
    */
-  protected parseExpression(type = ExpressionType.Any, precedence = Precedence.None): ExpressionNode {
-    let expr = this.parseExpressionTree(type, precedence);
+  protected parseExpression(expectedType = ExpressionType.Any, precedence = Precedence.None): ExpressionNode {
+    let expr = this.parseExpressionTree(expectedType, precedence);
     let exprNode = <ExpressionNode>expr.node;
     // Add the mismatched expression type diagnostic, unless the expression
     // already contains an error; in which case, the parser should not make
     // any assumptions about the expression or its type.
-    if (!exprNode.containsDiagnostics && type == ExpressionType.Explicit && expr.type == ExpressionType.Implicit) {
+    if (!exprNode.containsDiagnostics && expectedType == ExpressionType.Explicit && expr.type == ExpressionType.Implicit) {
       exprNode = this.addError(exprNode, ErrorCode.ERR_ExpressionNotAddressable);
     }
     return exprNode;
