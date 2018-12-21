@@ -106,7 +106,7 @@ export class SourceTextNode extends Node {
     return this.hash;
   }
 
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): SourceTextNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): SourceTextNode {
     return new SourceTextNode(this.statements, this.eof, diagnostics);
   }
 

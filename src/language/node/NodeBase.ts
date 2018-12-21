@@ -247,7 +247,7 @@ export abstract class NodeBase implements INode {
   /**
    * @inheritDoc
    */
-  public abstract withDiagnostics(diagnostics: SyntaxDiagnostic[]): INode;
+  public abstract withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): INode;
 
   /**
    * Calculates the hash code of the node.

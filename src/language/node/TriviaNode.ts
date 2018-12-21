@@ -158,7 +158,7 @@ export class TriviaNode extends Node {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): TriviaNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): TriviaNode {
     return new TriviaNode(this.kind, this._fullWidth, diagnostics);
   }
 
@@ -204,7 +204,7 @@ export class SkippedTokenNode extends TriviaNode {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): SkippedTokenNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): SkippedTokenNode {
     return new SkippedTokenNode(this.kind, this._fullWidth, diagnostics);
   }
 

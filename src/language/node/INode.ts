@@ -73,6 +73,6 @@ export interface INode extends IHashable<INode>, ITokenMetadata, ITokenMetadataC
   /**
    * Creates a new node with the given diagnostics.
    */
-  withDiagnostics(diagnostics: SyntaxDiagnostic[]): INode;
+  withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): INode;
 
 }

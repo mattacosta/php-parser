@@ -225,7 +225,7 @@ export class NodeGenerator {
       }
       paramList += ', ';
     }
-    paramList += 'diagnostics?: SyntaxDiagnostic[]';
+    paramList += 'diagnostics?: ReadonlyArray<SyntaxDiagnostic>';
 
     text += paramList + ') {\n';
     text += '    super(diagnostics || Node.EmptyDiagnosticList);\n';
@@ -359,7 +359,7 @@ export class NodeGenerator {
 
   protected addWithDiagnostics(properties: NodeProperty[], name: string): string {
     let text = '';
-    text += '  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): ' + name + 'Node {\n';
+    text += '  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): ' + name + 'Node {\n';
 
     let parameterList = '';
     for (let i = 0; i < properties.length; i++) {

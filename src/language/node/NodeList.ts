@@ -171,7 +171,7 @@ export class SingleChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): SingleChildListNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): SingleChildListNode {
     return new SingleChildListNode(this.child, diagnostics);
   }
 
@@ -309,7 +309,7 @@ export class TwoChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): TwoChildListNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): TwoChildListNode {
     return new TwoChildListNode(this.firstChild, this.secondChild, diagnostics);
   }
 
@@ -536,7 +536,7 @@ export class ShortChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): ShortChildListNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): ShortChildListNode {
     return new ShortChildListNode(this.children, diagnostics);
   }
 
@@ -666,7 +666,7 @@ export class LongChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  public withDiagnostics(diagnostics: SyntaxDiagnostic[]): LongChildListNode {
+  public withDiagnostics(diagnostics: ReadonlyArray<SyntaxDiagnostic>): LongChildListNode {
     return new LongChildListNode(this.children, diagnostics);
   }
 
