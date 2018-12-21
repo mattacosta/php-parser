@@ -38,6 +38,21 @@ export class TriviaNode extends Node {
   public readonly kind: TokenKind;
 
   /**
+   * @inheritDoc
+   */
+  protected _flags: NodeFlags;
+
+  /**
+   * @inheritDoc
+   */
+  protected _fullWidth: number;
+
+  /**
+   * @inheritDoc
+   */
+  protected hash: number;
+
+  /**
    * Constructs a `TriviaNode` object.
    *
    * @param {TokenKind} kind

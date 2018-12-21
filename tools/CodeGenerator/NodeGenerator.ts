@@ -297,13 +297,6 @@ export class NodeGenerator {
   protected addProperties(properties: NodeProperty[], isAbstractClass = false): string {
     let text = '';
 
-    // text += '  protected _flags = NodeFlags.IsNotMissing;\n';
-    // text += '\n';
-    // text += '  protected _fullWidth = 0;\n';
-    // text += '\n';
-    // text += '  protected hash = 0;\n';
-    // text += '\n';
-
     for (let i = 0; i < properties.length; i++) {
       this.assertProperty(properties[i]);
 
@@ -312,6 +305,14 @@ export class NodeGenerator {
       let optional = prop.optional ? ' | null' : '';
       let type = this.getNodeTypes(prop);
       text += '  public' + abstract + ' readonly ' + prop.name + ': ' + type + optional + ';\n';
+    }
+
+    if (!isAbstractClass) {
+      text += '\n';
+      text += '  protected _flags: NodeFlags;\n';
+      text += '  protected _fullWidth: number;\n';
+      text += '  protected hash: number;\n';
+      text += '\n';
     }
 
     return text;

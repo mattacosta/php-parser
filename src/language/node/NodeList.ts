@@ -87,9 +87,24 @@ export abstract class NodeList extends NodeBase {
 export class SingleChildListNode extends NodeList {
 
   /**
+   * @inheritDoc
+   */
+  protected _flags: NodeFlags;
+
+  /**
+   * @inheritDoc
+   */
+  protected _fullWidth: number;
+
+  /**
    * The only child.
    */
   protected child: Node;
+
+  /**
+   * @inheritDoc
+   */
+  protected hash: number;
 
   /**
    * Constructs a `SingleChildListNode` object.
@@ -186,9 +201,24 @@ export class SingleChildListNode extends NodeList {
 export class TwoChildListNode extends NodeList {
 
   /**
+   * @inheritDoc
+   */
+  protected _flags: NodeFlags;
+
+  /**
+   * @inheritDoc
+   */
+  protected _fullWidth: number;
+
+  /**
    * The first child node.
    */
   protected firstChild: Node;
+
+  /**
+   * @inheritDoc
+   */
+  protected hash: number;
 
   /**
    * The second child node.
@@ -313,23 +343,13 @@ abstract class ManyChildListNode extends NodeList {
   /**
    * A list of child nodes.
    */
-  protected children: Node[];
+  protected abstract children: Node[];
 
   /**
    * Constructs a `ManyChildListNode` object.
    */
-  constructor(children: Node[], diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
+  constructor(diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(diagnostics || NodeList.EmptyDiagnosticList);
-    this._flags = NodeFlags.None;
-    this._fullWidth = 0;
-    this.hash = 0;
-
-    this.children = children;
-    this.updateFromChildren(children);
-
-    if (diagnostics !== void 0 && diagnostics.length > 0) {
-      this._flags = this._flags | NodeFlags.ContainsDiagnostics;
-    }
   }
 
   /**
@@ -441,10 +461,40 @@ abstract class ManyChildListNode extends NodeList {
 export class ShortChildListNode extends ManyChildListNode {
 
   /**
+   * @inheritDoc
+   */
+  protected _flags: NodeFlags;
+
+  /**
+   * @inheritDoc
+   */
+  protected _fullWidth: number;
+
+  /**
+   * @inheritDoc
+   */
+  protected children: Node[];
+
+  /**
+   * @inheritDoc
+   */
+  protected hash: number;
+
+  /**
    * Constructs a `ShortChildListNode` object.
    */
   constructor(children: Node[], diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
-    super(children, diagnostics);
+    super(diagnostics);
+    this._flags = NodeFlags.None;
+    this._fullWidth = 0;
+    this.hash = 0;
+
+    this.children = children;
+    this.updateFromChildren(children);
+
+    if (diagnostics !== void 0 && diagnostics.length > 0) {
+      this._flags = this._flags | NodeFlags.ContainsDiagnostics;
+    }
   }
 
   /**
@@ -502,15 +552,46 @@ export class ShortChildListNode extends ManyChildListNode {
 export class LongChildListNode extends ManyChildListNode {
 
   /**
+   * @inheritDoc
+   */
+  protected _flags: NodeFlags;
+
+  /**
+   * @inheritDoc
+   */
+  protected _fullWidth: number;
+
+  /**
+   * @inheritDoc
+   */
+  protected children: Node[];
+
+  /**
+   * @inheritDoc
+   */
+  protected hash: number;
+
+  /**
    * A list of pre-computed child offsets.
    */
-  protected offsets!: number[];
+  protected offsets: number[];
 
   /**
    * Constructs a `LongChildListNode` object.
    */
   constructor(children: Node[], diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
-    super(children, diagnostics);
+    super(diagnostics);
+    this._flags = NodeFlags.None;
+    this._fullWidth = 0;
+    this.hash = 0;
+
+    this.children = children;
+    this.offsets = new Array(children.length);
+    this.updateFromChildren(children);
+
+    if (diagnostics !== void 0 && diagnostics.length > 0) {
+      this._flags = this._flags | NodeFlags.ContainsDiagnostics;
+    }
   }
 
   /**
@@ -571,8 +652,6 @@ export class LongChildListNode extends ManyChildListNode {
    * @inheritDoc
    */
   protected updateFromChildren(children: Node[]) {
-    this.offsets = new Array(children.length);
-
     let offset = 0;
     for (let i = 0; i < children.length; i++) {
       const child = children[i];

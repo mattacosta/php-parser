@@ -36,6 +36,10 @@ export class SourceTextNode extends Node {
   public readonly statements: NodeList | null;
   public readonly eof: TokenNode;
 
+  protected _flags: NodeFlags;
+  protected _fullWidth: number;
+  protected hash: number;
+
   /**
    * Constructs a `SourceTextNode` object.
    *
@@ -51,6 +55,7 @@ export class SourceTextNode extends Node {
     this._flags = NodeFlags.None;
     this._fullWidth = 0;
     this.hash = 0;
+
     this.statements = statements;
     if (statements) {
       this.updateFlagsAndWidth(statements.flags, statements.fullWidth);

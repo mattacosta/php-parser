@@ -50,17 +50,13 @@ export abstract class NodeBase implements INode {
 
   /**
    * A bit field storing information about this node.
-   *
-   * IMPORTANT: Do not initialize this property! See constructor.
    */
-  protected _flags!: NodeFlags;  // @todo Set in constructor of all derived classes.
+  protected abstract _flags: NodeFlags;
 
   /**
    * The width of the token or token collection, with trivia.
-   *
-   * IMPORTANT: Do not initialize this property! See constructor.
    */
-  protected _fullWidth!: number;  // @todo Set in constructor of all derived classes.
+  protected abstract _fullWidth: number;
 
   /**
    * Stores the hash code of the node.
@@ -70,10 +66,8 @@ export abstract class NodeBase implements INode {
    * Fun fact: The .NET CLR saves space by storing an object's hash code in
    * what is usually an unused chunk of memory that was already allocated as
    * part of the object's overhead.
-   *
-   * IMPORTANT: Do not initialize this property! See constructor.
    */
-  protected hash!: number;  // @todo Set in constructor of all derived classes.
+  protected abstract hash: number;
 
   /**
    * Constructs a `NodeBase` object.
@@ -84,11 +78,10 @@ export abstract class NodeBase implements INode {
   constructor(diagnostics: ReadonlyArray<SyntaxDiagnostic>) {
     // IMPORTANT: This is a performance critical method.
 
-    // Ideally, setting the width and flags would be performed here, but
-    // everything inherits this class, so any operation that would cause
-    // `this` to be dereferenced would also cause V8 to perform a map check,
-    // which would fail. In terms of parse time, this is apparently the
-    // second largest loss caused by the JS engine.
+    // NOTE: This class does not implement any properties because everything
+    // inherits from this class, and any operation that would cause `this` to
+    // be dereferenced would also cause V8 to perform a map check which would
+    // subsequently fail.
 
     if (diagnostics.length > 0) {
       NodeBase.DiagnosticWeakMap.set(this, diagnostics);

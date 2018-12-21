@@ -39,6 +39,21 @@ export class TokenNode extends Node {
   public readonly kind: TokenKind;
 
   /**
+   * @inheritDoc
+   */
+  protected _flags: NodeFlags;
+
+  /**
+   * @inheritDoc
+   */
+  protected _fullWidth: number;
+
+  /**
+   * @inheritDoc
+   */
+  protected hash: number;
+
+  /**
    * Constructs a `TokenNode` object.
    *
    * @param {TokenKind} kind
