@@ -4506,7 +4506,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *
    * @see PhpParser.parseObjectCreationExpression()
    */
-  protected parseAnonymousClass(newKeyword: TokenNode): AnonymousClassNode {
+  protected parseAnonymousClass(): AnonymousClassNode {
     let classKeyword = this.eat(TokenKind.Class);
 
     let openParen: TokenNode | null = null;
@@ -5707,7 +5707,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let newKeyword = this.eat(TokenKind.New);
 
     if (this.currentToken.kind == TokenKind.Class) {
-      let declaration = this.parseAnonymousClass(newKeyword);
+      let declaration = this.parseAnonymousClass();
       return new AnonymousObjectCreationNode(newKeyword, declaration);
     }
     else if (!this.isClassNameReferenceStart(this.currentToken.kind)) {
