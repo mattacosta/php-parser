@@ -57,10 +57,11 @@ export class SourceTextNode extends Node {
     this.hash = 0;
 
     this.statements = statements;
+    this.eof = eof;
+
     if (statements) {
       this.updateFlagsAndWidth(statements.flags, statements.fullWidth);
     }
-    this.eof = eof;
     this.updateFlagsAndWidth(eof.flags, eof.fullWidth);
   }
 

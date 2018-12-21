@@ -208,12 +208,14 @@ export class NodeGenerator {
     let text = '  constructor(';
 
     let paramList = '';
+    let assignments = '';
     let body = '';
+
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];
       let type = this.getNodeTypes(prop, className);
       paramList += prop.name + ': ' + type;
-      body += '    this.' + prop.name + ' = ' + prop.name + ';\n';
+      assignments += '    this.' + prop.name + ' = ' + prop.name + ';\n';
       if (prop.optional) {
         paramList += ' | null';
         body += '    if (' + prop.name + ' !== null) {\n';
@@ -225,6 +227,7 @@ export class NodeGenerator {
       }
       paramList += ', ';
     }
+
     paramList += 'diagnostics?: ReadonlyArray<SyntaxDiagnostic>';
 
     text += paramList + ') {\n';
@@ -233,8 +236,12 @@ export class NodeGenerator {
     text += '    this._fullWidth = 0;\n';
     text += '    this.hash = 0;\n';
     text += '\n';
-    text += body;
-    text += '\n';
+    if (properties.length > 0) {
+      text += assignments;
+      text += '\n';
+      text += body;
+      text += '\n';
+    }
     text += '    if (diagnostics !== void 0 && diagnostics.length > 0) {\n';
     text += '      this._flags = this._flags | NodeFlags.ContainsDiagnostics;\n';
     text += '    }\n';

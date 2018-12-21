@@ -67,6 +67,7 @@ export class TriviaNode extends Node {
     this._flags = NodeFlags.None;
     this._fullWidth = fullWidth;
     this.hash = 0;
+
     this.kind = kind;
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {

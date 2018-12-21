@@ -116,6 +116,7 @@ export class SingleChildListNode extends NodeList {
     this.hash = 0;
 
     this.child = child;
+
     this.updateFlagsAndWidth(child.flags, child.fullWidth);
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {
@@ -243,8 +244,9 @@ export class TwoChildListNode extends NodeList {
     this.hash = 0;
 
     this.firstChild = firstChild;
-    this.updateFlagsAndWidth(firstChild.flags, firstChild.fullWidth);
     this.secondChild = secondChild;
+
+    this.updateFlagsAndWidth(firstChild.flags, firstChild.fullWidth);
     if (secondChild) {
       this.updateFlagsAndWidth(secondChild.flags, secondChild.fullWidth);
     }
@@ -512,6 +514,7 @@ export class ShortChildListNode extends ManyChildListNode {
     this.hash = 0;
 
     this.children = children;
+
     this.updateFromChildren(children);
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {
@@ -609,6 +612,7 @@ export class LongChildListNode extends ManyChildListNode {
 
     this.children = children;
     this.offsets = new Array(children.length);
+
     this.updateFromChildren(children);
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {

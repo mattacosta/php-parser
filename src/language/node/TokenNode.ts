@@ -68,6 +68,7 @@ export class TokenNode extends Node {
     this._flags = NodeFlags.None;
     this._fullWidth = width;
     this.hash = 0;
+
     this.kind = kind;
 
     if (diagnostics !== void 0 && diagnostics.length > 0) {
@@ -225,7 +226,9 @@ export class TokenWithTriviaNode extends TokenNode {
    */
   constructor(kind: TokenKind, width: number, leadingTrivia: NodeList | null, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(kind, width, diagnostics);
+
     this._leadingTrivia = leadingTrivia;
+
     if (leadingTrivia !== null) {
       this.updateFlagsAndWidth(leadingTrivia.flags, leadingTrivia.fullWidth);
     }
