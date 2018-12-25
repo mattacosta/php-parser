@@ -172,6 +172,7 @@ export class NodeGenerator {
         this.text += this.addComputeHashCode(info.properties, index);
         this.text += '\n';
         this.text += this.addUpdateFlagsAndWidth();
+        this.text += '\n';
       }
     }
     else if (this.debug && info.abstract) {
@@ -333,7 +334,6 @@ export class NodeGenerator {
       text += '  protected _flags: NodeFlags;\n';
       text += '  protected _fullWidth: number;\n';
       text += '  protected hash: number;\n';
-      text += '\n';
     }
 
     return text;
