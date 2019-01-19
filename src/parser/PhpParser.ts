@@ -496,7 +496,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * given error code.
    */
   protected skipTokenWithError(code: ErrorCode, ...args: any[]) {
-    let diagnostic = this.createDiagnosticForSkippedToken(code, args);
+    let diagnostic = this.createDiagnosticForSkippedToken(code, ...args);
     let trivia = this.factory.createSkippedTokenTrivia(this.currentToken.kind, this.currentToken.length, [diagnostic]);
     this.leadingTriviaWidth = this.leadingTriviaWidth + this.currentToken.length;
     this.leadingTrivia.push(trivia);
@@ -1891,7 +1891,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseClassMemberName(code: ErrorCode, ...args: any[]): TokenNode {
     let member = this.isClassMemberIdentifier(this.currentToken.kind)
       ? this.eat(this.currentToken.kind)
-      : this.createMissingTokenWithError(TokenKind.Identifier, code, args);
+      : this.createMissingTokenWithError(TokenKind.Identifier, code, ...args);
     return member;
   }
 
@@ -2171,7 +2171,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       // Create an empty expression statement to act as our placeholder.
       let semicolon = this.createMissingToken(TokenKind.Semicolon, this.currentToken.kind, false);
       statement = new ExpressionStatementNode(null, semicolon);
-      statement = this.addError(statement, code, args);
+      statement = this.addError(statement, code, ...args);
     }
     return statement;
   }
