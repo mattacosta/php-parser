@@ -2520,7 +2520,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a goto statement.
    *
-   * Syntax: `GOTO identifier ;`
+   * Syntax: `GOTO IDENTIFIER ;`
    */
   protected parseGoTo(): GoToNode {
     let gotoKeyword = this.eat(TokenKind.GoTo);
@@ -4578,7 +4578,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `expr`
    */
   protected parseArgumentList(): InvocationArguments {
-    let args: Array<ArgumentNode|TokenNode> = [];
+    let args: Array<ArgumentNode | TokenNode> = [];
     let hasUnpack = false;
 
     let openParen = this.eat(TokenKind.OpenParen);
@@ -5283,6 +5283,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `HEREDOC_START STRING_TEMPLATE_LITERAL HEREDOC_END`
    * - `HEREDOC_START string-template-list HEREDOC_END`
    *
+   * @see PhpParser.parseFlexdocTemplate()
    * @see PhpParser.parseShellCommandTemplate()
    * @see PhpParser.parseStringTemplate()
    */
