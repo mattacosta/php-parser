@@ -84,6 +84,8 @@ export class Test {
         return PhpVersion.PHP7_2;
       case '7_3':
         return PhpVersion.PHP7_3;
+      case '7_4':
+        return PhpVersion.PHP7_4;
       default:
         return PhpVersion.Latest;
     }
