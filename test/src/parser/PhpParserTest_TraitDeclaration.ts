@@ -155,6 +155,17 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
+        new ParserTestArgs('trait A { var $b; }', 'should parse a property declaration (var)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
         new ParserTestArgs('trait A { public $b = 1; }', 'should parse a property declaration with assignment', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
@@ -247,6 +258,8 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(syntaxTests);
 
       let diagnosticTests = [
+        new DiagnosticTestArgs('trait A { var }', 'missing property', [ErrorCode.ERR_PropertyExpected], [13]),
+
         new DiagnosticTestArgs('trait A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadPropertyModifier], [10]),
         new DiagnosticTestArgs('trait A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadPropertyModifier], [10]),
       ];

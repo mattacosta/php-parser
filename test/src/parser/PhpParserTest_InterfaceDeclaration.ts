@@ -239,6 +239,8 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { protected $b; }', 'should not parse a protected property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 24]),
         new DiagnosticTestArgs('interface A { private $b; }', 'should not parse a private property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 22]),
         new DiagnosticTestArgs('interface A { static $b; }', 'should not parse a static property', [ErrorCode.ERR_InterfaceProperty], [21]),
+        // For consistency, defer this error to the variable instead of 'var'.
+        new DiagnosticTestArgs('interface A { var $b; }', 'should not parse a var property', [ErrorCode.ERR_InterfaceProperty], [18]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

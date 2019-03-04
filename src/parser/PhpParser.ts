@@ -1779,9 +1779,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
             break;
           case TokenKind.Var:
             varKeyword = this.eat(TokenKind.Var);
-            if (context == ParseContext.InterfaceMembers) {
-              varKeyword = this.addError(varKeyword, ErrorCode.ERR_InterfaceProperty);
-            }
             members.push(this.parsePropertyDeclaration([varKeyword], context));
             break;
           default:
