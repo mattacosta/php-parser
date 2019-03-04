@@ -245,6 +245,12 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('trait A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadPropertyModifier], [10]),
+        new DiagnosticTestArgs('trait A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadPropertyModifier], [10]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
     });
 
     // Everything except for the parameter list and statement block needs full
