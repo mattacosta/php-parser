@@ -277,6 +277,11 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php ->', 'object operator', [TokenKind.ObjectOperator]),
       ];
       Test.assertTokens(tests);
+
+      let tests7_4 = [
+        new LexerTestArgs('<?php ??=', 'coalesce equal', [TokenKind.CoalesceEqual]),
+      ];
+      Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
     });
 
     describe('type casts', function() {

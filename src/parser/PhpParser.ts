@@ -755,6 +755,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected isAssignmentOperator(kind: TokenKind): boolean {
     switch (kind) {
       case TokenKind.AndEqual:
+      case TokenKind.CoalesceEqual:
       case TokenKind.ConcatEqual:
       case TokenKind.DivideEqual:
       case TokenKind.Equal:
@@ -1079,6 +1080,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Pow:
       // Assignment operators.
       case TokenKind.AndEqual:
+      case TokenKind.CoalesceEqual:
       case TokenKind.ConcatEqual:
       case TokenKind.DivideEqual:
       case TokenKind.Equal:
@@ -6253,6 +6255,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.LogicalAnd:
         return Precedence.LogicalAnd;
       case TokenKind.AndEqual:
+      case TokenKind.CoalesceEqual:
       case TokenKind.ConcatEqual:
       case TokenKind.DivideEqual:
       case TokenKind.Equal:

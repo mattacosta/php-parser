@@ -138,6 +138,7 @@ export enum TokenKind {
   BooleanAnd,               // "&&"
   BooleanOr,                // "||"
   Coalesce,
+  CoalesceEqual,
   ConcatEqual,
   Decrement,
   DivideEqual,
@@ -460,6 +461,8 @@ export class TokenKindInfo {
         return '||';
       case TokenKind.Coalesce:
         return '??';
+      case TokenKind.CoalesceEqual:
+        return '??=';
       case TokenKind.ConcatEqual:
         return '.=';
       case TokenKind.Decrement:

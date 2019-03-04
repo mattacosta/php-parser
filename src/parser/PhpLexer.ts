@@ -1043,8 +1043,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           return this.state = PhpLexerState.InHostLanguage;
         }
         else if (next == Character.Question) {
-          this.offset = this.offset + 2; // "??"
-          this.tokenKind = TokenKind.Coalesce;
+          if (this.peek(this.offset + 2) == Character.Equal && this.phpVersion >= PhpVersion.PHP7_4) {
+            this.offset = this.offset + 3;  // "??="
+            this.tokenKind = TokenKind.CoalesceEqual;
+          }
+          else {
+            this.offset = this.offset + 2;  // "??"
+            this.tokenKind = TokenKind.Coalesce;
+          }
         }
         else {
           this.offset++;
