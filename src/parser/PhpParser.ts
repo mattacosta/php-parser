@@ -1431,7 +1431,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return this.parseExpressionOrTopStatement();
       case TokenKind.HaltCompiler:
         let haltCompiler = this.parseHaltCompiler();
-        // @todo Test: No skipped trivia or missing tokens.
         if (!haltCompiler.containsDiagnostics) {
           this.forceEndOfFile();
         }
