@@ -135,7 +135,7 @@ export abstract class NodeBase implements INode {
    * @inheritDoc
    */
   public get isMissing(): boolean {
-    return (this._flags & NodeFlags.IsMissing) !== 0;
+    return (this._flags & NodeFlags.IsNotMissing) === 0;
   }
 
   /**

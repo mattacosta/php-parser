@@ -65,7 +65,7 @@ export class TokenNode extends Node {
    */
   constructor(kind: TokenKind, width: number, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(diagnostics || Node.EmptyDiagnosticList);
-    this._flags = NodeFlags.None;
+    this._flags = NodeFlags.IsNotMissing;
     this._fullWidth = width;
     this.hash = 0;
 
@@ -322,7 +322,7 @@ export class MissingTokenWithTriviaNode extends TokenWithTriviaNode {
    */
   constructor(kind: TokenKind, leadingTrivia: NodeList | null, diagnostics?: ReadonlyArray<SyntaxDiagnostic>) {
     super(kind, 0, leadingTrivia, diagnostics);
-    this._flags = this._flags | NodeFlags.IsMissing;
+    this._flags &= ~NodeFlags.IsNotMissing;
   }
 
   /**
