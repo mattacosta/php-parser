@@ -2182,7 +2182,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseFor(): ForNode | ForBlockNode {
     let forKeyword = this.eat(TokenKind.For);
     let openParen = this.eat(TokenKind.OpenParen);
-    let initializers = this.parseForExpressionList(TokenKind.Semicolon);
+
+    let initializerExpressions = this.parseForExpressionList(TokenKind.Semicolon);
+    let initializers = initializerExpressions.length > 0 ? this.factory.createList(initializerExpressions) : null;
 
     // Depending on what is being parsed and what is missing, semicolon errors
     // may not indicate the proper correction. For example, if a for statement
@@ -2209,7 +2211,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       firstSemicolon = this.parseStatementEnd();
     }
 
-    let conditions = this.parseForExpressionList(TokenKind.Semicolon);
+    let conditionExpressions = this.parseForExpressionList(TokenKind.Semicolon);
+    let conditions = conditionExpressions.length > 0 ? this.factory.createList(conditionExpressions) : null;
 
     let secondSemicolon: TokenNode;
     if (!this.isStatementEnd(this.currentToken.kind)) {
@@ -2226,6 +2229,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let iterationExpressions = this.parseForExpressionList(TokenKind.CloseParen);
+    let iterations = iterationExpressions.length > 0 ? this.factory.createList(iterationExpressions) : null;
 
     let closeParen: TokenNode;
     if (this.currentToken.kind == TokenKind.CloseParen) {
@@ -2235,7 +2239,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
     }
     else {
-      let code = iterationExpressions ? ErrorCode.ERR_CloseParenExpected : ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      let code: ErrorCode;
+      if (iterationExpressions.length > 0) {
+        let lastExpression = <ExpressionNode>iterationExpressions[iterationExpressions.length - 1];
+        code = lastExpression.isMissing ? ErrorCode.ERR_CloseParenExpected : ErrorCode.ERR_CommaOrCloseParenExpected;
+      }
+      else {
+        code = ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      }
       closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
     }
 
@@ -2252,7 +2263,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         firstSemicolon,
         conditions,
         secondSemicolon,
-        iterationExpressions,
+        iterations,
         closeParen,
         colon,
         statements,
@@ -2269,7 +2280,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       firstSemicolon,
       conditions,
       secondSemicolon,
-      iterationExpressions,
+      iterations,
       closeParen,
       statement
     );
@@ -2278,7 +2289,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a comma-separated list of expressions within a for statement.
    */
-  protected parseForExpressionList(terminator: TokenKind): NodeList | null {
+  protected parseForExpressionList(terminator: TokenKind): Array<ExpressionNode | TokenNode> {
     let expressions: Array<ExpressionNode | TokenNode> = [];
 
     if (this.isExpressionStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
@@ -2302,7 +2313,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       kind = this.currentToken.kind;
     }
 
-    return expressions.length == 0 ? null : this.factory.createList(expressions);
+    return expressions;
   }
 
   /**
