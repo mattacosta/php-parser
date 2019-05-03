@@ -22,12 +22,18 @@ import { PhpVersion } from './PhpVersion';
 /**
  * A set of options for parsing PHP source code.
  */
-export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
+export class PhpParserOptions /* implements IEquatable<PhpParserOptions> */ {
 
   /**
    * A default set of parsing options.
    */
   public static readonly Default = new PhpParserOptions();
+
+  /**
+   * Determines if a diagnostic should be generated when parsing a function with
+   * a reserved name.
+   */
+  public readonly allowReservedNames: boolean;
 
   /**
    * Determines how the parser should handle documentation comments.
@@ -45,30 +51,31 @@ export class PhpParserOptions /*implements IEquatable<PhpParserOptions>*/ {
   public readonly version: PhpVersion;
 
   /**
-   * A map of enabled parser features.
-   */
-  public readonly features: ReadonlyMap<string, string>;
-
-  /**
    * Constructs a `PhpParserOptions` object.
    *
    * @param {PhpVersion=} version
    *   The version of PHP containing the desired parsing rules. Defaults to
    *   `PhpVersion.Latest`.
-   * @param {boolean=} is64Bit
-   *   Determines if the parser should scan the text in 64-bit mode. Defaults
-   *   to `true`.
    * @param {DocumentationMode=} documentationMode
    *   Determines how the parser should handle documentation comments. Defaults
    *   to `DocumentationMode.None`.
-   * @param {ReadonlyMap<string, string>} features
-   *   A map of enabled parser features.
+   * @param {boolean=} is64Bit
+   *   Determines if the parser should scan the text in 64-bit mode. Defaults
+   *   to `true`.
+   * @param {boolean=} allowReservedNames
+   *   Determines if a diagnostic should be generated when parsing a function
+   *   with a reserved name. Defaults to `false`.
    */
-  constructor(version = PhpVersion.Latest, is64Bit = true, documentationMode = DocumentationMode.None, features?: ReadonlyMap<string, string>) {
+  constructor(
+    version = PhpVersion.Latest,
+    documentationMode = DocumentationMode.None,
+    is64Bit = true,
+    allowReservedNames = false
+  ) {
     this.version = version;
-    this.is64Bit = is64Bit;
     this.documentationMode = documentationMode;
-    this.features = features ? features : new Map<string, string>();
+    this.is64Bit = is64Bit;
+    this.allowReservedNames = allowReservedNames;
   }
 
 }

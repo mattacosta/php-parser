@@ -981,7 +981,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
     // Also allow functions with reserved names if the parser is being used to
     // generate metadata about PHP itself.
-    if (TokenKindInfo.isSemiReservedKeyword(kind) && this.options.features.has('allowReservedNames')) {
+    if (TokenKindInfo.isSemiReservedKeyword(kind) && this.options.allowReservedNames) {
       return true;
     }
     return false;
