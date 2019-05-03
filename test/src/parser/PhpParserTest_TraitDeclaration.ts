@@ -131,6 +131,17 @@ describe('PhpParser', function() {
     describe('modifiers', function() {
       let diagnosticTests = [
         new DiagnosticTestArgs('trait A { public }', 'missing function or variable', [ErrorCode.ERR_TraitMemberExpected], [10]),
+
+        new DiagnosticTestArgs('trait A { private private }', 'duplicate private modifier', [ErrorCode.ERR_DuplicateModifier], [18]),
+        new DiagnosticTestArgs('trait A { protected protected }', 'duplicate protected modifier', [ErrorCode.ERR_DuplicateModifier], [20]),
+        new DiagnosticTestArgs('trait A { public public }', 'duplicate public modifier', [ErrorCode.ERR_DuplicateModifier], [17]),
+
+        new DiagnosticTestArgs('trait A { private protected }', 'private and protected modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [18]),
+        new DiagnosticTestArgs('trait A { private public }', 'private and public modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [18]),
+        new DiagnosticTestArgs('trait A { protected private }', 'protected and private modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [20]),
+        new DiagnosticTestArgs('trait A { protected public }', 'protected and public modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [20]),
+        new DiagnosticTestArgs('trait A { public private }', 'public and private modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [17]),
+        new DiagnosticTestArgs('trait A { public protected }', 'public and protected modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [17]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
