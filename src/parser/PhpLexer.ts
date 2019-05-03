@@ -48,7 +48,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * A map of cast types to their associated tokens.
    */
-  protected static readonly CastTokens = new Map<string, TokenKind>([
+  protected static readonly CastTokens: ReadonlyMap<string, TokenKind> = new Map<string, TokenKind>([
     ['array', TokenKind.ArrayCast],
     ['binary', TokenKind.BinaryCast],
     ['bool', TokenKind.BoolCast],
@@ -66,7 +66,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * A map of keywords to their associated tokens.
    */
-  protected static readonly KeywordTokens = new Map<string, TokenKind>([
+  protected static readonly KeywordTokens: ReadonlyMap<string, TokenKind> = new Map<string, TokenKind>([
     ['__class__', TokenKind.MagicClass],
     ['__dir__', TokenKind.MagicDirectory],
     ['__file__', TokenKind.MagicFile],
