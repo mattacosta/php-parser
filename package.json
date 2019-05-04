@@ -38,7 +38,8 @@
         "js-yaml": "^3.13.1",
         "merge2": "^1.2.3",
         "mocha": "^6.1.4",
-        "nyc": "^13.3.0",
+        "nyc": "^14.1.0",
+        "source-map-support": "^0.5.12",
         "through": "^2.3.8",
         "typescript": "^3.4.5"
     },
@@ -47,7 +48,7 @@
         "build:codegen": "tsc -p ./tools/CodeGenerator",
         "build:validator": "tsc -p ./tools/Validator",
         "pretest": "tsc -p ./test",
-        "test": "nyc --exclude out/test/** mocha --recursive ./out/test",
+        "test": "nyc mocha --require source-map-support/register --recursive ./out/test",
         "test:coverage": "nyc report --reporter=text-lcov | coveralls",
         "browserify": "browserify ./lib/main.js -d -s PhpParser -r ./lib/ErrorCode.json:../ErrorCode.json | exorcist ./lib/php-parser.map.js > ./lib/php-parser.js"
     }
