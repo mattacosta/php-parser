@@ -258,6 +258,9 @@ describe('PhpParser', function() {
 
       new DiagnosticTestArgs('try {} finally {} finally', 'should not parse multiple finally clauses', [ErrorCode.ERR_UnexpectedToken], [18]),
       new DiagnosticTestArgs('try {} finally {} catch', 'should not parse a catch clause after a finally clause', [ErrorCode.ERR_UnexpectedToken], [18]),
+
+      // @todo Recovery tests.
+      new DiagnosticTestArgs('try {} catch (A $', 'missing variable name', [ErrorCode.ERR_VariableNameExpected], [16]),
     ];
     Test.assertDiagnostics(diagnosticTests);
 
