@@ -112,7 +112,14 @@ function assertOutput(doneFn) {
  * Deletes all generated files.
  */
 function clean() {
-  return del(['./src/ErrorCode.json', './lib', './out', './typings', './.nyc_output']);
+  return del([
+    './.nyc_output',
+    './coverage',
+    './lib',
+    './out',
+    './src/ErrorCode.json',
+    './typings',
+  ]);
 }
 
 const license = require('./gulpfile.license');
