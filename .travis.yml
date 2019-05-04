@@ -21,4 +21,4 @@ script:
   - PHP_PARSER_VERSION=7_2 npm test
   - npm test
 
-after_success: npm run test:coverage
+after_success: npm run test:coveralls

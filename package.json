@@ -49,7 +49,7 @@
         "build:validator": "tsc -p ./tools/Validator",
         "pretest": "tsc -p ./test",
         "test": "nyc mocha --require source-map-support/register --recursive ./out/test",
-        "test:coverage": "nyc report --reporter=text-lcov | coveralls",
+        "test:coveralls": "nyc report --reporter=text-lcov | coveralls",
         "browserify": "browserify ./lib/main.js -d -s PhpParser -r ./lib/ErrorCode.json:../ErrorCode.json | exorcist ./lib/php-parser.map.js > ./lib/php-parser.js"
     }
 }
