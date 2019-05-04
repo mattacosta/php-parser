@@ -556,7 +556,7 @@ describe('PhpParser', function() {
           assert.strictEqual(traitUseGroup.adaptations, null);
         }),
 
-        // Trait alias.
+        // Trait alias (named).
         new ParserTestArgs('trait A { use B { c as d; } }', 'should parse a trait alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
@@ -570,7 +570,33 @@ describe('PhpParser', function() {
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-        new ParserTestArgs('trait A { use B { c as list; } }', 'should parse a trait alias with semi-reserved keyword', (statements, text) => {
+        new ParserTestArgs('trait A { use B { list as c; } }', 'should parse a trait alias with semi-reserved keyword as method name', (statements, text) => {
+          let traitUseGroup = assertTraitUseGroup(statements);
+          let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
+          assert.equal(names.length, 1);
+          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
+          assert.equal(adaptations.length, 1);
+          let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
+          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.List, 'list');
+          assert.strictEqual(aliasNode.modifier, null);
+          Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'c');
+        }),
+        new ParserTestArgs('trait A { use B { namespace as c; } }', 'should parse a trait alias with semi-reserved keyword as method name (namespace)', (statements, text) => {
+          let traitUseGroup = assertTraitUseGroup(statements);
+          let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
+          assert.equal(names.length, 1);
+          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
+          assert.equal(adaptations.length, 1);
+          let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
+          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Namespace, 'namespace');
+          assert.strictEqual(aliasNode.modifier, null);
+          Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'c');
+        }),
+        new ParserTestArgs('trait A { use B { c as list; } }', 'should parse a trait alias with semi-reserved keyword as alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -622,7 +648,7 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Private, 'private');
           assert.strictEqual(aliasNode.alias, null);
         }),
-        new ParserTestArgs('trait A { use B { c as public d; } }', 'should parse a trait alias with public modifier and name', (statements, text) => {
+        new ParserTestArgs('trait A { use B { c as public d; } }', 'should parse a trait alias with public modifier and alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -635,7 +661,7 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Public, 'public');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-        new ParserTestArgs('trait A { use B { c as protected d; } }', 'should parse a trait alias with protected modifier and name', (statements, text) => {
+        new ParserTestArgs('trait A { use B { c as protected d; } }', 'should parse a trait alias with protected modifier and alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -648,7 +674,7 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Protected, 'protected');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-        new ParserTestArgs('trait A { use B { c as private d; } }', 'should parse a trait alias with private modifier and name', (statements, text) => {
+        new ParserTestArgs('trait A { use B { c as private d; } }', 'should parse a trait alias with private modifier and alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -662,8 +688,8 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
 
-        // Trait alias (absolute reference).
-        new ParserTestArgs('trait A { use B { B::c as d; } }', 'should parse a trait alias (method reference)', (statements, text) => {
+        // Trait alias (referenced).
+        new ParserTestArgs('trait A { use B { B::c as d; } }', 'should parse a trait alias using a method reference', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -679,7 +705,23 @@ describe('PhpParser', function() {
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-        new ParserTestArgs('trait A { use B { B::c as list; } }', 'should parse a trait alias with semi-reserved keyword (method reference)', (statements, text) => {
+        new ParserTestArgs('trait A { use B { B::list as c; } }', 'should parse a trait alias using a method reference with semi-reserved keyword as method name', (statements, text) => {
+          let traitUseGroup = assertTraitUseGroup(statements);
+          let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
+          assert.equal(names.length, 1);
+          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
+          assert.equal(adaptations.length, 1);
+          let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
+          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.notStrictEqual(aliasNode.reference, null);
+          let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
+          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          Test.assertSyntaxToken(reference.methodName, text, TokenKind.List, 'list');
+          assert.strictEqual(aliasNode.modifier, null);
+          Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'c');
+        }),
+        new ParserTestArgs('trait A { use B { B::c as list; } }', 'should parse a trait alias using a method reference with semi-reserved keyword as alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -695,7 +737,7 @@ describe('PhpParser', function() {
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.List, 'list');
         }),
-        new ParserTestArgs('trait A { use B { B::c as public d; } }', 'should parse a trait alias with public modifier (method reference)', (statements, text) => {
+        new ParserTestArgs('trait A { use B { B::c as public d; } }', 'should parse a trait alias using a method reference with public modifier and alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -711,7 +753,7 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Public, 'public');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-        new ParserTestArgs('trait A { use B { B::c as protected d; } }', 'should parse a trait alias with protected modifier (method reference)', (statements, text) => {
+        new ParserTestArgs('trait A { use B { B::c as protected d; } }', 'should parse a trait alias using a method reference with protected modifier and alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -727,7 +769,7 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Protected, 'protected');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-        new ParserTestArgs('trait A { use B { B::c as private d; } }', 'should parse a trait alias with private modifier (method reference)', (statements, text) => {
+        new ParserTestArgs('trait A { use B { B::c as private d; } }', 'should parse a trait alias using a method reference with private modifier and alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -743,7 +785,38 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Private, 'private');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
         }),
-      //new ParserTestArgs('trait A { use B { B::list as c; } }', 'should parse a method reference with semi-reserved keyword'),
+        new ParserTestArgs('trait A { use \\B { \\B::c as d; } }', 'should parse a trait alias using a method reference with fully-qualified name', (statements, text) => {
+          let traitUseGroup = assertTraitUseGroup(statements);
+          let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
+          assert.equal(names.length, 1);
+          assert.equal(names[0] instanceof FullyQualifiedNameSyntaxNode, true);
+          let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
+          assert.equal(adaptations.length, 1);
+          let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
+          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.notStrictEqual(aliasNode.reference, null);
+          let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
+          assert.equal(reference.className instanceof FullyQualifiedNameSyntaxNode, true);
+          Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
+          assert.strictEqual(aliasNode.modifier, null);
+          Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
+        }),
+        new ParserTestArgs('trait A { use namespace\\B { namespace\\B::c as d; } }', 'should parse a trait alias using a method reference with relative name', (statements, text) => {
+          let traitUseGroup = assertTraitUseGroup(statements);
+          let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
+          assert.equal(names.length, 1);
+          assert.equal(names[0] instanceof RelativeNameSyntaxNode, true);
+          let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
+          assert.equal(adaptations.length, 1);
+          let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
+          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.notStrictEqual(aliasNode.reference, null);
+          let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
+          assert.equal(reference.className instanceof RelativeNameSyntaxNode, true);
+          Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
+          assert.strictEqual(aliasNode.modifier, null);
+          Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
+        }),
 
         // Trait precedence.
         new ParserTestArgs('trait A { use B { B::c insteadof D; } }', 'should parse a trait precedence adaptation', (statements, text) => {
@@ -778,6 +851,22 @@ describe('PhpParser', function() {
           assert.equal(traitNames.length, 2);
           assert.equal(traitNames[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           assert.equal(traitNames[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { use B { B::list insteadof D; } }', 'should parse a trait precedence adaptation with semi-reserved keyword as method name', (statements, text) => {
+          let traitUseGroup = assertTraitUseGroup(statements);
+          let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
+          assert.equal(names.length, 1);
+          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
+          assert.equal(adaptations.length, 1);
+          let precedence = <TraitPrecedenceSyntaxNode>adaptations[0];
+          assert.equal(precedence instanceof TraitPrecedenceSyntaxNode, true);
+          let reference = <MethodReferenceSyntaxNode>precedence.methodReference;
+          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          Test.assertSyntaxToken(reference.methodName, text, TokenKind.List, 'list');
+          let traitNames = precedence.traitNames ? precedence.traitNames.childNodes() : [];
+          assert.equal(traitNames.length, 1);
+          assert.equal(traitNames[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);

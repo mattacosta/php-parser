@@ -3455,28 +3455,41 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         continue;
       }
 
-      //        -------- qualified name --------
-      //        identifier  namespace  backslash  keyword
-      // alias  y           n          n          y
-      // ref    y           y          y          n
+      //         -------- qualified name --------
+      //         identifier  namespace  backslash  keyword
+      // method  y           y          n          y
+      // class   y           y          y          n
 
-      // @todo Test: Semi-reserved keyword in namespace name.
+      let className: NameNode;
 
+      // If part of a relative name, then this keyword is part of a class name,
+      // otherwise it is a method name (eliminate column 2).
+      if (this.currentToken.kind == TokenKind.Namespace) {
+        let namespaceKeyword = this.eat(this.currentToken.kind);
+        // Suppress TS2365: Current token changed after previous method call.
+        if (<TokenKind>this.currentToken.kind == TokenKind.Backslash) {
+          let leadingBackslash = this.eat(this.currentToken.kind);
+          let namespaceName = this.factory.createList(this.parseNamespaceName());
+          className = new RelativeNameNode(namespaceKeyword, leadingBackslash, namespaceName);
+        }
+        else {
+          let alias = this.parseTraitAlias(namespaceKeyword);
+          adaptations.push(alias);
+          continue;
+        }
+      }
+      // Only class names can be fully qualified (eliminate column 3).
+      else if (this.currentToken.kind == TokenKind.Backslash) {
+        className = this.parseQualifiedName();
+      }
       // Only method names can be semi-reserved keywords (eliminate column 4).
-      if (TokenKindInfo.isSemiReservedKeyword(this.currentToken.kind)) {
+      else if (TokenKindInfo.isSemiReservedKeyword(this.currentToken.kind)) {
         let alias = this.parseTraitAlias(this.eat(this.currentToken.kind));
         adaptations.push(alias);
         continue;
       }
-
-      // Only class names can be namespaced (eliminate columns 2 and 3).
-      let name: NameNode;
-      if (this.currentToken.kind == TokenKind.Namespace || this.currentToken.kind == TokenKind.Backslash) {
-        name = this.parseQualifiedName();
-      }
       else {
-        // The identifier is now either a class name (that could be partially
-        // qualified) or a method name to be aliased.
+        Debug.assert(this.currentToken.kind == TokenKind.Identifier);
         let namespaces = this.parseNamespaceName();
 
         // So there are now two possibilities:
@@ -3509,7 +3522,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
             continue;
           }
         }
-        name = new PartiallyQualifiedNameNode(this.factory.createList(namespaces));
+
+        className = new PartiallyQualifiedNameNode(this.factory.createList(namespaces));
       }
 
       // At this point, only a class name is being parsed.
@@ -3568,7 +3582,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
 
       // The reference is FINALLY complete!
-      let reference = new MethodReferenceNode(name, doubleColon, methodName);
+      let reference = new MethodReferenceNode(className, doubleColon, methodName);
 
       switch (this.currentToken.kind) {
         case TokenKind.As:
