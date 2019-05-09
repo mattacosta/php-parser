@@ -38,7 +38,7 @@ export enum TokenKind {
   Continue,
   Declare,
   Default,
-  Die,                      // Custom
+  Die,
   Do,
   Echo,
   Else,
@@ -101,26 +101,26 @@ export enum TokenKind {
   Var,
   Yield,
 
-  // Punctuation (unless otherwise noted, PHP considers them as tokens as well)
+  // Punctuation
   Ampersand,
   Asterisk,
   At,
-  BackQuote,                // Not a token. Technically should be `GraveAccent`.
-  Backslash,                // Not a token. T_NAMESPACE_SEPARATOR.
+  BackQuote,                // Technically should be `GraveAccent`.
+  Backslash,                // T_NAMESPACE_SEPARATOR
   Caret,
-  CloseBrace,               // Not a token.
+  CloseBrace,
   CloseBracket,
   CloseParen,
   Colon,
   Comma,
   Dollar,
-  DoubleQuote,              // Not a token.
+  DoubleQuote,
   Equal,
   Exclamation,
   GreaterThan,
   LessThan,
   Minus,
-  OpenBrace,                // Not a token.
+  OpenBrace,
   OpenBracket,
   OpenParen,
   Percent,
@@ -128,7 +128,7 @@ export enum TokenKind {
   Plus,
   Question,
   Semicolon,
-  SingleQuote,              // Not a token.
+  SingleQuote,              // Not used.
   Slash,
   Tilde,
   VerticalBar,
@@ -141,12 +141,12 @@ export enum TokenKind {
   ConcatEqual,
   Decrement,
   DivideEqual,
-  DollarOpenBrace,          // T_DOLLAR_OPEN_CURLY_BRACE "${"
+  DollarOpenBrace,          // T_DOLLAR_OPEN_CURLY_BRACE
   DoubleArrow,
   DoubleColon,
   Ellipsis,
   Increment,
-  Inequality,               // Custom "<>"
+  Inequality,               // "<>"
   IsEqual,
   IsGreaterThanOrEqual,
   IsIdentical,
@@ -157,7 +157,7 @@ export enum TokenKind {
   ModEqual,
   MultiplyEqual,
   ObjectOperator,
-  OpenBraceDollar,          // T_CURLY_OPEN "{$"
+  OpenBraceDollar,          // Not used.
   OrEqual,
   PlusEqual,
   Pow,
@@ -169,9 +169,9 @@ export enum TokenKind {
   Spaceship,
   XorEqual,
 
-  // This should be trivia, but is equivalent to `;`.
+  // This should be trivia, but is equivalent to ';'.
   CloseTag,
-  // This should be trivia, but is equivalent to `echo`.
+  // This should be trivia, but is equivalent to 'echo'.
   OpenTagWithEcho,
 
   // End of file (also marks the end of language-defined tokens)
@@ -203,26 +203,26 @@ export enum TokenKind {
   InlineText,               // T_INLINE_HTML
   LNumber,
   StringIdentifier,         // T_STRING_VARNAME
-  StringIndent,             // Custom.
-  StringLiteral,            // T_CONSTANT_ENCAPSED_STRING (single quotes)
-  StringNewLine,            // Custom.
+  StringIndent,
+  StringLiteral,            // T_CONSTANT_ENCAPSED_STRING (single-quoted text)
+  StringNewLine,
   StringNumber,             // T_NUM_STRING
   StringTemplate,           // Virtual.
-  StringTemplateLiteral,    // T_ENCAPSED_AND_WHITESPACE (double quotes)
+  StringTemplateLiteral,    // T_ENCAPSED_AND_WHITESPACE (double-quoted text)
   Variable,
 
   // Trivia
-  ConflictMarkerEnd,        // Custom (@todo Experimental)
-  ConflictMarkerStart,      // Custom (@todo Experimental)
+  ConflictMarkerEnd,        // @todo Experimental.
+  ConflictMarkerStart,      // @todo Experimental.
   DocumentationComment,     // "/**{WHITESPACE}"
-  ElasticSpace,             // Custom (@todo Experimental)
-  ElasticTab,               // Custom (@todo Experimental)
-  MultipleLineComment,      // Custom "/*"
-  NewLine,                  // Custom
-  OpenTag,
-  RegionEnd,                // Custom "//}"
-  RegionStart,              // Custom "//{"
-  ShortOpenTag,             // Custom "<?"
+  ElasticSpace,             // @todo Experimental.
+  ElasticTab,               // @todo Experimental.
+  MultipleLineComment,      // "/*"
+  NewLine,
+  OpenTag,                  // "<?php"
+  RegionEnd,                // @todo Experimental.
+  RegionStart,              // @todo Experimental.
+  ShortOpenTag,             // "<?"
   SingleLineComment,        // T_COMMENT
   Whitespace
 
