@@ -1414,33 +1414,24 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.CloseBrace:
         case Character.CloseBracket:
         case Character.CloseParen:
+          this.offset++;
           if (ch === endCh) {
             return this.offset - scriptStart;
           }
-          this.offset++;
           break;
         case Character.OpenBrace:
           this.offset++;  // "{"
           this.scanInterpolatedScript(Character.CloseBrace);
-          if (this.peek(this.offset) === Character.CloseBrace) {
-            this.offset++;
-          }
           break;
         case Character.OpenBracket:
           // @todo This may be unnecessary?
           this.offset++;  // "["
           this.scanInterpolatedScript(Character.CloseBracket);
-          if (this.peek(this.offset) === Character.CloseBracket) {
-            this.offset++;
-          }
           break;
         case Character.OpenParen:
           // @todo This may be unnecessary?
           this.offset++;  // "("
           this.scanInterpolatedScript(Character.CloseParen);
-          if (this.peek(this.offset) === Character.CloseParen) {
-            this.offset++;
-          }
           break;
 
         // Strings.
@@ -1605,10 +1596,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             }
 
             this.scanInterpolatedScript(Character.CloseBrace);
-            if (this.peek(this.offset) === Character.CloseBrace) {
-              this.offset++;
-            }
-
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           else if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
@@ -1653,9 +1640,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           if (next === Character.Dollar) {
             spanOffset = this.offset;
             this.scanInterpolatedScript(Character.CloseBrace);
-            if (this.peek(this.offset) === Character.CloseBrace) {
-              this.offset++;
-            }
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           break;
