@@ -2104,11 +2104,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
       this.offset++;
       this.tryScanIdentifierPart();
-    }
 
-    ch = this.peek(this.offset);
-    if (ch === Character.OpenBracket || ch === Character.CloseBrace) {
-      return this.offset - start;
+      ch = this.peek(this.offset);
+      if (ch === Character.OpenBracket || ch === Character.CloseBrace) {
+        return this.offset - start;
+      }
     }
 
     this.offset = start;
