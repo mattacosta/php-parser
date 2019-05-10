@@ -78,26 +78,39 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) 
 
 describe('PhpLexer', function() {
 
-  describe('double quoted strings', function() {
+  describe('interpolated strings', function() {
+
+    // NOTE: Plain text in double quotes is tested along with single-quoted strings.
 
     describe('in double quote', function() {
-      // NOTE: Plain text in double quotes is tested along with single quoted strings.
       let lexerTests = [
         new LexerTestArgs('"$a"', 'simple variable',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.DoubleQuote],
+          ['"', '$a', '"']
         ),
-        new LexerTestArgs('"\\\\$a"', 'simple variable with escaped backslash',
-          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.DoubleQuote]
+        new LexerTestArgs('"$ab"', 'simple variable (multiple characters)',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.DoubleQuote],
+          ['"', '$ab', '"']
         ),
-        new LexerTestArgs('"\\"$a"', 'simple variable with escaped double quote',
-          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.DoubleQuote]
+        new LexerTestArgs('" $a"', 'simple variable in string with leading text',
+          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.DoubleQuote],
+          ['"', ' ', '$a', '"']
         ),
-        new LexerTestArgs('"\\n$a"', 'simple variable with escaped line feed',
-          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.DoubleQuote]
+
+        new LexerTestArgs('"$a', 'should end at EOF',
+          [TokenKind.DoubleQuote, TokenKind.Variable],
+          ['"', '$a']
         ),
-        new LexerTestArgs('"\\$$a"', 'simple variable with escaped variable sigil',
-          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.DoubleQuote]
+        new LexerTestArgs('"$a "', 'should end after variable name',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', ' ', '"']
         ),
+
+        // See "looking for property" for "$a->b" interpolations.
+
+        // See "looking for variable name" for "${...}" interpolations.
+
+        // See "in script (from in double quote)" for "{$...}" interpolations.
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
     });
@@ -108,29 +121,39 @@ describe('PhpLexer', function() {
           [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.ObjectOperator, TokenKind.Identifier, TokenKind.DoubleQuote],
           ['"', '$a', '->', 'b', '"']
         ),
-        new LexerTestArgs('"$a->"', 'object operator without identifier',
+        new LexerTestArgs('" $a->b"', 'object operator with identifier in string with leading text',
+          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.ObjectOperator, TokenKind.Identifier, TokenKind.DoubleQuote],
+          ['"', ' ', '$a', '->', 'b', '"']
+        ),
+
+        new LexerTestArgs('"$a->"', 'should not start if identifier is missing',
           [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
           ['"', '$a', '->', '"']
         ),
-        new LexerTestArgs('"$a->b->c"', 'should end after first property (trailing property)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.ObjectOperator, TokenKind.Identifier, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
-          ['"', '$a', '->', 'b', '->c', '"']
-        ),
-        new LexerTestArgs('"$a ->b"', 'should not allow whitespace before object operator',
+        new LexerTestArgs('"$a ->b"', 'should not start if whitespace is before object operator',
           [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
           ['"', '$a', ' ->b', '"']
         ),
-        new LexerTestArgs('"$a-> b"', 'should not allow whitespace after object operator',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
-          ['"', '$a', '-> b', '"']
-        ),
-        new LexerTestArgs('"$a\n\t->b"', 'should not allow whitespace before object operator (multiple)',
+        new LexerTestArgs('"$a\n\t->b"', 'should not start if whitespace is before object operator (multiple)',
           [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
           ['"', '$a', '\n\t->b', '"']
         ),
-        new LexerTestArgs('"$a->\n\tb"', 'should not allow whitespace after object operator (multiple)',
+        new LexerTestArgs('"$a-> b"', 'should not start if whitespace is after object operator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '-> b', '"']
+        ),
+        new LexerTestArgs('"$a->\n\tb"', 'should not start if whitespace is after object operator (multiple)',
           [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
           ['"', '$a', '->\n\tb', '"']
+        ),
+
+        new LexerTestArgs('"$a->b', 'should end at EOF',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.ObjectOperator, TokenKind.Identifier],
+          ['"', '$a', '->', 'b']
+        ),
+        new LexerTestArgs('"$a->b->c"', 'should end after first property',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.ObjectOperator, TokenKind.Identifier, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '->', 'b', '->c', '"']
         ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
@@ -142,77 +165,165 @@ describe('PhpLexer', function() {
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', 'a', '}', '"']
         ),
+        new LexerTestArgs('"${ab}"', 'indirect variable name (multiple characters)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', 'ab', '}', '"']
+        ),
+        new LexerTestArgs('" ${a}"', 'indirect variable name in string with leading text',
+          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', ' ', '${', 'a', '}', '"']
+        ),
         new LexerTestArgs('"${a[0]}"', 'indirect variable name with offset',
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.OpenBracket, TokenKind.LNumber, TokenKind.CloseBracket, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', 'a', '[', '0', ']', '}', '"']
         ),
-        new LexerTestArgs('"${a}}"', 'indirect variable name with trailing close brace',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.CloseBrace, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
-          ['"', '${', 'a', '}', '}', '"']
+
+        new LexerTestArgs('"${', 'should end at EOF',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace],
+          ['"', '${',]
+        ),
+        new LexerTestArgs('"${"', 'should end after dollar open brace if variable name is missing',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral],
+          ['"', '${', '"']
+        ),
+        new LexerTestArgs('"${a"', 'should end after dollar open brace if variable name is not followed by close brace or open bracket',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier,  TokenKind.StringLiteral],
+          ['"', '${', 'a', '"']
         ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
     });
 
+    // describe('in host language (from in script)', function() {
+    //   // Start: At first character after a close tag.
+    //
+    //   let lexerTests = [
+    //     new LexerTestArgs('"${?><?php ', 'should end at open tag',
+    //       [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.CloseTag, TokenKind.OpenTag, TokenKind.Whitespace],
+    //       ['"', '${', '?>', '<?php', ' ']
+    //     ),
+    //
+    //     new LexerTestArgs('"${?><?php }"', 'should not start after close brace in restarted script',
+    //       [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.CloseTag, TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+    //       ['"', '${', '?>', '<?php', ' ', '}', '"']
+    //     ),
+    //   ];
+    //   assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
+    // });
+
     describe('in script', function() {
       let lexerTests = [
-        // Entered via `InDoubleQuote`.
-        // - Starts with the '$' after an opening brace.
-        // - Ends at a matching closing brace or close tag.
+        // Embedded strings.
+        new LexerTestArgs('"${\'}\'}"', 'should not end at close brace in single-quoted string',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '\'}\'', '}', '"']
+        ),
+        new LexerTestArgs('"${"}"}"', 'should not end at close brace in double-quoted string',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '"}"', '}', '"']
+        ),
+        new LexerTestArgs('"${`}`}"', 'should not end at close brace in back-quoted string',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.BackQuoteTemplate, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '`}`', '}', '"']
+        ),
+        new LexerTestArgs('"${<<<LABEL\n}\nLABEL\n}"', 'should not end at close brace in heredoc',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.HeredocTemplate, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '<<<LABEL\n}\nLABEL', '\n', '}', '"']
+        ),
+
+        // Embedded comments.
+        new LexerTestArgs('"${//comment\n}"', 'embedded line comment',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '//comment\n', '}', '"']
+        ),
+        new LexerTestArgs('"${//comment"', 'embedded line comment (unterminated)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment],
+          ['"', '${', '//comment"']
+        ),
+        new LexerTestArgs('"${//}\n}"', 'should not end at close brace in line comment',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '//}\n', '}', '"']
+        ),
+        new LexerTestArgs('"${/*comment*/}"', 'embedded multiple line comment',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.MultipleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '/*comment*/', '}', '"']
+        ),
+        new LexerTestArgs('"${/*comment"', 'embedded multiple line comment (unterminated)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.MultipleLineComment],
+          ['"', '${', '/*comment"']
+        ),
+        new LexerTestArgs('"${/*}*/}"', 'should not end at close brace in multiple line comment',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.MultipleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '/*}*/', '}', '"']
+        ),
+
+        // Close tags.
+        // new LexerTestArgs('"${?>}"', 'should end at close tag',
+        //   [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.CloseTag, TokenKind.InlineText],
+        //   ['"', '${', '?>', '}"']
+        // ),
+        // new LexerTestArgs('"${//comment?>}"', 'should end at close tag (line comment)',
+        //   [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.CloseTag, TokenKind.InlineText],
+        //   ['"', '${', '//comment', '?>', '}"']
+        // ),
+      ];
+      assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
+    });
+
+    describe('in script (from in double quote)', function() {
+      // Start: At '$' after an opening brace.
+
+      let lexerTests = [
+        // Also tests that the state ends after an unpaired '}'.
         new LexerTestArgs('"{$a}"', 'variable substitution',
-          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Variable, TokenKind.CloseBrace, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Variable, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '{', '$a', '}', '"']
         ),
-        new LexerTestArgs('"{$a{}}"', 'variable substitution with braces',
-          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Variable, TokenKind.OpenBrace, TokenKind.CloseBrace, TokenKind.CloseBrace, TokenKind.DoubleQuote]
+        new LexerTestArgs('"{$a{0}}"', 'should not end after paired close brace',
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Variable, TokenKind.OpenBrace, TokenKind.LNumber, TokenKind.CloseBrace, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '{', '$a', '{', '0', '}', '}', '"']
         ),
-        new LexerTestArgs('"{$"', 'should not move beyond EOF if variable substitution is incomplete',
-          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Dollar, TokenKind.StringLiteral],
-          // The '$' and '"' are part of the embedded script and cause the string to be unterminated.
-          ['"', '{', '$', '"']
+        new LexerTestArgs('"{$', 'should end at EOF',
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Dollar],
+          ['"', '{', '$']
         ),
+        new LexerTestArgs('"{${', 'should end at EOF (unmatched embedded open brace)',
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Dollar, TokenKind.OpenBrace],
+          ['"', '{', '$', '{']
+        ),
+        new LexerTestArgs('"{$[', 'should end at EOF (unmatched embedded open bracket)',
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Dollar, TokenKind.OpenBracket],
+          ['"', '{', '$', '[']
+        ),
+        new LexerTestArgs('"{$(', 'should end at EOF (unmatched embedded open parenthesis)',
+          [TokenKind.DoubleQuote, TokenKind.OpenBrace, TokenKind.Dollar, TokenKind.OpenParen],
+          ['"', '{', '$', '(']
+        ),
+      ];
+      assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
+    });
 
-        // Entered via `LookingForVariableName`.
-        // - Starts at first non-label character after the opening brace.
-        // - Ends at a matching close brace or close tag.
-        new LexerTestArgs('"${\'}\'}"', 'indirect variable name should not match close brace in single-quoted string',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral, TokenKind.CloseBrace, TokenKind.DoubleQuote]
-        ),
-        new LexerTestArgs('"${"}"}"', 'indirect variable name should not match close brace in double-quoted string',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral, TokenKind.CloseBrace, TokenKind.DoubleQuote]
-        ),
-        new LexerTestArgs('"${`}`}"', 'indirect variable name should not match close brace in back-quoted string',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.BackQuoteTemplate, TokenKind.CloseBrace, TokenKind.DoubleQuote]
-        ),
-        new LexerTestArgs('"${<<<LABEL\n}\nLABEL\n}"', 'indirect variable name should not match close brace in heredoc',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.HeredocTemplate, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote]
-        ),
-        new LexerTestArgs('"${A//comment}\n}"', 'indirect variable name should not match close brace in line comment',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.SingleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote]
-        ),
-        new LexerTestArgs('"${A?>}"', 'indirect variable name should end after close tag',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.CloseTag, TokenKind.InlineText]
-        ),
-        new LexerTestArgs('"${A//comment?>}"', 'indirect variable name should end after close tag (in line comment)',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.SingleLineComment, TokenKind.CloseTag, TokenKind.InlineText]
-        ),
+    describe('in script (from looking for variable name)', function() {
+      // Start: At first non-label character after the opening brace.
 
-        new LexerTestArgs('"${\'a\'?><?php .\'b\'}"', 'indirect variable name with embedded close tag followed by open tag', [
-          TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringLiteral, TokenKind.CloseTag, TokenKind.OpenTag,
-          TokenKind.Whitespace, TokenKind.Period, TokenKind.StringLiteral, TokenKind.CloseBrace, TokenKind.DoubleQuote
-        ], ['"', '${', '\'a\'', '?>', '<?php', ' ', '.', '\'b\'', '}', '"']),
+      let lexerTests = [
+        // See "looking for variable name" for EOF test.
 
-        // All text after the identifier is part of the embedded script. If a
-        // closing token is not found the string is unterminated.
-        new LexerTestArgs('"${a{"', 'should not move beyond EOF if indirect variable name is incomplete (unmatched brace)',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.OpenBrace, TokenKind.StringLiteral],
+        new LexerTestArgs('"${{', 'should end at EOF (unmatched embedded open brace)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.OpenBrace],
+          ['"', '${', '{']
         ),
-        new LexerTestArgs('"${a["', 'should not move beyond EOF if indirect variable name is incomplete (unmatched bracket)',
-          // Only an indentifier followed by a '[' or '}' results in the
-          // expected `StringIdentifier`.
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.StringIdentifier, TokenKind.OpenBracket, TokenKind.StringLiteral],
+        new LexerTestArgs('"${[', 'should end at EOF (unmatched embedded open bracket)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.OpenBracket],
+          ['"', '${', '[']
         ),
-        new LexerTestArgs('"${a("', 'should not move beyond EOF if indirect variable name is incomplete (unmatched parenthesis)',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.Identifier, TokenKind.OpenParen, TokenKind.StringLiteral],
+        new LexerTestArgs('"${(', 'should end at EOF (unmatched embedded open parenthesis)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.OpenParen],
+          ['"', '${', '(']
+        ),
+        new LexerTestArgs('"${} "', 'should end after first unmatched close brace',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.CloseBrace, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '${', '}', ' ', '"']
         ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
@@ -267,16 +378,7 @@ describe('PhpLexer', function() {
 
   });
 
-  describe('back quoted strings', function() {
-    let lexerTests = [
-      new LexerTestArgs('``', 'empty text', [TokenKind.BackQuote, TokenKind.BackQuote]),
-      new LexerTestArgs('`abc`', 'plain text', [TokenKind.BackQuote, TokenKind.StringTemplateLiteral, TokenKind.BackQuote]),
-      new LexerTestArgs('`$a`', 'simple variable', [TokenKind.BackQuote, TokenKind.Variable, TokenKind.BackQuote]),
-    ];
-    assertRescannedTokens(lexerTests, TokenKind.BackQuoteTemplate);
-  });
-
-  describe('heredoc strings', function() {
+  describe('heredoc templates', function() {
     let lexerTests = [
       new LexerTestArgs('<<<LABEL\nLABEL\n', 'empty text',
         [TokenKind.HeredocStart, TokenKind.HeredocEnd],
@@ -317,7 +419,7 @@ describe('PhpLexer', function() {
     assertRescannedTokens(lexerTests, TokenKind.HeredocTemplate);
   });
 
-  describe('heredoc strings (with double quotes)', function() {
+  describe('heredoc templates (with double quotes)', function() {
     let lexerTests = [
       new LexerTestArgs('<<<"LABEL"\nLABEL\n', 'empty text',
         [TokenKind.HeredocStart, TokenKind.HeredocEnd],
@@ -339,7 +441,7 @@ describe('PhpLexer', function() {
     assertRescannedTokens(lexerTests, TokenKind.HeredocTemplate);
   });
 
-  describe('nowdoc strings', function() {
+  describe('nowdoc templates', function() {
     let lexerTests = [
       new LexerTestArgs('<<<\'LABEL\'\nLABEL\n', 'empty text',
         [TokenKind.HeredocStart, TokenKind.HeredocEnd],
@@ -361,7 +463,7 @@ describe('PhpLexer', function() {
     assertRescannedTokens(lexerTests, TokenKind.HeredocTemplate);
   });
 
-  describe('flexible heredoc strings', function() {
+  describe('flexible heredoc templates', function() {
 
     describe('indentation', function() {
       let lexerTests = [
@@ -452,7 +554,7 @@ describe('PhpLexer', function() {
 
   });
 
-  describe('flexible nowdoc strings', function() {
+  describe('flexible nowdoc templates', function() {
 
     describe('indentation', function() {
       let lexerTests = [
@@ -530,6 +632,15 @@ describe('PhpLexer', function() {
       assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
     });
 
+  });
+
+  describe('shell command templates', function() {
+    let lexerTests = [
+      new LexerTestArgs('``', 'empty text', [TokenKind.BackQuote, TokenKind.BackQuote]),
+      new LexerTestArgs('`abc`', 'plain text', [TokenKind.BackQuote, TokenKind.StringTemplateLiteral, TokenKind.BackQuote]),
+      new LexerTestArgs('`$a`', 'simple variable', [TokenKind.BackQuote, TokenKind.Variable, TokenKind.BackQuote]),
+    ];
+    assertRescannedTokens(lexerTests, TokenKind.BackQuoteTemplate);
   });
 
 });
