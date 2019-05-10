@@ -773,7 +773,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.scanNumber();
         return this.state;
 
-      // Tokens (single)
+      // Punctuation
       case Character.At:
         this.offset++;
         this.tokenKind = TokenKind.At;
@@ -816,7 +816,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.tokenKind = TokenKind.Tilde;
         return this.state;
 
-      // Compound tokens
+      // Compound punctuation
       case Character.Ampersand:
         if (next === Character.Ampersand) {
           this.offset = this.offset + 2;  // "&&"
@@ -1401,8 +1401,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Scans any PHP script within an interpolated string.
    */
-  protected scanInterpolatedScript(endCh: Character): number {
-    const scriptStart = this.offset;
+  protected scanInterpolatedScript(delimiter: Character): number {
+    const start = this.offset;
 
     // In order to find the closing double quote of an interpolated string, the
     // closing brace of the interpolated expression must be found first. However,
@@ -1415,8 +1415,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.CloseBracket:
         case Character.CloseParen:
           this.offset++;
-          if (ch === endCh) {
-            return this.offset - scriptStart;
+          if (ch === delimiter) {
+            return this.offset - start;
           }
           break;
         case Character.OpenBrace:
@@ -1499,7 +1499,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
     }
 
-    return this.offset - scriptStart;
+    return this.offset - start;
   }
 
   /**
