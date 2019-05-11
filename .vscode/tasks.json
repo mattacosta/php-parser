@@ -17,12 +17,6 @@
             "problemMatcher": "$gulp-tsc"
         },
         {
-            "type": "gulp",
-            "task": "watch",
-            "isBackground": true,
-            "problemMatcher": "$gulp-tsc"
-        },
-        {
             "type": "npm",
             "script": "build:codegen",
             "presentation": {
