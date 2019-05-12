@@ -16,9 +16,10 @@ install:
   - gulp run-codegen
 
 script:
-  - PHP_PARSER_VERSION=7_0 npm test
-  - PHP_PARSER_VERSION=7_1 npm test
-  - PHP_PARSER_VERSION=7_2 npm test
-  - npm test
+  - npm run pretest
+  - npm run test:nyc
+  - PHP_PARSER_VERSION=7_2 npm run test:nyc:combine
+  - PHP_PARSER_VERSION=7_1 npm run test:nyc:combine
+  - PHP_PARSER_VERSION=7_0 npm run test:nyc:combine
 
 after_success: npm run test:coveralls

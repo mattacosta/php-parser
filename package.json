@@ -48,8 +48,10 @@
         "build:codegen": "tsc -p ./tools/CodeGenerator",
         "build:validator": "tsc -p ./tools/Validator",
         "pretest": "tsc -p ./test",
-        "test": "nyc mocha --require source-map-support/register --recursive ./out/test",
+        "test": "mocha --recursive ./out/test",
         "test:coveralls": "nyc report --reporter=text-lcov | coveralls",
+        "test:nyc": "nyc mocha --require source-map-support/register --recursive ./out/test",
+        "test:nyc:combine": "nyc --no-clean mocha --require source-map-support/register --recursive ./out/test",
         "browserify": "browserify ./lib/main.js -d -s PhpParser -r ./lib/ErrorCode.json:../ErrorCode.json | exorcist ./lib/php-parser.map.js > ./lib/php-parser.js"
     }
 }
