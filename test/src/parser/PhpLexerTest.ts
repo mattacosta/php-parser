@@ -33,14 +33,21 @@ describe('PhpLexer', function() {
     describe('inline text', function() {
       let tests = [
         new LexerTestArgs('<h1></h1>', 'should match inline text', [TokenKind.InlineText], [], false),
-        new LexerTestArgs('<?php', 'should match open tag', [TokenKind.OpenTag], [], false),
+
+        new LexerTestArgs('<?php ', 'should match open tag', [TokenKind.OpenTag], [], false),
+        new LexerTestArgs('<h1><?php ', 'should match open tag after inline text', [TokenKind.InlineText, TokenKind.OpenTag], [], false),
+        new LexerTestArgs('<?php', 'should not match open tag without trailing whitespace', [TokenKind.InlineText], [], false),
+        new LexerTestArgs('<?phpunit', 'should not partially match open tag', [TokenKind.InlineText], [], false),
+
         new LexerTestArgs('<?=', 'should match open tag with echo', [TokenKind.OpenTagWithEcho], [], false),
-      //new LexerTestArgs('<?', 'should match short open tag', [TokenKind.ShortOpenTag], [], false),
-        new LexerTestArgs('<h1><?php', 'should match open tag after inline text', [TokenKind.InlineText, TokenKind.OpenTag], [], false),
         new LexerTestArgs('<h1><?=', 'should match open tag with echo after inline text', [TokenKind.InlineText, TokenKind.OpenTagWithEcho], [], false),
+
+      //new LexerTestArgs('<?', 'should match short open tag', [TokenKind.ShortOpenTag], [], false),
+      //new LexerTestArgs('<?php', 'should match short open tag in open tag', [TokenKind.ShortOpenTag, TokenKind.Identifier], [], false),
       //new LexerTestArgs('<h1><?', 'should match short open tag after inline text', [TokenKind.InlineText, TokenKind.ShortOpenTag], [], false),
-        new LexerTestArgs('<?php?>', 'should match close tag', [TokenKind.OpenTag, TokenKind.CloseTag], [], false),
-        new LexerTestArgs('<?php?></h1>', 'should match inline text after close tag', [TokenKind.OpenTag, TokenKind.CloseTag, TokenKind.InlineText], [], false),
+
+        new LexerTestArgs('<?php ?>', 'should match close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.CloseTag], [], false),
+        new LexerTestArgs('<?php ?></h1>', 'should match inline text after close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.CloseTag, TokenKind.InlineText], [], false),
         new LexerTestArgs('?>', 'should not match close tag without open tag', [TokenKind.InlineText], [], false),
       ];
       Test.assertTokens(tests);

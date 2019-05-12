@@ -145,6 +145,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   ]);
 
   /**
+   * Determines if short open tags "<?" are permitted. Defaults to `false`.
+   */
+  protected allowShortOpen: boolean = false;
+
+  /**
    * The default scanning mode when starting to scan text, or when not in a
    * pre-defined region.
    *
@@ -500,9 +505,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Tokenizes inline text until a PHP open tag is encountered.
    */
-  protected lexInlineText(allowShortOpen = false): PhpLexerState {
+  protected lexInlineText(): PhpLexerState {
     // Only return an opening tag if there is no inline text in the way.
-    let length = this.tryScanOpenTag(allowShortOpen);
+    let length = this.tryScanOpenTag();
     if (length) {
       this.tokenKind = length === 5
         ? TokenKind.OpenTag
@@ -513,7 +518,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.offset++;
 
     while (this.offset < this.end) {
-      length = this.tryScanOpenTag(allowShortOpen);
+      length = this.tryScanOpenTag();
       if (length > 0) {
         // Do not return the opening tag as part of the inline text.
         this.offset = this.offset - length;
@@ -2230,22 +2235,23 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Attempts to scan for a PHP script opening tag. If not found, nothing is
    * scanned.
-   *
-   * @param {boolean=} allowShortOpen
-   *   If short open tags "<?" are allowed. Defaults to `false`.
    */
-  protected tryScanOpenTag(allowShortOpen = false): number {
+  protected tryScanOpenTag(): number {
     const start = this.offset;
-    if (this.text.charCodeAt(this.offset) === Character.LessThan) {
+    if (this.peek(this.offset) === Character.LessThan) {
       if (this.peek(this.offset + 1) === Character.Question) {
         this.offset = this.offset + 2;  // "<?"
         if (this.peek(this.offset) === Character.Equal) {
           this.offset++;
         }
-        else if (this.startsWith('php')) {
+        else if (this.allowShortOpen) {
+          // Nothing to do except take precedence over the full open tag. This
+          // is technically a bug in PHP since the lexer should be greedy.
+        }
+        else if (this.startsWith('php') && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 3))) {
           this.offset = this.offset + 3;
         }
-        else if (!allowShortOpen) {
+        else {
           this.offset = start;
         }
       }
