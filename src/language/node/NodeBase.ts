@@ -41,7 +41,7 @@ export abstract class NodeBase implements INode {
    * they can still be reclaimed automatically when the node is no longer
    * referenced.
    */
-  protected static readonly DiagnosticWeakMap = new WeakMap<NodeBase, ReadonlyArray<SyntaxDiagnostic>>();
+  protected static readonly DiagnosticWeakMap: WeakMap<NodeBase, ReadonlyArray<SyntaxDiagnostic>> = new WeakMap();
 
   /**
    * An empty diagnostic array.
