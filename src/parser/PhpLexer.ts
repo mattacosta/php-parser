@@ -2180,24 +2180,29 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected tryScanOctalEscape(): number {
     const start = this.offset;
-    let ch = this.text.charCodeAt(this.offset);
-    if (!CharacterInfo.isOctDigit(ch)) {
+
+    let firstDigit = this.peek(this.offset);
+    if (!CharacterInfo.isOctDigit(firstDigit)) {
       return 0;
     }
-    let firstDigit = ch;
+
     this.offset++;
-    for (let i = 0; i < 2; i++) {
-      ch = this.text.charCodeAt(this.offset);
+
+    let i = 0;
+    while (this.offset < this.end && i < 2) {
+      let ch = this.text.charCodeAt(this.offset);
       if (!CharacterInfo.isOctDigit(ch)) {
-        return i + 1;
+        return this.offset - start;
       }
       // Max: 255 = 0xFF = \377
       if (i === 1 && firstDigit > Character._3) {
         this.addError(start - this.tokenStart - 1, i + 3, ErrorCode.WRN_OctalEscapeSequenceOverflow);
       }
       this.offset++;
+      i++;
     }
-    return 3;
+
+    return this.offset - start;
   }
 
   /**
@@ -2332,7 +2337,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected tryScanUnicodeEscape(): number {
     const start = this.offset;
 
-    let ch = this.text.charCodeAt(this.offset);
+    let ch = this.peek(this.offset);
 
     // JSON-serialized strings are silently ignored since they may contain
     // unicode escape sequences that do not follow the PHP format.
@@ -2340,15 +2345,18 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       return 0;
     }
 
-    this.offset++;
-    ch = this.text.charCodeAt(this.offset);
-    while (ch != Character.CloseBrace) {
+    this.offset++;  // "{"
+
+    while (this.offset < this.end) {
+      ch = this.text.charCodeAt(this.offset);
+      if (ch === Character.CloseBrace) {
+        break;
+      }
       if (!CharacterInfo.isHexDigit(ch)) {
         this.addError(start - this.tokenStart - 2, this.offset - start + 2, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence);
         return this.offset - start;
       }
       this.offset++;
-      ch = this.text.charCodeAt(this.offset);
     }
 
     // A unicode escape sequence cannot be empty.
