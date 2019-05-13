@@ -2354,12 +2354,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // A unicode escape sequence cannot be empty.
     let length = this.offset - start - 1;
     if (length === 0) {
-      this.addError(start - this.tokenStart - 2, length + 2, ErrorCode.ERR_InvalidEscapeSequenceUnicode);
+      this.addError(start - this.tokenStart - 2, 4, ErrorCode.ERR_InvalidEscapeSequenceUnicode);
       return this.offset - start;
     }
 
     if (Number.parseInt(this.text.substring(start + 1, length), 16) > 0x10FFFF) {
-      this.addError(start - this.tokenStart - 2, length + 2, ErrorCode.ERR_UnicodeEscapeSequenceOverflow);
+      this.addError(start - this.tokenStart - 2, length + 4, ErrorCode.ERR_UnicodeEscapeSequenceOverflow);
     }
 
     return this.offset - start;
