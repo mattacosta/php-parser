@@ -1371,6 +1371,20 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Scans inline text within an interpolated string.
+   */
+  protected scanInterpolatedInlineText(): number {
+    const start = this.offset;
+    while(this.offset < this.end) {
+      if (this.tryScanOpenTag()) {
+        break;
+      }
+      this.offset++;
+    }
+    return this.offset - start;
+  }
+
+  /**
    * Scans an object access expression within an interpolated string.
    */
   protected scanInterpolatedProperty(): number {
@@ -1409,9 +1423,19 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected scanInterpolatedScript(delimiter: Character): number {
     const start = this.offset;
 
-    // In order to find the closing double quote of an interpolated string, the
-    // closing brace of the interpolated expression must be found first. However,
-    // in order to do that, paired tokens need to be matched up.
+    // In order to find the closing terminator of an interpolated string, the
+    // embedded script must end. That is done by close braces and close tags,
+    // but it is not as simple as scanning for those tokens because while in a
+    // script the following conditions apply:
+    // 1. Open braces and interpolated strings may create additional embedded
+    //    lexing states which must end before returning to the original string.
+    //    This is handled by recursively calling the relevant scanning methods.
+    // 2. User-defined tokens may contain the characters being searched for. The
+    //    possible tokens, constant strings and comments, are handled by simply
+    //    scanning them normally when they are found.
+    // 3. Close tags always start the host language state, which may in turn
+    //    restart the script state, resulting in a loop.
+
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
       switch (ch) {
@@ -1494,6 +1518,21 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           }
           else {
             this.offset++;
+          }
+          break;
+
+        // Close tag.
+        case Character.Question:
+          if (this.peek(this.offset + 1) === Character.GreaterThan) {
+            this.offset = this.offset + 2; // "?>"
+
+            // Inline text only terminates at the end of the file or at an open
+            // tag. In the first case, this loop will terminate as well, and in
+            // the second case, just resume scanning the script normally.
+            this.scanInterpolatedInlineText();
+          }
+          else {
+            this.offset++;  // "?"
           }
           break;
 
