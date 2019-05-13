@@ -1453,14 +1453,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.scanInterpolatedScript(Character.CloseBrace);
           break;
         case Character.OpenBracket:
-          // @todo This may be unnecessary?
           this.offset++;  // "["
-          this.scanInterpolatedScript(Character.CloseBracket);
+          // @todo Experimental.
+          // this.scanInterpolatedScript(Character.CloseBracket);
           break;
         case Character.OpenParen:
-          // @todo This may be unnecessary?
           this.offset++;  // "("
-          this.scanInterpolatedScript(Character.CloseParen);
+          // @todo Experimental.
+          // this.scanInterpolatedScript(Character.CloseParen);
           break;
 
         // Strings.

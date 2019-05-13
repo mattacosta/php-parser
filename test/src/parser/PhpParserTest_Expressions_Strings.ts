@@ -186,10 +186,10 @@ describe('PhpParser', function() {
 
       // @todo These should be recovery tests.
       new DiagnosticTestArgs('"${a";', 'missing close brace (indirect variable name)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBraceExpected], [0, 4]),
-      new DiagnosticTestArgs('"${a[0}";', 'missing close bracket (indirect variable name)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBracketExpected], [0, 6]),
+      new DiagnosticTestArgs('"${a[0}";', 'missing close bracket (indirect variable name)', [ErrorCode.ERR_CloseBracketExpected], [6]),
 
       new DiagnosticTestArgs('"{$a";', 'missing close brace (expression)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBraceExpected], [0, 4]),
-      new DiagnosticTestArgs('"{$a[0}";', 'missing close bracket (expression)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBracketExpected], [0, 6]),
+      new DiagnosticTestArgs('"{$a[0}";', 'missing close bracket (expression)', [ErrorCode.ERR_CloseBracketExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
