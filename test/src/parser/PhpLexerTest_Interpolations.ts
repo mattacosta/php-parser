@@ -62,7 +62,7 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) 
 
         for (let n = 0; n < test.expectedTokens.length; n++) {
           let rescanToken = rescanLexer.lex(rescanLexer.currentState);
-          assert.equal(rescanToken.kind, test.expectedTokens[n], 'token kind');
+          assert.equal(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
           if (test.expectedText.length > 0) {
             let text = rescanText.substring(rescanToken.offset, rescanToken.length);
             assert.equal(text, test.expectedText[n], 'token text');
