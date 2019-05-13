@@ -5335,10 +5335,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes = parser.parseStringTemplateElementList(null, TokenKind.HeredocEnd);
     }
 
-    // If the end label was missing the lexer already added an error.
-    let heredocEnd = parser.currentToken.kind == TokenKind.HeredocEnd
-      ? parser.eat(TokenKind.HeredocEnd)
-      : parser.createMissingToken(TokenKind.HeredocEnd, parser.currentToken.kind, false);
+    let heredocEnd: TokenNode;
+    if (parser.currentToken.kind == TokenKind.HeredocEnd) {
+      heredocEnd = parser.eat(TokenKind.HeredocEnd)
+    }
+    else {
+      // The parser should always reach the end of a template.
+      Debug.assert(parser.currentToken.kind == TokenKind.EOF);
+
+      // If the end label was missing, the lexer already added an error.
+      heredocEnd = parser.createMissingToken(TokenKind.HeredocEnd, parser.currentToken.kind, false);
+      // Move any trailing trivia over to this parser.
+      if (parser.leadingTrivia.length > 0) {
+        this.leadingTrivia = this.leadingTrivia.concat(parser.leadingTrivia);
+        this.leadingTriviaWidth += parser.leadingTriviaWidth;
+      }
+    }
 
     return new HeredocTemplateNode(heredocStart, nodes, heredocEnd);
   }
@@ -5894,10 +5906,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes = parser.parseStringTemplateElementList(null, TokenKind.BackQuote);
     }
 
-    // If the closing backquote was missing the lexer already added an error.
-    let closeBackQuote = parser.currentToken.kind == TokenKind.BackQuote
-      ? parser.eat(TokenKind.BackQuote)
-      : parser.createMissingToken(TokenKind.BackQuote, parser.currentToken.kind, false);
+    let closeBackQuote: TokenNode;
+    if (parser.currentToken.kind == TokenKind.BackQuote) {
+      closeBackQuote = parser.eat(TokenKind.BackQuote);
+    }
+    else {
+      // The parser should always reach the end of a template.
+      Debug.assert(parser.currentToken.kind == TokenKind.EOF);
+
+      // If the closing backquote was missing the lexer already added an error.
+      closeBackQuote = parser.createMissingToken(TokenKind.BackQuote, parser.currentToken.kind, false);
+      // Move any trailing trivia over to this parser.
+      if (parser.leadingTrivia.length > 0) {
+        this.leadingTrivia = this.leadingTrivia.concat(parser.leadingTrivia);
+        this.leadingTriviaWidth += parser.leadingTriviaWidth;
+      }
+    }
 
     return new ShellCommandTemplateNode(openBackQuote, nodes, closeBackQuote);
   }
@@ -6016,10 +6040,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes = parser.parseStringTemplateElementList(null, TokenKind.DoubleQuote);
     }
 
-    // If the closing quote was missing, the lexer already added an error.
-    let closeQuote = parser.currentToken.kind == TokenKind.DoubleQuote
-      ? parser.eat(TokenKind.DoubleQuote)
-      : parser.createMissingToken(TokenKind.DoubleQuote, parser.currentToken.kind, false);
+    let closeQuote: TokenNode;
+    if (parser.currentToken.kind == TokenKind.DoubleQuote) {
+      closeQuote = parser.eat(TokenKind.DoubleQuote)
+    }
+    else {
+      // The parser should always reach the end of a template.
+      Debug.assert(parser.currentToken.kind == TokenKind.EOF);
+
+      // If the closing quote was missing, the lexer already added an error.
+      closeQuote = parser.createMissingToken(TokenKind.DoubleQuote, parser.currentToken.kind, false);
+      // Move any trailing trivia over to this parser.
+      if (parser.leadingTrivia.length > 0) {
+        this.leadingTrivia = this.leadingTrivia.concat(parser.leadingTrivia);
+        this.leadingTriviaWidth += parser.leadingTriviaWidth;
+      }
+    }
 
     return new StringTemplateNode(openQuote, nodes, closeQuote);
   }

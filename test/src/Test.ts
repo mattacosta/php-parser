@@ -198,17 +198,20 @@ export class Test {
   }
 
   protected static assertDiagnosticsWithTag(argList: DiagnosticTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+    const options = new PhpParserOptions(Test.phpVersion);
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
+      const text = openTag + args.text;
       if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
         it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
         continue;
       }
       if (args.expectedCodes.length > 0) {
         it(desc, () => {
-          const options = new PhpParserOptions(Test.phpVersion);
-          const tree = PhpSyntaxTree.fromText(openTag + args.text, '', options);
+          const tree = PhpSyntaxTree.fromText(text, '', options);
+
+          assert.equal(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
 
           let n = 0;
           for (let d of tree.getDiagnostics()) {
@@ -237,9 +240,11 @@ export class Test {
   }
 
   protected static assertSyntaxNodesWithTag(argList: ParserTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0) {
+    const options = new PhpParserOptions(Test.phpVersion);
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
+      const text = openTag + args.text;
       const testFn = args.testCallback;
       if (testFn) {
         if (!Test.isPhpVersionInRange(minVersion)) {
@@ -247,9 +252,8 @@ export class Test {
           continue;
         }
         it(desc, () => {
-          const text = openTag + args.text;
-          const options = new PhpParserOptions(Test.phpVersion);
           const tree = PhpSyntaxTree.fromText(text, '', options);
+          assert.equal(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
           const statements = tree.root.statements;
           assert.equal(tree.root.hasError, false, 'has error');
           assert.notStrictEqual(statements, null, 'statements not found');
