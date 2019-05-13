@@ -1371,26 +1371,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Scans inline text within an interpolated string.
-   */
-  protected scanInterpolatedInlineText(): number {
-    const start = this.offset;
-
-    while (this.offset < this.end) {
-      let length = this.tryScanOpenTag();
-      if (length > 0) {
-        // Instead of changing the lexing state, temporarily remove the open tag
-        // so that the calling method can find it and determine what to do.
-        this.offset = this.offset - length;
-        break;
-      }
-      this.offset++;
-    }
-
-    return this.offset - start;
-  }
-
-  /**
    * Scans an object access expression within an interpolated string.
    */
   protected scanInterpolatedProperty(): number {
@@ -1425,32 +1405,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
   /**
    * Scans any PHP script within an interpolated string.
-   *
-   * @param {Character} delimiter
-   *   The character used to end the interpolation.
-   * @param {TemplateSpan[]} spans
-   *   A list of interpolations within the current string.
-   * @param {number} templateStart
-   *   The offset, relative to the template, where the script begins.
    */
-  protected scanInterpolatedScript(delimiter: Character, spans: TemplateSpan[], templateStart: number): number {
-    const scriptStart = this.offset;
+  protected scanInterpolatedScript(delimiter: Character): number {
+    const start = this.offset;
 
-    let start = this.offset;
-
-    // In order to find the closing terminator of an interpolated string, the
-    // embedded script must end. That is done by close braces and close tags,
-    // but it is not as simple as scanning for those tokens because while in a
-    // script the following conditions apply:
-    // 1. Open braces and interpolated strings may create additional embedded
-    //    lexing states which must end before returning to the original string.
-    //    This is handled by recursively calling the relevant scanning methods.
-    // 2. User-defined tokens may contain the characters being searched for. The
-    //    possible tokens, constant strings and comments, are handled by simply
-    //    scanning them normally when they are found.
-    // 3. Close tags always start the host language state, which may in turn
-    //    restart the script state, resulting in a loop.
-
+    // In order to find the closing double quote of an interpolated string, the
+    // closing brace of the interpolated expression must be found first. However,
+    // in order to do that, paired tokens need to be matched up.
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
       switch (ch) {
@@ -1460,23 +1421,22 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.CloseParen:
           this.offset++;
           if (ch === delimiter) {
-            spans.push(new TemplateSpan(PhpLexerState.InScript, templateStart, this.offset - start));
-            return this.offset - scriptStart;
+            return this.offset - start;
           }
           break;
         case Character.OpenBrace:
           this.offset++;  // "{"
-          this.scanInterpolatedScript(Character.CloseBrace, [], 0);
+          this.scanInterpolatedScript(Character.CloseBrace);
           break;
         case Character.OpenBracket:
           // @todo This may be unnecessary?
           this.offset++;  // "["
-          this.scanInterpolatedScript(Character.CloseBracket, [], 0);
+          this.scanInterpolatedScript(Character.CloseBracket);
           break;
         case Character.OpenParen:
           // @todo This may be unnecessary?
           this.offset++;  // "("
-          this.scanInterpolatedScript(Character.CloseParen, [], 0);
+          this.scanInterpolatedScript(Character.CloseParen);
           break;
 
         // Strings.
@@ -1537,36 +1497,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           }
           break;
 
-        // Close tag.
-        case Character.Question:
-          if (this.peek(this.offset) === Character.GreaterThan) {
-            this.offset = this.offset + 2;  // "?>"
-            spans.push(new TemplateSpan(PhpLexerState.InScript, templateStart, this.offset - start));
-
-            templateStart += this.offset - start;
-            start = this.offset;
-
-            let length = this.scanInterpolatedInlineText();
-            let openTag = this.tryScanOpenTag();
-
-            if (length > 0 || openTag > 0) {
-              spans.push(new TemplateSpan(PhpLexerState.InHostLanguage, templateStart, this.offset - start));
-            }
-
-            // If there was an open tag, then just restart the current scan.
-            if (openTag > 0) {
-              templateStart += this.offset - start;
-              start = this.offset;
-              break;
-            }
-
-            return this.offset - scriptStart;
-          }
-          else {
-            this.offset++;  // "?"
-          }
-          break;
-
         // Embedded code.
         default:
           this.offset++;
@@ -1574,11 +1504,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
     }
 
-    // A '{$' or '${' has already been scanned, so even if the script is empty,
-    // a span needs to be added to flag the token as an interpolated string.
-    spans.push(new TemplateSpan(PhpLexerState.InScript, templateStart, this.offset - start));
-
-    return this.offset - scriptStart;
+    return this.offset - start;
   }
 
   /**
@@ -1635,7 +1561,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected scanInterpolatedString(delimiter: Character | string, spans: TemplateSpan[] = [], startLength?: number): number {
     const start = this.offset;
-    const templateOffset = start - (startLength ? startLength : 1);
+    const tokenOffset = start - (startLength ? startLength : 1);
 
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
@@ -1670,11 +1596,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
             spanOffset = this.offset;
             if (this.tryScanInterpolatedVariableName()) {
-              spans.push(new TemplateSpan(PhpLexerState.LookingForVariableName, spanOffset - templateOffset, this.offset - spanOffset));
+              spans.push(new TemplateSpan(PhpLexerState.LookingForVariableName, spanOffset - tokenOffset, this.offset - spanOffset));
               spanOffset = this.offset;
             }
 
-            this.scanInterpolatedScript(Character.CloseBrace, spans, spanOffset - templateOffset);
+            this.scanInterpolatedScript(Character.CloseBrace);
+            spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           else if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
             spanOffset = this.offset;
@@ -1683,23 +1610,24 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
             if (this.startsWithObjectProperty()) {
               this.scanInterpolatedProperty();  // "$a->b"
-              spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - templateOffset, this.offset - spanOffset));
+              spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
             }
             else if (this.peek(this.offset) === Character.OpenBracket) {
               // Since simple variables need a span anyways, adding one here as
-              // well simplifies tokenization during the rescan.
-              spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - templateOffset, this.offset - spanOffset));
+              // well means that no additional logic is required to rescan
+              // variables in a template.
+              spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
 
               spanOffset = this.offset;
               this.scanInterpolatedVariableOffset();  // "$a["
-              spans.push(new TemplateSpan(PhpLexerState.InVariableOffset, spanOffset - templateOffset, this.offset - spanOffset));
+              spans.push(new TemplateSpan(PhpLexerState.InVariableOffset, spanOffset - tokenOffset, this.offset - spanOffset));
             }
             else {
               // Normally, variables would be tokenized without leaving the
               // `InDoubleQuote` state, however while tokenizing a script, a span
               // needs to be added in order to let the caller know that this is
               // not a constant string (i.e. a `StringLiteral`).
-              spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - templateOffset, this.offset - spanOffset));
+              spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
             }
           }
           else {
@@ -1716,7 +1644,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.offset++;  // "{"
           if (next === Character.Dollar) {
             spanOffset = this.offset;
-            this.scanInterpolatedScript(Character.CloseBrace, spans, spanOffset - templateOffset);
+            this.scanInterpolatedScript(Character.CloseBrace);
+            spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           break;
         case Character.CarriageReturn:
