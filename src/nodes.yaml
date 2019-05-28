@@ -1897,7 +1897,7 @@ nodes:
   - name: typeKeyword
     type: TokenNode
     optional: true
-  - name: name
+  - name: target
     type: Name
   - name: asKeyword
     type: TokenNode
