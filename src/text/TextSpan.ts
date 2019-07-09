@@ -113,7 +113,7 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
    */
   public contains(position: TextSpan | number): boolean {
     if (typeof position === 'number') {
-      return (position - this.start) < this.length;
+      return position >= this.start ? (position - this.start) < this.length : false;
     }
     return position.start >= this.start && position.end <= this.end;
   }
