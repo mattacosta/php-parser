@@ -1791,15 +1791,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
-      if (ch === Character.CarriageReturn) {
-        if (this.peek(this.offset + 1) === Character.LineFeed) {
-          this.offset++;
-        }
-        this.offset++;
-        break;
-      }
-      if (ch === Character.LineFeed) {
-        this.offset++;
+      if (ch === Character.CarriageReturn || ch === Character.LineFeed) {
         break;
       }
       if (ch === Character.Question && this.peek(this.offset + 1) === Character.GreaterThan) {

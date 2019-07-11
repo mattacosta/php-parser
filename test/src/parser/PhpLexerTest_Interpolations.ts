@@ -237,16 +237,16 @@ describe('PhpLexer', function() {
 
         // Embedded comments.
         new LexerTestArgs('"${//comment\n}"', 'embedded line comment',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
-          ['"', '${', '//comment\n', '}', '"']
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '//comment', '\n', '}', '"']
         ),
         new LexerTestArgs('"${//comment"', 'embedded line comment (unterminated)',
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment],
           ['"', '${', '//comment"']
         ),
         new LexerTestArgs('"${//}\n}"', 'should not end at close brace in line comment',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
-          ['"', '${', '//}\n', '}', '"']
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '//}', '\n', '}', '"']
         ),
         new LexerTestArgs('"${/*comment*/}"', 'embedded multiple line comment',
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.MultipleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
