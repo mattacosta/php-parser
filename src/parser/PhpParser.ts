@@ -339,7 +339,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected reset() {
     this.currentContext = ParseContext.SourceElements;
-    this.currentToken = new Token(TokenKind.Error, 0, 0);
+    this.currentToken = new Token(TokenKind.Unknown, 0, 0);
     this.lexerState = this.lexer.currentState;
   }
 
