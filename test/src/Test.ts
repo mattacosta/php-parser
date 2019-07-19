@@ -99,12 +99,12 @@ export class Test {
     Test.assertDiagnosticsWithTag(tests, '<?= ', minVersion, maxVersion);
   }
 
-  public static assertSyntaxNodes(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0) {
-    Test.assertSyntaxNodesWithTag(tests, '<?php ', minVersion);
+  public static assertSyntaxNodes(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+    Test.assertSyntaxNodesWithTag(tests, '<?php ', minVersion, maxVersion);
   }
 
-  public static assertSyntaxNodesWithShortOpen(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0) {
-    Test.assertSyntaxNodesWithTag(tests, '<?= ', minVersion);
+  public static assertSyntaxNodesWithShortOpen(tests: ParserTestArgs[], minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+    Test.assertSyntaxNodesWithTag(tests, '<?= ', minVersion, maxVersion);
   }
 
   public static assertSyntaxToken(token: ISyntaxToken | null, sourceText: string, expectedKind: TokenKind, expectedText: string, allowMissing = false) {
@@ -241,7 +241,7 @@ export class Test {
     }
   }
 
-  protected static assertSyntaxNodesWithTag(argList: ParserTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0) {
+  protected static assertSyntaxNodesWithTag(argList: ParserTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
     const options = new PhpParserOptions(Test.phpVersion);
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
@@ -249,7 +249,7 @@ export class Test {
       const text = openTag + args.text;
       const testFn = args.testCallback;
       if (testFn) {
-        if (!Test.isPhpVersionInRange(minVersion)) {
+        if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
           it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
           continue;
         }
