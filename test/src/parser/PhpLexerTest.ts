@@ -347,9 +347,9 @@ describe('PhpLexer', function() {
       Test.assertTokens(tests, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
-    describe('unknown', function() {
+    describe('unexpected characters', function() {
       let diagnosticTests = [
-        new LexerDiagnosticTestArgs('<?php \v', 'should skip unexpected characters (at EOF)', TokenKind.Unknown, ErrorCode.ERR_UnexpectedCharacter),
+        new LexerDiagnosticTestArgs('<?php \v', 'should skip unexpected characters (at EOF)', TokenKind.Error, ErrorCode.ERR_UnexpectedCharacter),
       ];
       Test.assertTokenDiagnostics(diagnosticTests);
     });

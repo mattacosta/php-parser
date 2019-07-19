@@ -22,7 +22,7 @@
 export enum TokenKind {
 
   Unknown,
-  Error,
+  Error,                    // T_BAD_CHARACTER
 
   // Keywords
   Abstract,
