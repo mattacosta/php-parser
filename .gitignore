@@ -10,6 +10,7 @@
 ErrorCode.json
 
 # Generated directories
+coverage/
 node_modules/
 lib/
 out/

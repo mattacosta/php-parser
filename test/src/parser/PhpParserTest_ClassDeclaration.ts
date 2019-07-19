@@ -292,6 +292,17 @@ describe('PhpParser', function() {
     describe('modifiers', function() {
       let diagnosticTests = [
         new DiagnosticTestArgs('class A { public }', 'missing const, function, or variable', [ErrorCode.ERR_ClassMemberExpected], [10]),
+
+        new DiagnosticTestArgs('class A { private private }', 'duplicate private modifier', [ErrorCode.ERR_DuplicateModifier], [18]),
+        new DiagnosticTestArgs('class A { protected protected }', 'duplicate protected modifier', [ErrorCode.ERR_DuplicateModifier], [20]),
+        new DiagnosticTestArgs('class A { public public }', 'duplicate public modifier', [ErrorCode.ERR_DuplicateModifier], [17]),
+
+        new DiagnosticTestArgs('class A { private protected }', 'private and protected modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [18]),
+        new DiagnosticTestArgs('class A { private public }', 'private and public modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [18]),
+        new DiagnosticTestArgs('class A { protected private }', 'protected and private modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [20]),
+        new DiagnosticTestArgs('class A { protected public }', 'protected and public modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [20]),
+        new DiagnosticTestArgs('class A { public private }', 'public and private modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [17]),
+        new DiagnosticTestArgs('class A { public protected }', 'public and protected modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [17]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
@@ -408,6 +419,17 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
+        new ParserTestArgs('class A { var $b; }', 'should parse a property declaration (var)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
         new ParserTestArgs('class A { public $b = 1; }', 'should parse a property declaration with assignment', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
@@ -506,6 +528,9 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('class A { public $b = 1 }', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [23]),
         new DiagnosticTestArgs('class A { public $b, }', 'missing property in list', [ErrorCode.ERR_PropertyExpected], [20]),
         new DiagnosticTestArgs('class A { public $b = 1, }', 'missing property in list (after assignment)', [ErrorCode.ERR_PropertyExpected], [24]),
+
+        new DiagnosticTestArgs('class A { var }', 'missing property', [ErrorCode.ERR_PropertyExpected], [13]),
+
         new DiagnosticTestArgs('class A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadPropertyModifier], [10]),
         new DiagnosticTestArgs('class A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadPropertyModifier], [10]),
       ];

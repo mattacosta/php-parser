@@ -177,9 +177,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   }
 
   /**
-   * Determines if the node was present in the parsed source code.
-   *
-   * @todo Unused.
+   * @inheritDoc
    */
   public get isMissing(): boolean {
     return this.node.isMissing;

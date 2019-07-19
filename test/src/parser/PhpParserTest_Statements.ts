@@ -33,6 +33,7 @@ import {
   ExpressionStatementSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   GlobalSyntaxNode,
+  HaltCompilerSyntaxNode,
   LabelSyntaxNode,
   LiteralSyntaxNode,
   LocalVariableSyntaxNode,
@@ -50,7 +51,9 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { ISyntaxToken } from '../../../src/language/syntax/ISyntaxToken';
 import { PhpVersion } from '../../../src/parser/PhpVersion';
+import { SourceTextSyntaxNode } from '../../../src/language/syntax/SourceTextSyntaxNode';
 import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 import { TokenKind } from '../../../src/language/TokenKind';
 
@@ -255,6 +258,9 @@ describe('PhpParser', function() {
 
       new DiagnosticTestArgs('try {} finally {} finally', 'should not parse multiple finally clauses', [ErrorCode.ERR_UnexpectedToken], [18]),
       new DiagnosticTestArgs('try {} finally {} catch', 'should not parse a catch clause after a finally clause', [ErrorCode.ERR_UnexpectedToken], [18]),
+
+      // @todo Recovery tests.
+      new DiagnosticTestArgs('try {} catch (A $', 'missing variable name', [ErrorCode.ERR_VariableNameExpected], [16]),
     ];
     Test.assertDiagnostics(diagnosticTests);
 
@@ -670,6 +676,41 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('static $a,', 'missing variable in list', [ErrorCode.ERR_VariableExpected], [10]),
       // Unlike a global declaration, this expects a `VARIABLE` token.
       new DiagnosticTestArgs('static $', 'partial variable name', [ErrorCode.ERR_VariableNameExpected], [7]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
+  });
+
+  describe('halt-compiler-statement', function() {
+    let syntaxTests = [
+      new ParserTestArgs('__halt_compiler();', 'should parse a halt compiler statement', (statements) => {
+        let haltCompiler = <HaltCompilerSyntaxNode>statements[0];
+        assert.equal(haltCompiler instanceof HaltCompilerSyntaxNode, true, 'HaltCompilerSyntaxNode');
+        let root = <SourceTextSyntaxNode>haltCompiler.parent;
+        assert.equal(root instanceof SourceTextSyntaxNode, true, 'SourceTextSyntaxNode');
+        assert.equal(root.eof.fullSpan.length, 0);
+        let semicolon = <ISyntaxToken>root.eof.previousToken(false);
+        assert.notStrictEqual(semicolon, null);
+        assert.equal(semicolon.kind, TokenKind.Semicolon);
+        assert.strictEqual(semicolon.parent, haltCompiler);
+      }),
+      new ParserTestArgs('__halt_compiler(); $a = 1;', 'should parse a halt compiler statement with trailing text', (statements) => {
+        let haltCompiler = <HaltCompilerSyntaxNode>statements[0];
+        assert.equal(haltCompiler instanceof HaltCompilerSyntaxNode, true, 'HaltCompilerSyntaxNode');
+        let root = <SourceTextSyntaxNode>haltCompiler.parent;
+        assert.equal(root instanceof SourceTextSyntaxNode, true, 'SourceTextSyntaxNode');
+        assert.equal(root.eof.fullSpan.length, 8);
+        let semicolon = <ISyntaxToken>root.eof.previousToken(false);
+        assert.notStrictEqual(semicolon, null);
+        assert.equal(semicolon.kind, TokenKind.Semicolon);
+        assert.strictEqual(semicolon.parent, haltCompiler);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('__halt_compiler', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [15]),
+      new DiagnosticTestArgs('__halt_compiler(', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
+      new DiagnosticTestArgs('{ __halt_compiler(); }', 'should not parse an embedded halt compiler statement', [ErrorCode.ERR_HaltCompilerScope], [2]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });

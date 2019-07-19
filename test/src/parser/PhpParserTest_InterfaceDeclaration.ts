@@ -152,6 +152,17 @@ describe('PhpParser', function() {
     describe('modifiers', function() {
       let diagnosticTests = [
         new DiagnosticTestArgs('interface A { public }', 'missing const or function', [ErrorCode.ERR_InterfaceMemberExpected], [14]),
+
+        new DiagnosticTestArgs('interface A { private private }', 'duplicate private modifier', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_DuplicateModifier], [14, 22]),
+        new DiagnosticTestArgs('interface A { protected protected }', 'duplicate protected modifier', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_DuplicateModifier], [14, 24]),
+        new DiagnosticTestArgs('interface A { public public }', 'duplicate public modifier', [ErrorCode.ERR_DuplicateModifier], [21]),
+
+        new DiagnosticTestArgs('interface A { private protected }', 'private and protected modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_MultipleVisibilityModifiers], [14, 22]),
+        new DiagnosticTestArgs('interface A { private public }', 'private and public modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_MultipleVisibilityModifiers], [14, 22]),
+        new DiagnosticTestArgs('interface A { protected private }', 'protected and private modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_MultipleVisibilityModifiers], [14, 24]),
+        new DiagnosticTestArgs('interface A { protected public }', 'protected and public modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_MultipleVisibilityModifiers], [14, 24]),
+        new DiagnosticTestArgs('interface A { public private }', 'public and private modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [21]),
+        new DiagnosticTestArgs('interface A { public protected }', 'public and protected modifiers', [ErrorCode.ERR_MultipleVisibilityModifiers], [21]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
@@ -239,6 +250,8 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { protected $b; }', 'should not parse a protected property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 24]),
         new DiagnosticTestArgs('interface A { private $b; }', 'should not parse a private property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 22]),
         new DiagnosticTestArgs('interface A { static $b; }', 'should not parse a static property', [ErrorCode.ERR_InterfaceProperty], [21]),
+        // For consistency, defer this error to the variable instead of 'var'.
+        new DiagnosticTestArgs('interface A { var $b; }', 'should not parse a var property', [ErrorCode.ERR_InterfaceProperty], [18]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

@@ -1,7 +1,7 @@
 {
     "name": "@mattacosta/php-parser",
     "description": "A cross-platform, error-tolerant PHP parser that provides a complete representation of your source code.",
-    "version": "1.0.0-beta.4",
+    "version": "1.0.0-beta.5",
     "author": "Matt Acosta",
     "license": "Apache-2.0",
     "repository": {
@@ -23,32 +23,35 @@
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
-        "@types/js-yaml": "^3.11.2",
-        "@types/mocha": "^5.2.5",
-        "@types/node": "^8.10.37",
+        "@types/js-yaml": "^3.12.1",
+        "@types/mocha": "^5.2.6",
+        "@types/node": "^8.10.48",
         "browserify": "^16.2.3",
-        "coveralls": "^3.0.2",
+        "coveralls": "^3.0.3",
         "del": "^3.0.0",
         "exorcist": "^1.0.1",
         "glob": "^7.1.3",
-        "gulp": "^4.0.0",
+        "gulp": "^4.0.1",
         "gulp-filter": "^5.1.0",
         "gulp-mocha": "^6.0.0",
-        "gulp-typescript": "^5.0.0-alpha.3",
-        "js-yaml": "^3.12.0",
+        "gulp-typescript": "^5.0.1",
+        "js-yaml": "^3.13.1",
         "merge2": "^1.2.3",
-        "mocha": "^5.2.0",
-        "nyc": "^13.1.0",
+        "mocha": "^6.1.4",
+        "nyc": "^14.1.0",
+        "source-map-support": "^0.5.12",
         "through": "^2.3.8",
-        "typescript": "^3.1.6"
+        "typescript": "^3.4.5"
     },
     "scripts": {
         "build": "tsc -p ./src",
         "build:codegen": "tsc -p ./tools/CodeGenerator",
         "build:validator": "tsc -p ./tools/Validator",
         "pretest": "tsc -p ./test",
-        "test": "nyc --exclude out/test/** mocha --recursive ./out/test",
-        "test:coverage": "nyc report --reporter=text-lcov | coveralls",
+        "test": "mocha --recursive ./out/test",
+        "test:coveralls": "nyc report --reporter=text-lcov | coveralls",
+        "test:nyc": "nyc mocha --require source-map-support/register --recursive ./out/test",
+        "test:nyc:combine": "nyc --no-clean mocha --require source-map-support/register --recursive ./out/test",
         "browserify": "browserify ./lib/main.js -d -s PhpParser -r ./lib/ErrorCode.json:../ErrorCode.json | exorcist ./lib/php-parser.map.js > ./lib/php-parser.js"
     }
 }

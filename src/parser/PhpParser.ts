@@ -982,7 +982,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
     // Also allow functions with reserved names if the parser is being used to
     // generate metadata about PHP itself.
-    if (TokenKindInfo.isSemiReservedKeyword(kind) && this.options.features.has('allowReservedNames')) {
+    if (TokenKindInfo.isSemiReservedKeyword(kind) && this.options.allowReservedNames) {
       return true;
     }
     return false;
@@ -1433,7 +1433,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return this.parseExpressionOrTopStatement();
       case TokenKind.HaltCompiler:
         let haltCompiler = this.parseHaltCompiler();
-        // @todo Test: No skipped trivia or missing tokens.
         if (!haltCompiler.containsDiagnostics) {
           this.forceEndOfFile();
         }
@@ -1781,9 +1780,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
             break;
           case TokenKind.Var:
             varKeyword = this.eat(TokenKind.Var);
-            if (context == ParseContext.InterfaceMembers) {
-              varKeyword = this.addError(varKeyword, ErrorCode.ERR_InterfaceProperty);
-            }
             members.push(this.parsePropertyDeclaration([varKeyword], context));
             break;
           default:
@@ -2188,7 +2184,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseFor(): ForNode | ForBlockNode {
     let forKeyword = this.eat(TokenKind.For);
     let openParen = this.eat(TokenKind.OpenParen);
-    let initializers = this.parseForExpressionList(TokenKind.Semicolon);
+
+    let initializerExpressions = this.parseForExpressionList(TokenKind.Semicolon);
+    let initializers = initializerExpressions.length > 0 ? this.factory.createList(initializerExpressions) : null;
 
     // Depending on what is being parsed and what is missing, semicolon errors
     // may not indicate the proper correction. For example, if a for statement
@@ -2215,7 +2213,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       firstSemicolon = this.parseStatementEnd();
     }
 
-    let conditions = this.parseForExpressionList(TokenKind.Semicolon);
+    let conditionExpressions = this.parseForExpressionList(TokenKind.Semicolon);
+    let conditions = conditionExpressions.length > 0 ? this.factory.createList(conditionExpressions) : null;
 
     let secondSemicolon: TokenNode;
     if (!this.isStatementEnd(this.currentToken.kind)) {
@@ -2232,6 +2231,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let iterationExpressions = this.parseForExpressionList(TokenKind.CloseParen);
+    let iterations = iterationExpressions.length > 0 ? this.factory.createList(iterationExpressions) : null;
 
     let closeParen: TokenNode;
     if (this.currentToken.kind == TokenKind.CloseParen) {
@@ -2241,7 +2241,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
     }
     else {
-      let code = iterationExpressions ? ErrorCode.ERR_CloseParenExpected : ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      let code: ErrorCode;
+      if (iterationExpressions.length > 0) {
+        let lastExpression = <ExpressionNode>iterationExpressions[iterationExpressions.length - 1];
+        code = lastExpression.isMissing ? ErrorCode.ERR_CloseParenExpected : ErrorCode.ERR_CommaOrCloseParenExpected;
+      }
+      else {
+        code = ErrorCode.ERR_ExpressionOrCloseParenExpected;
+      }
       closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
     }
 
@@ -2258,7 +2265,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         firstSemicolon,
         conditions,
         secondSemicolon,
-        iterationExpressions,
+        iterations,
         closeParen,
         colon,
         statements,
@@ -2275,7 +2282,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       firstSemicolon,
       conditions,
       secondSemicolon,
-      iterationExpressions,
+      iterations,
       closeParen,
       statement
     );
@@ -2284,7 +2291,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a comma-separated list of expressions within a for statement.
    */
-  protected parseForExpressionList(terminator: TokenKind): NodeList | null {
+  protected parseForExpressionList(terminator: TokenKind): Array<ExpressionNode | TokenNode> {
     let expressions: Array<ExpressionNode | TokenNode> = [];
 
     if (this.isExpressionStart(this.currentToken.kind) || this.currentToken.kind == TokenKind.Comma) {
@@ -2308,7 +2315,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       kind = this.currentToken.kind;
     }
 
-    return expressions.length == 0 ? null : this.factory.createList(expressions);
+    return expressions;
   }
 
   /**
@@ -3450,28 +3457,41 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         continue;
       }
 
-      //        -------- qualified name --------
-      //        identifier  namespace  backslash  keyword
-      // alias  y           n          n          y
-      // ref    y           y          y          n
+      //         -------- qualified name --------
+      //         identifier  namespace  backslash  keyword
+      // method  y           y          n          y
+      // class   y           y          y          n
 
-      // @todo Test: Semi-reserved keyword in namespace name.
+      let className: NameNode;
 
+      // If part of a relative name, then this keyword is part of a class name,
+      // otherwise it is a method name (eliminate column 2).
+      if (this.currentToken.kind == TokenKind.Namespace) {
+        let namespaceKeyword = this.eat(this.currentToken.kind);
+        // Suppress TS2365: Current token changed after previous method call.
+        if (<TokenKind>this.currentToken.kind == TokenKind.Backslash) {
+          let leadingBackslash = this.eat(this.currentToken.kind);
+          let namespaceName = this.factory.createList(this.parseNamespaceName());
+          className = new RelativeNameNode(namespaceKeyword, leadingBackslash, namespaceName);
+        }
+        else {
+          let alias = this.parseTraitAlias(namespaceKeyword);
+          adaptations.push(alias);
+          continue;
+        }
+      }
+      // Only class names can be fully qualified (eliminate column 3).
+      else if (this.currentToken.kind == TokenKind.Backslash) {
+        className = this.parseQualifiedName();
+      }
       // Only method names can be semi-reserved keywords (eliminate column 4).
-      if (TokenKindInfo.isSemiReservedKeyword(this.currentToken.kind)) {
+      else if (TokenKindInfo.isSemiReservedKeyword(this.currentToken.kind)) {
         let alias = this.parseTraitAlias(this.eat(this.currentToken.kind));
         adaptations.push(alias);
         continue;
       }
-
-      // Only class names can be namespaced (eliminate columns 2 and 3).
-      let name: NameNode;
-      if (this.currentToken.kind == TokenKind.Namespace || this.currentToken.kind == TokenKind.Backslash) {
-        name = this.parseQualifiedName();
-      }
       else {
-        // The identifier is now either a class name (that could be partially
-        // qualified) or a method name to be aliased.
+        Debug.assert(this.currentToken.kind == TokenKind.Identifier);
         let namespaces = this.parseNamespaceName();
 
         // So there are now two possibilities:
@@ -3504,7 +3524,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
             continue;
           }
         }
-        name = new PartiallyQualifiedNameNode(this.factory.createList(namespaces));
+
+        className = new PartiallyQualifiedNameNode(this.factory.createList(namespaces));
       }
 
       // At this point, only a class name is being parsed.
@@ -3563,7 +3584,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       }
 
       // The reference is FINALLY complete!
-      let reference = new MethodReferenceNode(name, doubleColon, methodName);
+      let reference = new MethodReferenceNode(className, doubleColon, methodName);
 
       switch (this.currentToken.kind) {
         case TokenKind.As:
@@ -5316,10 +5337,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes = parser.parseStringTemplateElementList(null, TokenKind.HeredocEnd);
     }
 
-    // If the end label was missing the lexer already added an error.
-    let heredocEnd = parser.currentToken.kind == TokenKind.HeredocEnd
-      ? parser.eat(TokenKind.HeredocEnd)
-      : parser.createMissingToken(TokenKind.HeredocEnd, parser.currentToken.kind, false);
+    let heredocEnd: TokenNode;
+    if (parser.currentToken.kind == TokenKind.HeredocEnd) {
+      heredocEnd = parser.eat(TokenKind.HeredocEnd)
+    }
+    else {
+      // The parser should always reach the end of a template.
+      Debug.assert(parser.currentToken.kind == TokenKind.EOF);
+
+      // If the end label was missing, the lexer already added an error.
+      heredocEnd = parser.createMissingToken(TokenKind.HeredocEnd, parser.currentToken.kind, false);
+      // Move any trailing trivia over to this parser.
+      if (parser.leadingTrivia.length > 0) {
+        this.leadingTrivia = this.leadingTrivia.concat(parser.leadingTrivia);
+        this.leadingTriviaWidth += parser.leadingTriviaWidth;
+      }
+    }
 
     return new HeredocTemplateNode(heredocStart, nodes, heredocEnd);
   }
@@ -5875,10 +5908,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes = parser.parseStringTemplateElementList(null, TokenKind.BackQuote);
     }
 
-    // If the closing backquote was missing the lexer already added an error.
-    let closeBackQuote = parser.currentToken.kind == TokenKind.BackQuote
-      ? parser.eat(TokenKind.BackQuote)
-      : parser.createMissingToken(TokenKind.BackQuote, parser.currentToken.kind, false);
+    let closeBackQuote: TokenNode;
+    if (parser.currentToken.kind == TokenKind.BackQuote) {
+      closeBackQuote = parser.eat(TokenKind.BackQuote);
+    }
+    else {
+      // The parser should always reach the end of a template.
+      Debug.assert(parser.currentToken.kind == TokenKind.EOF);
+
+      // If the closing backquote was missing the lexer already added an error.
+      closeBackQuote = parser.createMissingToken(TokenKind.BackQuote, parser.currentToken.kind, false);
+      // Move any trailing trivia over to this parser.
+      if (parser.leadingTrivia.length > 0) {
+        this.leadingTrivia = this.leadingTrivia.concat(parser.leadingTrivia);
+        this.leadingTriviaWidth += parser.leadingTriviaWidth;
+      }
+    }
 
     return new ShellCommandTemplateNode(openBackQuote, nodes, closeBackQuote);
   }
@@ -5997,10 +6042,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes = parser.parseStringTemplateElementList(null, TokenKind.DoubleQuote);
     }
 
-    // If the closing quote was missing, the lexer already added an error.
-    let closeQuote = parser.currentToken.kind == TokenKind.DoubleQuote
-      ? parser.eat(TokenKind.DoubleQuote)
-      : parser.createMissingToken(TokenKind.DoubleQuote, parser.currentToken.kind, false);
+    let closeQuote: TokenNode;
+    if (parser.currentToken.kind == TokenKind.DoubleQuote) {
+      closeQuote = parser.eat(TokenKind.DoubleQuote)
+    }
+    else {
+      // The parser should always reach the end of a template.
+      Debug.assert(parser.currentToken.kind == TokenKind.EOF);
+
+      // If the closing quote was missing, the lexer already added an error.
+      closeQuote = parser.createMissingToken(TokenKind.DoubleQuote, parser.currentToken.kind, false);
+      // Move any trailing trivia over to this parser.
+      if (parser.leadingTrivia.length > 0) {
+        this.leadingTrivia = this.leadingTrivia.concat(parser.leadingTrivia);
+        this.leadingTriviaWidth += parser.leadingTriviaWidth;
+      }
+    }
 
     return new StringTemplateNode(openQuote, nodes, closeQuote);
   }

@@ -137,7 +137,7 @@ describe('PhpParser', function() {
         Test.assertSyntaxToken(elementAccess.index, text, TokenKind.Variable, '$b');
       }),
 
-      // Indirect variable.
+      // Indirect variable name.
       new ParserTestArgs('"${a}";', 'should parse a template using indirect variable name', (statements) => {
         let contents = assertStringTemplate(statements);
         let variable = <IndirectStringVariableSyntaxNode>contents[0];
@@ -178,16 +178,18 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('"$a[0";', 'missing close bracket', [ErrorCode.ERR_CloseBracketExpected], [5]),
       new DiagnosticTestArgs('"$a[-";', 'missing string number', [ErrorCode.ERR_StringOffsetNumberExpected], [5]),
 
-      // Indirect variable.
+      // Indirect variable name.
       new DiagnosticTestArgs('"${}";', 'missing expression or string identifier', [ErrorCode.ERR_StringVariableNameExpected], [3]),
-      new DiagnosticTestArgs('"${$}";', 'partial variable name (indirect variable)', [ErrorCode.ERR_IncompleteVariable], [3]),
 
       // Expression.
-      new DiagnosticTestArgs('"{$}";', 'partial variable name (expression)', [ErrorCode.ERR_IncompleteVariable], [2]),
+      new DiagnosticTestArgs('"{$}";', 'partial variable name', [ErrorCode.ERR_IncompleteVariable], [2]),
 
       // @todo These should be recovery tests.
-      new DiagnosticTestArgs('"${a[0 1]}";', 'missing close bracket (in malformed string offset)', [ErrorCode.ERR_CloseBracketExpected], [6]),
-      new DiagnosticTestArgs('"{$a $b}";', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [4]),
+      new DiagnosticTestArgs('"${a";', 'missing close brace (indirect variable name)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBraceExpected], [0, 4]),
+      new DiagnosticTestArgs('"${a[0}";', 'missing close bracket (indirect variable name)', [ErrorCode.ERR_CloseBracketExpected], [6]),
+
+      new DiagnosticTestArgs('"{$a";', 'missing close brace (expression)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBraceExpected], [0, 4]),
+      new DiagnosticTestArgs('"{$a[0}";', 'missing close bracket (expression)', [ErrorCode.ERR_CloseBracketExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });

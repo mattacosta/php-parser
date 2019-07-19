@@ -79,7 +79,7 @@ function runTests(doneFn) {
     hasError = true;
   }
   return gulp.src('./out/test/**/*.js', { read: false })
-    .pipe(mocha({ ui: 'tdd', reporter: 'dot' /* , suppress: true */ }))
+    .pipe(mocha({ ui: 'bdd', reporter: 'dot' /* , suppress: true */ }))
     .on('error', onError)
     .on('end', function() {
       if (hasError) {
@@ -112,7 +112,14 @@ function assertOutput(doneFn) {
  * Deletes all generated files.
  */
 function clean() {
-  return del(['./src/ErrorCode.json', './lib', './out', './typings', './.nyc_output']);
+  return del([
+    './.nyc_output',
+    './coverage',
+    './lib',
+    './out',
+    './src/ErrorCode.json',
+    './typings',
+  ]);
 }
 
 const license = require('./gulpfile.license');

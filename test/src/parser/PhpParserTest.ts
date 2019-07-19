@@ -121,8 +121,7 @@ describe('PhpParser', function() {
   });
 
   describe('feature: allowReservedNames', function() {
-    const features = new Map<string, string>([['allowReservedNames', '']]);
-    const options = new PhpParserOptions(PhpVersion.Latest, true, DocumentationMode.None, features);
+    const options = new PhpParserOptions(PhpVersion.Latest, DocumentationMode.None, true, true);
 
     let syntaxTests = [
       new ParserTestArgs('function empty() {}', 'should parse function with reserved name', (statements, text) => {

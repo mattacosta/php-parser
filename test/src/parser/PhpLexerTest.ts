@@ -33,14 +33,21 @@ describe('PhpLexer', function() {
     describe('inline text', function() {
       let tests = [
         new LexerTestArgs('<h1></h1>', 'should match inline text', [TokenKind.InlineText], [], false),
-        new LexerTestArgs('<?php', 'should match open tag', [TokenKind.OpenTag], [], false),
+
+        new LexerTestArgs('<?php ', 'should match open tag', [TokenKind.OpenTag], [], false),
+        new LexerTestArgs('<h1><?php ', 'should match open tag after inline text', [TokenKind.InlineText, TokenKind.OpenTag], [], false),
+        new LexerTestArgs('<?php', 'should not match open tag without trailing whitespace', [TokenKind.InlineText], [], false),
+        new LexerTestArgs('<?phpunit', 'should not partially match open tag', [TokenKind.InlineText], [], false),
+
         new LexerTestArgs('<?=', 'should match open tag with echo', [TokenKind.OpenTagWithEcho], [], false),
-      //new LexerTestArgs('<?', 'should match short open tag', [TokenKind.ShortOpenTag], [], false),
-        new LexerTestArgs('<h1><?php', 'should match open tag after inline text', [TokenKind.InlineText, TokenKind.OpenTag], [], false),
         new LexerTestArgs('<h1><?=', 'should match open tag with echo after inline text', [TokenKind.InlineText, TokenKind.OpenTagWithEcho], [], false),
+
+      //new LexerTestArgs('<?', 'should match short open tag', [TokenKind.ShortOpenTag], [], false),
+      //new LexerTestArgs('<?php', 'should match short open tag in open tag', [TokenKind.ShortOpenTag, TokenKind.Identifier], [], false),
       //new LexerTestArgs('<h1><?', 'should match short open tag after inline text', [TokenKind.InlineText, TokenKind.ShortOpenTag], [], false),
-        new LexerTestArgs('<?php?>', 'should match close tag', [TokenKind.OpenTag, TokenKind.CloseTag], [], false),
-        new LexerTestArgs('<?php?></h1>', 'should match inline text after close tag', [TokenKind.OpenTag, TokenKind.CloseTag, TokenKind.InlineText], [], false),
+
+        new LexerTestArgs('<?php ?>', 'should match close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.CloseTag], [], false),
+        new LexerTestArgs('<?php ?></h1>', 'should match inline text after close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.CloseTag, TokenKind.InlineText], [], false),
         new LexerTestArgs('?>', 'should not match close tag without open tag', [TokenKind.InlineText], [], false),
       ];
       Test.assertTokens(tests);
@@ -50,7 +57,9 @@ describe('PhpLexer', function() {
       let tests = [
         new LexerTestArgs('<?php // line comment', 'single line comment using // syntax', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment], [], false),
         new LexerTestArgs('<?php # line comment', 'single line comment using # syntax', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment], [], false),
-        new LexerTestArgs('<?php // comment ?><h1>', 'single line comment with close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.CloseTag, TokenKind.InlineText], [], false),
+        new LexerTestArgs('<?php // comment\n ', 'single line comment with LF', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.Whitespace], [], false),
+        new LexerTestArgs('<?php // comment\r\n ', 'single line comment with CRLF', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.Whitespace], [], false),
+        new LexerTestArgs('<?php // comment ?> ', 'single line comment with close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.CloseTag, TokenKind.InlineText], [], false),
 
         new LexerTestArgs('<?php /* */', 'multiple line comment on single line', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
         new LexerTestArgs('<?php /*\n*/', 'multiple line comment on multiple lines', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),
@@ -157,8 +166,19 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php "\\""', 'double quote with escaped double quote', [TokenKind.StringLiteral], ['"\\""']),
         new LexerTestArgs('<?php "\\n"', 'double quote with escaped line feed', [TokenKind.StringLiteral], ['"\\n"']),
         new LexerTestArgs('<?php "\\$a"', 'double quote with escaped variable sigil', [TokenKind.StringLiteral], ['"\\$a"']),
+        new LexerTestArgs('<?php "$1.00"', 'double quote with text containing variable sigil', [TokenKind.StringLiteral], ['"$1.00"']),
+        new LexerTestArgs('<?php "\\u110000"', 'double quote with JSON-encoded unicode escape sequence', [TokenKind.StringLiteral], ['"\\u110000"']),
       ];
       Test.assertTokens(tests);
+
+      let diagnosticTests = [
+        new LexerDiagnosticTestArgs('<?php \'a', 'unterminated string literal', TokenKind.StringLiteral, ErrorCode.ERR_UnterminatedStringConstant),
+        new LexerDiagnosticTestArgs('<?php "\\u{"', 'double quote with unterminated unicode escape sequence', TokenKind.StringLiteral, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence),
+        new LexerDiagnosticTestArgs('<?php "\\u{}"', 'double quote with empty unicode escape sequence', TokenKind.StringLiteral, ErrorCode.ERR_InvalidEscapeSequenceUnicode),
+        new LexerDiagnosticTestArgs('<?php "\\u{110000}"', 'double quote with unicode escape sequence overflow', TokenKind.StringLiteral, ErrorCode.ERR_UnicodeEscapeSequenceOverflow),
+        new LexerDiagnosticTestArgs('<?php "\\400"', 'double quote with octal escape sequence overflow', TokenKind.StringLiteral, ErrorCode.WRN_OctalEscapeSequenceOverflow),
+      ];
+      Test.assertTokenDiagnostics(diagnosticTests);
     });
 
     describe('numbers', function() {
@@ -180,17 +200,19 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php 0b0111111111111111111111111111111111111111111111111111111111111111', 'bin max int (64-bit)', [TokenKind.LNumber]),
         new LexerTestArgs('<?php 0b1111111111111111111111111111111111111111111111111111111111111111', 'bin max int overflow (64-bit)', [TokenKind.DNumber]),
         new LexerTestArgs('<?php 123', 'integer', [TokenKind.LNumber], ['123']),
-        new LexerTestArgs('<?php 1234e5', 'integer with exponent', [TokenKind.DNumber], ['1234e5']),
-        new LexerTestArgs('<?php 1234E5', 'integer with exponent (uppercase)', [TokenKind.DNumber], ['1234E5']),
+        new LexerTestArgs('<?php 123e4', 'integer with exponent', [TokenKind.DNumber], ['123e4']),
+        new LexerTestArgs('<?php 123E45', 'integer with exponent (uppercase)', [TokenKind.DNumber], ['123E45']),
         new LexerTestArgs('<?php 123e+4', 'integer with exponent and positive sign', [TokenKind.DNumber], ['123e+4']),
         new LexerTestArgs('<?php 123e-4', 'integer with exponent and negative sign', [TokenKind.DNumber], ['123e-4']),
+        new LexerTestArgs('<?php 123e', 'integer with missing exponent', [TokenKind.LNumber, TokenKind.Identifier], ['123', 'e']),
         new LexerTestArgs('<?php 1.23', 'floating-point', [TokenKind.DNumber], ['1.23']),
         new LexerTestArgs('<?php 0.12', 'floating-point with leading zero', [TokenKind.DNumber], ['0.12']),
         new LexerTestArgs('<?php .123', 'floating-point without leading digits', [TokenKind.DNumber], ['.123']),
-        new LexerTestArgs('<?php 1.234e5', 'floating-point with exponent', [TokenKind.DNumber], ['1.234e5']),
-        new LexerTestArgs('<?php 1.234E5', 'floating-point with exponent (uppercase)', [TokenKind.DNumber], ['1.234E5']),
+        new LexerTestArgs('<?php 1.23e4', 'floating-point with exponent', [TokenKind.DNumber], ['1.23e4']),
+        new LexerTestArgs('<?php 1.23E45', 'floating-point with exponent (uppercase)', [TokenKind.DNumber], ['1.23E45']),
         new LexerTestArgs('<?php 1.23e+4', 'floating-point with exponent and positive sign', [TokenKind.DNumber], ['1.23e+4']),
         new LexerTestArgs('<?php 1.23e-4', 'floating-point with exponent and negative sign', [TokenKind.DNumber], ['1.23e-4']),
+        new LexerTestArgs('<?php 1.23e', 'floating-point with missing exponent', [TokenKind.DNumber, TokenKind.Identifier], ['1.23', 'e']),
         new LexerTestArgs('<?php .0.12', 'floating-point with multiple decimal points', [TokenKind.DNumber, TokenKind.DNumber], ['.0', '.12']),
         new LexerTestArgs('<?php 0.1.2', 'floating-point with multiple decimal points and leading digits', [TokenKind.DNumber, TokenKind.DNumber], ['0.1', '.2']),
       ];

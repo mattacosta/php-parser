@@ -46,10 +46,10 @@ function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQu
     assert.strictEqual(element.typeKeyword, null);
   }
   if (isFullyQualified) {
-    assert.equal(element.name instanceof FullyQualifiedNameSyntaxNode, true, 'FullyQualifiedNameSyntaxNode');
+    assert.equal(element.target instanceof FullyQualifiedNameSyntaxNode, true, 'FullyQualifiedNameSyntaxNode');
   }
   else {
-    assert.equal(element.name instanceof PartiallyQualifiedNameSyntaxNode, true, 'PartiallyQualifiedNameSyntaxNode');
+    assert.equal(element.target instanceof PartiallyQualifiedNameSyntaxNode, true, 'PartiallyQualifiedNameSyntaxNode');
   }
   if (alias) {
     assert.notStrictEqual(element.asKeyword, null);

@@ -24,6 +24,30 @@ import { TemplateSpan } from '../../../src/parser/TemplateSpan';
 describe('TemplateSpan', function() {
 
   describe('#constructor()', function() {
+    it('empty span', () => {
+      let span = new TemplateSpan(PhpLexerState.InScript, 0, 0);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 0);
+      assert.equal(span.length, 0);
+    });
+    it('span with non-zero start', () => {
+      let span = new TemplateSpan(PhpLexerState.InScript, 5, 0);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 5);
+      assert.equal(span.length, 0);
+    });
+    it('span with non-zero length', () => {
+      let span = new TemplateSpan(PhpLexerState.InScript, 0, 5);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 0);
+      assert.equal(span.length, 5);
+    });
+    it('span with non-zero start and non-zero length', () => {
+      let span = new TemplateSpan(PhpLexerState.InScript, 5, 5);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 5);
+      assert.equal(span.length, 5);
+    });
     it('should throw if start is negative', () => {
       assert.throws(() => new TemplateSpan(PhpLexerState.LookingForHeredocLabel, -1, 1));
     });
@@ -33,11 +57,32 @@ describe('TemplateSpan', function() {
   });
 
   describe('#fromBounds()', function() {
-    it('should create span from end offset', () => {
-      let span = TemplateSpan.fromBounds(PhpLexerState.LookingForHeredocLabel, 10, 15);
-      assert.equal(span.state, PhpLexerState.LookingForHeredocLabel);
-      assert.equal(span.start, 10);
+    it('empty span', () => {
+      let span = TemplateSpan.fromBounds(PhpLexerState.InScript, 0, 0);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 0);
+      assert.equal(span.length, 0);
+    });
+    it('span with non-zero start', () => {
+      let span = TemplateSpan.fromBounds(PhpLexerState.InScript, 5, 5);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 5);
+      assert.equal(span.length, 0);
+    });
+    it('span with non-zero length', () => {
+      let span = TemplateSpan.fromBounds(PhpLexerState.InScript, 0, 5);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 0);
       assert.equal(span.length, 5);
+    });
+    it('span with non-zero start and non-zero length', () => {
+      let span = TemplateSpan.fromBounds(PhpLexerState.InScript, 5, 10);
+      assert.equal(span.state, PhpLexerState.InScript);
+      assert.equal(span.start, 5);
+      assert.equal(span.length, 5);
+    });
+    it('should throw if end is prior to start', () => {
+      assert.throws(() => TemplateSpan.fromBounds(PhpLexerState.LookingForHeredocLabel, 5, 0));
     });
   });
 

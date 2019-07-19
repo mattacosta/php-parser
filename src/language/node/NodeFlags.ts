@@ -35,13 +35,13 @@ export const enum NodeFlags {
    */
   ContainsStructuredTrivia = 1 << 2,
   /**
-   * The current node is missing.
+   * The current node, or one of its children, is located in source text.
    */
-  IsMissing = 1 << 3,
+  IsNotMissing = 1 << 3,
 
   /**
    * A mask of all inheritable flags.
    */
-  InheritMask = ContainsDiagnostics | ContainsSkippedText | ContainsStructuredTrivia
+  InheritMask = ContainsDiagnostics | ContainsSkippedText | ContainsStructuredTrivia | IsNotMissing,
 
 }

@@ -47,7 +47,7 @@ export class TemplateSpan {
    *   The length of the span.
    */
   constructor(public readonly state: PhpLexerState, start: number, length: number) {
-    if (start < 0 || length <= 0) {
+    if (start < 0 || length < 0) {
       throw new ArgumentOutOfRangeException();
     }
     this.start = start;

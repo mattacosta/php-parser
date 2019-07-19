@@ -48,7 +48,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * A map of cast types to their associated tokens.
    */
-  protected static readonly CastTokens = new Map<string, TokenKind>([
+  protected static readonly CastTokens: ReadonlyMap<string, TokenKind> = new Map<string, TokenKind>([
     ['array', TokenKind.ArrayCast],
     ['binary', TokenKind.BinaryCast],
     ['bool', TokenKind.BoolCast],
@@ -66,7 +66,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * A map of keywords to their associated tokens.
    */
-  protected static readonly KeywordTokens = new Map<string, TokenKind>([
+  protected static readonly KeywordTokens: ReadonlyMap<string, TokenKind> = new Map<string, TokenKind>([
     ['__class__', TokenKind.MagicClass],
     ['__dir__', TokenKind.MagicDirectory],
     ['__file__', TokenKind.MagicFile],
@@ -143,6 +143,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     ['xor', TokenKind.LogicalXor],
     ['yield', TokenKind.Yield]
   ]);
+
+  /**
+   * Determines if short open tags "<?" are permitted. Defaults to `false`.
+   */
+  protected allowShortOpen: boolean = false;
 
   /**
    * The default scanning mode when starting to scan text, or when not in a
@@ -281,16 +286,16 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // may have already been determined.
     if (this.templateStack.length > 0) {
       // End of current span.
-      if (this.offset == this.templateStack[0].start + this.templateStack[0].length) {
+      if (this.offset === this.templateStack[0].start + this.templateStack[0].length) {
         this.state = this.defaultState;
         this.templateStack.shift();
       }
       // If there is another span, then it may start immediately.
-      if (this.templateStack.length > 0 && this.offset == this.templateStack[0].start) {
+      if (this.templateStack.length > 0 && this.offset === this.templateStack[0].start) {
         this.state = this.templateStack[0].state;
         // If a heredoc string had an end label, extend the scan range back
         // to its normal length.
-        if (this.state == PhpLexerState.LookingForHeredocLabel && this.offset == this.end) {
+        if (this.state === PhpLexerState.LookingForHeredocLabel && this.offset === this.end) {
           this.end = this.end + this.templateStack[0].length;
         }
       }
@@ -307,7 +312,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.state = this.defaultState = PhpLexerState.InBackQuote;
     this.templateStack = spans;
 
-    if (spans.length > 0 && this.offset == spans[0].start) {
+    if (spans.length > 0 && this.offset === spans[0].start) {
       this.state = spans[0].state;
     }
   }
@@ -357,7 +362,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // Force the lexer to stop just before an end label instead of always
     // trying to scan for it. After reaching the last span, this region will
     // be "appended" and scanned normally.
-    if (spans.length > 0 && spans[spans.length - 1].state == PhpLexerState.LookingForHeredocLabel) {
+    if (spans.length > 0 && spans[spans.length - 1].state === PhpLexerState.LookingForHeredocLabel) {
       this.end = this.end - spans[spans.length - 1].length;
     }
   }
@@ -372,14 +377,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * @see PhpLexer.templateSpans
    */
   public rescanInterpolatedString(spans: TemplateSpan[]) {
-    if (spans.length == 0) {
+    if (spans.length === 0) {
       throw new ArgumentException('String template must contain at least 1 span');
     }
 
     this.state = this.defaultState = PhpLexerState.InDoubleQuote;
     this.templateStack = spans;
 
-    if (this.offset == spans[0].start) {
+    if (this.offset === spans[0].start) {
       this.state = spans[0].state;
     }
   }
@@ -455,13 +460,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     // Optional semicolon.
-    if (this.peek(offset) == Character.Semicolon) {
+    if (this.peek(offset) === Character.Semicolon) {
       offset++;
     }
 
     // Required line break.
     let ch = this.peek(offset);
-    if (ch == Character.CarriageReturn || ch == Character.LineFeed) {
+    if (ch === Character.CarriageReturn || ch === Character.LineFeed) {
       return true;
     }
 
@@ -473,7 +478,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected lexHeredocLabel(): PhpLexerState {
     let ch = this.text.charCodeAt(this.offset);
-    if (ch == Character.LessThan) {
+    if (ch === Character.LessThan) {
       let info = this.tryScanHeredocStartLabel();
       if (this.flexibleIndent) {
         this.state = PhpLexerState.LookingForHeredocIndent;
@@ -500,20 +505,20 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Tokenizes inline text until a PHP open tag is encountered.
    */
-  protected lexInlineText(allowShortOpen = false): PhpLexerState {
+  protected lexInlineText(): PhpLexerState {
     // Only return an opening tag if there is no inline text in the way.
-    let length = this.tryScanOpenTag(allowShortOpen);
+    let length = this.tryScanOpenTag();
     if (length) {
-      this.tokenKind = length == 5
+      this.tokenKind = length === 5
         ? TokenKind.OpenTag
-        : length == 3 ? TokenKind.OpenTagWithEcho : TokenKind.ShortOpenTag;
+        : length === 3 ? TokenKind.OpenTagWithEcho : TokenKind.ShortOpenTag;
       return PhpLexerState.InScript;
     }
 
     this.offset++;
 
     while (this.offset < this.end) {
-      length = this.tryScanOpenTag(allowShortOpen);
+      length = this.tryScanOpenTag();
       if (length > 0) {
         // Do not return the opening tag as part of the inline text.
         this.offset = this.offset - length;
@@ -532,7 +537,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected lexNowdoc(): PhpLexerState {
     // In a regular nowdoc, the end label has been temporarily removed, so
     // there's nothing to do but instantaneously tokenize the string.
-    if (this.state == PhpLexerState.InNowdoc) {
+    if (this.state === PhpLexerState.InNowdoc) {
       this.offset = this.end;
       this.tokenKind = TokenKind.StringTemplateLiteral;
       return this.state;
@@ -544,7 +549,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     switch (ch) {
       case Character.Space:
       case Character.Tab:
-        if (this.state == PhpLexerState.LookingForHeredocIndent) {
+        if (this.state === PhpLexerState.LookingForHeredocIndent) {
           this.tryScanFlexdocIndent();
           this.tokenKind = TokenKind.StringIndent;
           this.state = PhpLexerState.InFlexibleNowdoc;
@@ -582,7 +587,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       // Line breaks
       case Character.CarriageReturn:
       case Character.LineFeed:
-        if (ch == Character.CarriageReturn && this.peek(this.offset + 1) == Character.LineFeed) {
+        if (ch === Character.CarriageReturn && this.peek(this.offset + 1) === Character.LineFeed) {
           this.offset = this.offset + 2;
         }
         else {
@@ -608,7 +613,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.tokenKind = TokenKind.Whitespace;
         return this.state;
       case Character.Minus:
-        if (this.peek(this.offset + 1) == Character.GreaterThan) {
+        if (this.peek(this.offset + 1) === Character.GreaterThan) {
           this.offset = this.offset + 2;  // "->"
           this.tokenKind = TokenKind.ObjectOperator;
           return this.state;
@@ -644,7 +649,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       // Line breaks
       case Character.CarriageReturn:
       case Character.LineFeed:
-        if (ch == Character.CarriageReturn && next == Character.LineFeed) {
+        if (ch === Character.CarriageReturn && next === Character.LineFeed) {
           this.offset = this.offset + 2;
         }
         else {
@@ -667,7 +672,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.offset++;
         this.interpolations = [];
         this.scanInterpolatedString(Character.BackQuote, this.interpolations);
-        if (this.peek(this.offset) == Character.BackQuote) {
+        if (this.peek(this.offset) === Character.BackQuote) {
           this.offset++;
         }
         else {
@@ -679,7 +684,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.offset++;
         this.interpolations = [];
         this.scanInterpolatedString(Character.DoubleQuote, this.interpolations);
-        if (this.peek(this.offset) == Character.DoubleQuote) {
+        if (this.peek(this.offset) === Character.DoubleQuote) {
           this.offset++;
         }
         else {
@@ -690,7 +695,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.SingleQuote:
         this.offset++;
         this.scanSingleQuoteString();
-        if (this.peek(this.offset) == Character.SingleQuote) {
+        if (this.peek(this.offset) === Character.SingleQuote) {
           this.offset++;
         }
         else {
@@ -712,13 +717,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.scanLineComment();
         return this.state;
       case Character.Slash:
-        if (next == Character.Slash) {
+        if (next === Character.Slash) {
           this.offset = this.offset + 2;  // "//"
-          // if (this.peek(this.offset) == Character.OpenBrace) {
+          // if (this.peek(this.offset) === Character.OpenBrace) {
           //   this.offset++;
           //   this.tokenKind = TokenKind.RegionStart;
           // }
-          // else if (this.peek(this.offset) == Character.CloseBrace) {
+          // else if (this.peek(this.offset) === Character.CloseBrace) {
           //   this.offset++;
           //   this.tokenKind = TokenKind.RegionEnd;
           // }
@@ -729,9 +734,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.scanLineComment();
           return this.state;
         }
-        else if (next == Character.Asterisk) {
+        else if (next === Character.Asterisk) {
           this.offset = this.offset + 2;  // "/*"
-          if (this.peek(this.offset) == Character.Asterisk && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 1))) {
+          if (this.peek(this.offset) === Character.Asterisk && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 1))) {
             this.offset = this.offset + 2;
             this.tokenKind = TokenKind.DocumentationComment;
           }
@@ -739,7 +744,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.tokenKind = TokenKind.MultipleLineComment;
           }
           this.scanMultipleLineComment();
-          if (this.peek(this.offset) == Character.Asterisk && this.peek(this.offset + 1) == Character.Slash) {
+          if (this.peek(this.offset) === Character.Asterisk && this.peek(this.offset + 1) === Character.Slash) {
             this.offset = this.offset + 2;  // "*/"
           }
           else {
@@ -747,7 +752,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           }
           return this.state;
         }
-        else if (next == Character.Equal) {
+        else if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "/="
           this.tokenKind = TokenKind.DivideEqual;
         }
@@ -773,7 +778,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.scanNumber();
         return this.state;
 
-      // Tokens (single)
+      // Punctuation
       case Character.At:
         this.offset++;
         this.tokenKind = TokenKind.At;
@@ -816,13 +821,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.tokenKind = TokenKind.Tilde;
         return this.state;
 
-      // Compound tokens
+      // Compound punctuation
       case Character.Ampersand:
-        if (next == Character.Ampersand) {
+        if (next === Character.Ampersand) {
           this.offset = this.offset + 2;  // "&&"
           this.tokenKind = TokenKind.BooleanAnd;
         }
-        else if (next == Character.Equal) {
+        else if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "&="
           this.tokenKind = TokenKind.AndEqual;
         }
@@ -832,12 +837,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Asterisk:
-        if (next == Character.Equal) {
+        if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "*="
           this.tokenKind = TokenKind.MultiplyEqual;
         }
-        else if (next == Character.Asterisk) {
-          if (this.peek(this.offset + 2) == Character.Equal) {
+        else if (next === Character.Asterisk) {
+          if (this.peek(this.offset + 2) === Character.Equal) {
             this.offset = this.offset + 3;  // "**="
             this.tokenKind = TokenKind.PowEqual;
           }
@@ -852,7 +857,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Caret:
-        if (next == Character.Equal) {
+        if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "^="
           this.tokenKind = TokenKind.XorEqual;
         }
@@ -862,7 +867,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Colon:
-        if (next == Character.Colon) {
+        if (next === Character.Colon) {
           this.offset = this.offset + 2;  // "::"
           this.tokenKind = TokenKind.DoubleColon;
         }
@@ -885,8 +890,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Equal:
-        if (next == Character.Equal) {
-          if (this.peek(this.offset + 2) == Character.Equal) {
+        if (next === Character.Equal) {
+          if (this.peek(this.offset + 2) === Character.Equal) {
             this.offset = this.offset + 3;  // "==="
             this.tokenKind = TokenKind.IsIdentical;
           }
@@ -895,7 +900,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.tokenKind = TokenKind.IsEqual;
           }
         }
-        else if (next == Character.GreaterThan) {
+        else if (next === Character.GreaterThan) {
           this.offset = this.offset + 2;  // "=>"
           this.tokenKind = TokenKind.DoubleArrow;
         }
@@ -905,8 +910,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Exclamation:
-        if (next == Character.Equal) {
-          if (this.peek(this.offset + 2) == Character.Equal) {
+        if (next === Character.Equal) {
+          if (this.peek(this.offset + 2) === Character.Equal) {
             this.offset = this.offset + 3;  // "!=="
             this.tokenKind = TokenKind.IsNotIdentical;
           }
@@ -921,12 +926,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.GreaterThan:
-        if (next == Character.Equal) {
+        if (next === Character.Equal) {
           this.offset = this.offset + 2;  // ">="
           this.tokenKind = TokenKind.IsGreaterThanOrEqual;
         }
-        else if (next == Character.GreaterThan) {
-          if (this.peek(this.offset + 2) == Character.Equal) {
+        else if (next === Character.GreaterThan) {
+          if (this.peek(this.offset + 2) === Character.Equal) {
             this.offset = this.offset + 3;  // ">>="
             this.tokenKind = TokenKind.ShiftRightEqual;
           }
@@ -941,8 +946,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.LessThan:
-        if (next == Character.Equal) {
-          if (this.peek(this.offset + 2) == Character.GreaterThan) {
+        if (next === Character.Equal) {
+          if (this.peek(this.offset + 2) === Character.GreaterThan) {
             this.offset = this.offset + 3;  // "<=>"
             this.tokenKind = TokenKind.Spaceship;
           }
@@ -951,15 +956,15 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.tokenKind = TokenKind.IsLessThanOrEqual;
           }
         }
-        else if (next == Character.GreaterThan) {
+        else if (next === Character.GreaterThan) {
           this.offset = this.offset + 2;  // "<>"
           this.tokenKind = TokenKind.Inequality;
         }
-        else if (next == Character.LessThan) {
-          if (this.peek(this.offset + 2) == Character.LessThan) {
+        else if (next === Character.LessThan) {
+          if (this.peek(this.offset + 2) === Character.LessThan) {
             this.tryScanHeredoc(this.interpolations);
           }
-          else if (this.peek(this.offset + 2) == Character.Equal) {
+          else if (this.peek(this.offset + 2) === Character.Equal) {
             this.offset = this.offset + 3;  // "<<="
             this.tokenKind = TokenKind.ShiftLeftEqual;
           }
@@ -974,15 +979,15 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Minus:
-        if (next == Character.GreaterThan) {
+        if (next === Character.GreaterThan) {
           this.offset = this.offset + 2;  // "->"
           this.tokenKind = TokenKind.ObjectOperator;
         }
-        else if (next == Character.Minus) {
+        else if (next === Character.Minus) {
           this.offset = this.offset + 2;  // "--"
           this.tokenKind = TokenKind.Decrement;
         }
-        else if (next == Character.Equal) {
+        else if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "-="
           this.tokenKind = TokenKind.MinusEqual;
         }
@@ -995,7 +1000,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.tryScanTypeCast();
         return this.state;
       case Character.Percent:
-        if (next == Character.Equal) {
+        if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "%="
           this.tokenKind = TokenKind.ModEqual;
         }
@@ -1009,11 +1014,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.scanNumber();
           return this.state;
         }
-        else if (next == Character.Equal) {
+        else if (next === Character.Equal) {
           this.offset = this.offset + 2;  // ".="
           this.tokenKind = TokenKind.ConcatEqual;
         }
-        else if (next == Character.Period && this.peek(this.offset + 2) == Character.Period) {
+        else if (next === Character.Period && this.peek(this.offset + 2) === Character.Period) {
           this.offset = this.offset + 3;  // "..."
           this.tokenKind = TokenKind.Ellipsis;
         }
@@ -1023,11 +1028,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Plus:
-        if (next == Character.Plus) {
+        if (next === Character.Plus) {
           this.offset = this.offset + 2;  // "++"
           this.tokenKind = TokenKind.Increment;
         }
-        else if (next == Character.Equal) {
+        else if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "+="
           this.tokenKind = TokenKind.PlusEqual;
         }
@@ -1037,7 +1042,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.Question:
-        if (next == Character.GreaterThan) {
+        if (next === Character.GreaterThan) {
           this.offset = this.offset + 2;  // "?>"
           this.tokenKind = TokenKind.CloseTag;
           return this.state = PhpLexerState.InHostLanguage;
@@ -1058,11 +1063,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
       case Character.VerticalBar:
-        if (next == Character.VerticalBar) {
+        if (next === Character.VerticalBar) {
           this.offset = this.offset + 2;  // "||"
           this.tokenKind = TokenKind.BooleanOr;
         }
-        else if (next == Character.Equal) {
+        else if (next === Character.Equal) {
           this.offset = this.offset + 2;  // "|="
           this.tokenKind = TokenKind.OrEqual;
         }
@@ -1095,12 +1100,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     let ch = this.text.charCodeAt(this.offset);
     let next = this.peek(this.offset + 1);
 
-    if (this.state == PhpLexerState.InDoubleQuote && ch == Character.DoubleQuote) {
+    if (this.state === PhpLexerState.InDoubleQuote && ch === Character.DoubleQuote) {
       this.offset++;
       this.tokenKind = TokenKind.DoubleQuote;
       return this.state;
     }
-    else if (this.state == PhpLexerState.InBackQuote && ch == Character.BackQuote) {
+    else if (this.state === PhpLexerState.InBackQuote && ch === Character.BackQuote) {
       this.offset++;
       this.tokenKind = TokenKind.BackQuote;
       return this.state;
@@ -1110,7 +1115,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Dollar:
         // NOTE: Variables embedded within the quote should be part of
         // `InScript` spans and are not valid tokens in this state.
-        if (next == Character.OpenBrace) {
+        if (next === Character.OpenBrace) {
           this.offset = this.offset + 2;  // "${"
           this.tokenKind = TokenKind.DollarOpenBrace;
         }
@@ -1122,7 +1127,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         break;
       case Character.OpenBrace:
         this.offset++;
-        if (next == Character.Dollar) {
+        if (next === Character.Dollar) {
           this.tokenKind = TokenKind.OpenBrace;
         }
         else {
@@ -1132,7 +1137,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         break;
       case Character.Space:
       case Character.Tab:
-        if (this.state == PhpLexerState.LookingForHeredocIndent) {
+        if (this.state === PhpLexerState.LookingForHeredocIndent) {
           this.state = PhpLexerState.InFlexibleHeredoc;
           let length = this.tryScanFlexdocIndent();
           if (length > 0) {
@@ -1145,7 +1150,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         break;
       case Character.CarriageReturn:
       case Character.LineFeed:
-        if (this.state == PhpLexerState.InFlexibleHeredoc || this.state == PhpLexerState.LookingForHeredocIndent) {
+        if (this.state === PhpLexerState.InFlexibleHeredoc || this.state === PhpLexerState.LookingForHeredocIndent) {
           this.offset++;
           while (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
             this.offset++;
@@ -1194,12 +1199,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     switch (ch) {
       // Numbers.
       case Character._0:
-        if (next == Character.x) {
+        if (next === Character.x) {
           this.scanHexDigits();
           this.tokenKind = TokenKind.StringNumber;
           break;
         }
-        if (next == Character.b) {
+        if (next === Character.b) {
           this.scanBinDigits();
           this.tokenKind = TokenKind.StringNumber;
           break;
@@ -1263,7 +1268,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.offset = this.offset + 2;  // "0b"
 
     // Skip leading zeroes.
-    while (this.offset < this.end && this.text.charCodeAt(this.offset) == Character._0) {
+    while (this.offset < this.end && this.text.charCodeAt(this.offset) === Character._0) {
       this.offset++;
     }
 
@@ -1288,10 +1293,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
-      if (ch == Character.Space) {
+      if (ch === Character.Space) {
         hasSpaces = true;
       }
-      else if (ch == Character.Tab) {
+      else if (ch === Character.Tab) {
         hasTabs = true;
       }
       else {
@@ -1317,7 +1322,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.offset = this.offset + 2;  // "0x"
 
     // Skip leading zeroes.
-    while (this.offset < this.end && this.text.charCodeAt(this.offset) == Character._0) {
+    while (this.offset < this.end && this.text.charCodeAt(this.offset) === Character._0) {
       this.offset++;
     }
 
@@ -1328,7 +1333,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     let firstDigit = this.peek(this.offset - length);
-    if (length < this.ptrSize * 2 || (length == this.ptrSize * 2 && firstDigit <= Character._7)) {
+    if (length < this.ptrSize * 2 || (length === this.ptrSize * 2 && firstDigit <= Character._7)) {
       this.tokenKind = TokenKind.LNumber;
     }
     else {
@@ -1350,7 +1355,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     // Ideally "yield from" would only be valid with a single space, but
     // someone decided to make it a special snowflake...
-    if (this.tokenKind == TokenKind.Yield && CharacterInfo.isWhitespaceLike(this.peek(this.offset))) {
+    if (this.tokenKind === TokenKind.Yield && CharacterInfo.isWhitespaceLike(this.peek(this.offset))) {
       const yieldEnd = this.offset;
       while (this.offset < this.end) {
         const ch = this.text.charCodeAt(this.offset);
@@ -1372,6 +1377,20 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Scans inline text within an interpolated string.
+   */
+  protected scanInterpolatedInlineText(): number {
+    const start = this.offset;
+    while(this.offset < this.end) {
+      if (this.tryScanOpenTag()) {
+        break;
+      }
+      this.offset++;
+    }
+    return this.offset - start;
+  }
+
+  /**
    * Scans an object access expression within an interpolated string.
    */
   protected scanInterpolatedProperty(): number {
@@ -1387,7 +1406,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.offset++;
           break;
         case Character.Minus:
-          if (this.peek(this.offset + 1) == Character.GreaterThan) {
+          if (this.peek(this.offset + 1) === Character.GreaterThan) {
             this.offset = this.offset + 2;  // "->"
             break;
           }
@@ -1407,12 +1426,22 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Scans any PHP script within an interpolated string.
    */
-  protected scanInterpolatedScript(endCh: Character): number {
-    const scriptStart = this.offset;
+  protected scanInterpolatedScript(delimiter: Character): number {
+    const start = this.offset;
 
-    // In order to find the closing double quote of an interpolated string, the
-    // closing brace of the interpolated expression must be found first. However,
-    // in order to do that, paired tokens need to be matched up.
+    // In order to find the closing terminator of an interpolated string, the
+    // embedded script must end. That is done by close braces and close tags,
+    // but it is not as simple as scanning for those tokens because while in a
+    // script the following conditions apply:
+    // 1. Open braces and interpolated strings may create additional embedded
+    //    lexing states which must end before returning to the original string.
+    //    This is handled by recursively calling the relevant scanning methods.
+    // 2. User-defined tokens may contain the characters being searched for. The
+    //    possible tokens, constant strings and comments, are handled by simply
+    //    scanning them normally when they are found.
+    // 3. Close tags always start the host language state, which may in turn
+    //    restart the script state, resulting in a loop.
+
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
       switch (ch) {
@@ -1420,52 +1449,43 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.CloseBrace:
         case Character.CloseBracket:
         case Character.CloseParen:
-          if (ch == endCh) {
-            return this.offset - scriptStart;
-          }
           this.offset++;
+          if (ch === delimiter) {
+            return this.offset - start;
+          }
           break;
         case Character.OpenBrace:
           this.offset++;  // "{"
           this.scanInterpolatedScript(Character.CloseBrace);
-          if (this.peek(this.offset) == Character.CloseBrace) {
-            this.offset++;
-          }
           break;
         case Character.OpenBracket:
-          // @todo This may be unnecessary?
           this.offset++;  // "["
-          this.scanInterpolatedScript(Character.CloseBracket);
-          if (this.peek(this.offset) == Character.CloseBracket) {
-            this.offset++;
-          }
+          // @todo Experimental.
+          // this.scanInterpolatedScript(Character.CloseBracket);
           break;
         case Character.OpenParen:
-          // @todo This may be unnecessary?
           this.offset++;  // "("
-          this.scanInterpolatedScript(Character.CloseParen);
-          if (this.peek(this.offset) == Character.CloseParen) {
-            this.offset++;
-          }
+          // @todo Experimental.
+          // this.scanInterpolatedScript(Character.CloseParen);
           break;
 
         // Strings.
         case Character.BackQuote:
           this.offset++;
           this.scanInterpolatedString(Character.BackQuote);
-          if (this.peek(this.offset) == Character.BackQuote) {
+          if (this.peek(this.offset) === Character.BackQuote) {
             this.offset++;
           }
           break;
         case Character.DoubleQuote:
           this.offset++;
           this.scanInterpolatedString(Character.DoubleQuote);
-          if (this.peek(this.offset) == Character.DoubleQuote) {
+          if (this.peek(this.offset) === Character.DoubleQuote) {
             this.offset++;
           }
           break;
         case Character.LessThan:
-          if (this.peek(this.offset + 1) == Character.LessThan && this.peek(this.offset + 2) == Character.LessThan) {
+          if (this.peek(this.offset + 1) === Character.LessThan && this.peek(this.offset + 2) === Character.LessThan) {
             let info = this.tryScanHeredocStartLabel();
             if (info) {
               this.scanInterpolatedString(info.label);
@@ -1481,29 +1501,44 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character.SingleQuote:
           this.offset++;
           this.scanSingleQuoteString();
-          if (this.peek(this.offset) == Character.SingleQuote) {
+          if (this.peek(this.offset) === Character.SingleQuote) {
             this.offset++;
           }
           break;
 
         // Comments.
         case Character.Slash:
-          if (this.peek(this.offset + 1) == Character.Slash) {
+          if (this.peek(this.offset + 1) === Character.Slash) {
             this.offset = this.offset + 2;  // "//"
             this.scanLineComment();
           }
-          else if (this.peek(this.offset + 1) == Character.Asterisk) {
+          else if (this.peek(this.offset + 1) === Character.Asterisk) {
             this.offset = this.offset + 2;  // "/*"
-            if (this.peek(this.offset) == Character.Asterisk && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 1))) {
+            if (this.peek(this.offset) === Character.Asterisk && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 1))) {
               this.offset = this.offset + 2;
             }
             this.scanMultipleLineComment();
-            if (this.peek(this.offset) == Character.Asterisk && this.peek(this.offset + 1) == Character.Slash) {
+            if (this.peek(this.offset) === Character.Asterisk && this.peek(this.offset + 1) === Character.Slash) {
               this.offset = this.offset + 2;  // "*/"
             }
           }
           else {
             this.offset++;
+          }
+          break;
+
+        // Close tag.
+        case Character.Question:
+          if (this.peek(this.offset + 1) === Character.GreaterThan) {
+            this.offset = this.offset + 2; // "?>"
+
+            // Inline text only terminates at the end of the file or at an open
+            // tag. In the first case, this loop will terminate as well, and in
+            // the second case, just resume scanning the script normally.
+            this.scanInterpolatedInlineText();
+          }
+          else {
+            this.offset++;  // "?"
           }
           break;
 
@@ -1514,7 +1549,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
     }
 
-    return this.offset - scriptStart;
+    return this.offset - start;
   }
 
   /**
@@ -1592,7 +1627,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           if (CharacterInfo.isDoubleQuoteEscape(next)) {
             this.offset++;
           }
-          else if (next == Character.u) {
+          else if (next === Character.u) {
             this.offset++;
             this.tryScanUnicodeEscape();
           }
@@ -1601,7 +1636,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           }
           break;
         case Character.Dollar:
-          if (next == Character.OpenBrace) {
+          if (next === Character.OpenBrace) {
             this.offset = this.offset + 2;  // "${"
 
             spanOffset = this.offset;
@@ -1611,10 +1646,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             }
 
             this.scanInterpolatedScript(Character.CloseBrace);
-            if (this.peek(this.offset) == Character.CloseBrace) {
-              this.offset++;
-            }
-
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           else if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
@@ -1626,7 +1657,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
               this.scanInterpolatedProperty();  // "$a->b"
               spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
             }
-            else if (this.peek(this.offset) == Character.OpenBracket) {
+            else if (this.peek(this.offset) === Character.OpenBracket) {
               // Since simple variables need a span anyways, adding one here as
               // well means that no additional logic is required to rescan
               // variables in a template.
@@ -1656,17 +1687,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           break;
         case Character.OpenBrace:
           this.offset++;  // "{"
-          if (next == Character.Dollar) {
+          if (next === Character.Dollar) {
             spanOffset = this.offset;
             this.scanInterpolatedScript(Character.CloseBrace);
-            if (this.peek(this.offset) == Character.CloseBrace) {
-              this.offset++;
-            }
             spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
           }
           break;
         case Character.CarriageReturn:
-          if (next == Character.LineFeed) {
+          if (next === Character.LineFeed) {
             this.offset++;
           }
           // Fall through.
@@ -1707,20 +1735,20 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     let ch = this.peek(this.offset);
     let next = this.peek(this.offset + 1);
 
-    if (ch == Character.Minus || CharacterInfo.isDigit(ch)) {
-      if (ch == Character.Minus) {
+    if (ch === Character.Minus || CharacterInfo.isDigit(ch)) {
+      if (ch === Character.Minus) {
         this.offset++;  // "-"
       }
       switch (this.peek(this.offset)) {
         case Character._0:
-          if (this.peek(this.offset + 1) == Character.x) {
-            if (this.scanHexDigits() == 2) {
+          if (this.peek(this.offset + 1) === Character.x) {
+            if (this.scanHexDigits() === 2) {
               this.offset--;  // "x"
             }
             break;
           }
-          else if (this.peek(this.offset + 1) == Character.b) {
-            if (this.scanBinDigits() == 2) {
+          else if (this.peek(this.offset + 1) === Character.b) {
+            if (this.scanBinDigits() === 2) {
               this.offset--;  // "b"
             }
             break;
@@ -1742,7 +1770,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           break;
       }
     }
-    else if (ch == Character.Dollar) {
+    else if (ch === Character.Dollar) {
       if (CharacterInfo.isIdentifierStart(next)) {
         this.offset = this.offset + 2;
         this.tryScanIdentifierPart();
@@ -1753,7 +1781,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       this.tryScanIdentifierPart();
     }
 
-    if (this.peek(this.offset) == Character.CloseBracket) {
+    if (this.peek(this.offset) === Character.CloseBracket) {
       this.offset++;
     }
 
@@ -1769,18 +1797,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
-      if (ch == Character.CarriageReturn) {
-        if (this.peek(this.offset + 1) == Character.LineFeed) {
-          this.offset++;
-        }
-        this.offset++;
+      if (ch === Character.CarriageReturn || ch === Character.LineFeed) {
         break;
       }
-      if (ch == Character.LineFeed) {
-        this.offset++;
-        break;
-      }
-      if (ch == Character.Question && this.peek(this.offset + 1) == Character.GreaterThan) {
+      if (ch === Character.Question && this.peek(this.offset + 1) === Character.GreaterThan) {
         break;
       }
       this.offset++;
@@ -1797,7 +1817,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
-      if (ch == Character.Asterisk && this.peek(this.offset + 1) == Character.Slash) {
+      if (ch === Character.Asterisk && this.peek(this.offset + 1) === Character.Slash) {
         break;
       }
       this.offset++;
@@ -1816,7 +1836,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       let ch = this.text.charCodeAt(this.offset);
       switch (ch) {
         case Character.CarriageReturn:
-          if (this.peek(this.offset + 1) == Character.LineFeed) {
+          if (this.peek(this.offset + 1) === Character.LineFeed) {
             this.offset++;
           }
           // Fall through.
@@ -1860,7 +1880,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       this.offset++;
     }
 
-    if (this.peek(this.offset) == Character.Period) {
+    if (this.peek(this.offset) === Character.Period) {
       isDouble = true;
       this.offset++;
       while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
@@ -1871,11 +1891,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     numberEnd = this.offset;
 
     ch = this.peek(this.offset);
-    if (ch == Character.e || ch == Character.E) {
+    if (ch === Character.e || ch === Character.E) {
       this.offset++;
 
       ch = this.peek(this.offset);
-      if (ch == Character.Minus || ch == Character.Plus) {
+      if (ch === Character.Minus || ch === Character.Plus) {
         this.offset++;
       }
 
@@ -1905,10 +1925,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     while (this.offset < this.end) {
       let ch = this.text.charCodeAt(this.offset);
-      if (ch == Character.SingleQuote) {
+      if (ch === Character.SingleQuote) {
         break;
       }
-      else if (ch == Character.Backslash) {
+      else if (ch === Character.Backslash) {
         this.offset = this.offset + 2;
       }
       else {
@@ -1944,8 +1964,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     if (this.offset + 3 > this.end) {
       return false;
     }
-    return this.text.charCodeAt(this.offset) == Character.Minus &&
-      this.text.charCodeAt(this.offset + 1) == Character.GreaterThan &&
+    return this.text.charCodeAt(this.offset) === Character.Minus &&
+      this.text.charCodeAt(this.offset + 1) === Character.GreaterThan &&
       CharacterInfo.isIdentifierStart(this.text.charCodeAt(this.offset + 2), this.phpVersion);
   }
 
@@ -2069,17 +2089,17 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const start = this.offset;
 
     let length = 0;
-    if (this.peek(this.offset + 1) == Character.x) {
+    if (this.peek(this.offset + 1) === Character.x) {
       length = this.scanHexDigits();
     }
-    else if (this.peek(this.offset + 1) == Character.b) {
+    else if (this.peek(this.offset + 1) === Character.b) {
       length = this.scanBinDigits();
     }
     else {
       return this.scanNumber();
     }
 
-    if (length == 2) {
+    if (length === 2) {
       // There are no productions where a number can be followed by an identifier.
       //
       // It is also much more likely that the user intends on adding digits after
@@ -2126,11 +2146,11 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
       this.offset++;
       this.tryScanIdentifierPart();
-    }
 
-    ch = this.peek(this.offset);
-    if (ch == Character.OpenBracket || ch == Character.CloseBrace) {
-      return this.offset - start;
+      ch = this.peek(this.offset);
+      if (ch === Character.OpenBracket || ch === Character.CloseBrace) {
+        return this.offset - start;
+      }
     }
 
     this.offset = start;
@@ -2158,45 +2178,51 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected tryScanOctalEscape(): number {
     const start = this.offset;
-    let ch = this.text.charCodeAt(this.offset);
-    if (!CharacterInfo.isOctDigit(ch)) {
+
+    let firstDigit = this.peek(this.offset);
+    if (!CharacterInfo.isOctDigit(firstDigit)) {
       return 0;
     }
-    let firstDigit = ch;
+
     this.offset++;
-    for (let i = 0; i < 2; i++) {
-      ch = this.text.charCodeAt(this.offset);
+
+    let i = 0;
+    while (this.offset < this.end && i < 2) {
+      let ch = this.text.charCodeAt(this.offset);
       if (!CharacterInfo.isOctDigit(ch)) {
-        return i + 1;
+        return this.offset - start;
       }
       // Max: 255 = 0xFF = \377
-      if (i == 1 && firstDigit > Character._3) {
+      if (i === 1 && firstDigit > Character._3) {
         this.addError(start - this.tokenStart - 1, i + 3, ErrorCode.WRN_OctalEscapeSequenceOverflow);
       }
       this.offset++;
+      i++;
     }
-    return 3;
+
+    return this.offset - start;
   }
 
   /**
    * Attempts to scan for a PHP script opening tag. If not found, nothing is
    * scanned.
-   *
-   * @param {boolean=} allowShortOpen
-   *   If short open tags "<?" are allowed. Defaults to `false`.
    */
-  protected tryScanOpenTag(allowShortOpen = false): number {
+  protected tryScanOpenTag(): number {
     const start = this.offset;
-    if (this.text.charCodeAt(this.offset) == Character.LessThan) {
-      if (this.peek(this.offset + 1) == Character.Question) {
+    if (this.peek(this.offset) === Character.LessThan) {
+      if (this.peek(this.offset + 1) === Character.Question) {
         this.offset = this.offset + 2;  // "<?"
-        if (this.peek(this.offset) == Character.Equal) {
+        if (this.peek(this.offset) === Character.Equal) {
           this.offset++;
         }
-        else if (this.startsWith('php')) {
+        else if (this.allowShortOpen) {
+          // Nothing to do except take precedence over the full open tag. This
+          // is technically a bug in PHP since the lexer should be greedy.
+        }
+        else if (this.startsWith('php') && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 3))) {
           this.offset = this.offset + 3;
         }
-        else if (!allowShortOpen) {
+        else {
           this.offset = start;
         }
       }
@@ -2215,24 +2241,24 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       let next = this.peek(this.offset + 1);
 
       // String terminators.
-      if (this.state == PhpLexerState.InDoubleQuote && ch == Character.DoubleQuote) {
+      if (this.state === PhpLexerState.InDoubleQuote && ch === Character.DoubleQuote) {
         break;
       }
-      else if (this.state == PhpLexerState.InBackQuote && ch == Character.BackQuote) {
+      else if (this.state === PhpLexerState.InBackQuote && ch === Character.BackQuote) {
         break;
       }
 
       // End of constant text.
-      if (ch == Character.Dollar && (next == Character.OpenBrace || CharacterInfo.isIdentifierStart(next, this.phpVersion))) {
+      if (ch === Character.Dollar && (next === Character.OpenBrace || CharacterInfo.isIdentifierStart(next, this.phpVersion))) {
         break;
       }
-      else if (ch == Character.OpenBrace && next == Character.Dollar) {
+      else if (ch === Character.OpenBrace && next === Character.Dollar) {
         break;
       }
-      else if ((this.state == PhpLexerState.InFlexibleHeredoc || this.state == PhpLexerState.LookingForHeredocIndent) && CharacterInfo.isLineBreak(ch)) {
+      else if ((this.state === PhpLexerState.InFlexibleHeredoc || this.state === PhpLexerState.LookingForHeredocIndent) && CharacterInfo.isLineBreak(ch)) {
         break;
       }
-      else if (ch == Character.Backslash) {
+      else if (ch === Character.Backslash) {
         this.offset++;
         if (CharacterInfo.isDoubleQuoteEscape(next)) {
           this.offset++;
@@ -2272,7 +2298,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
       // Max length of a cast is 7 (tied between 'boolean' and 'integer'), save
       // time and end early if there are too many characters.
-      if (this.offset - typeStart == 8) {
+      if (this.offset - typeStart === 8) {
         this.offset = castStart + 1;
         this.tokenKind = TokenKind.OpenParen;
         return 1;
@@ -2286,7 +2312,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.offset++;
       }
       // It's still not a cast until we get a closing parenthesis.
-      if (this.peek(this.offset) == Character.CloseParen) {
+      if (this.peek(this.offset) === Character.CloseParen) {
         let type = this.text.substring(typeStart, length).toLowerCase();
         if (PhpLexer.CastTokens.has(type)) {
           this.offset++;  // ")"
@@ -2309,7 +2335,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected tryScanUnicodeEscape(): number {
     const start = this.offset;
 
-    let ch = this.text.charCodeAt(this.offset);
+    let ch = this.peek(this.offset);
 
     // JSON-serialized strings are silently ignored since they may contain
     // unicode escape sequences that do not follow the PHP format.
@@ -2317,26 +2343,29 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       return 0;
     }
 
-    this.offset++;
-    ch = this.text.charCodeAt(this.offset);
-    while (ch != Character.CloseBrace) {
+    this.offset++;  // "{"
+
+    while (this.offset < this.end) {
+      ch = this.text.charCodeAt(this.offset);
+      if (ch === Character.CloseBrace) {
+        break;
+      }
       if (!CharacterInfo.isHexDigit(ch)) {
         this.addError(start - this.tokenStart - 2, this.offset - start + 2, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence);
         return this.offset - start;
       }
       this.offset++;
-      ch = this.text.charCodeAt(this.offset);
     }
 
     // A unicode escape sequence cannot be empty.
     let length = this.offset - start - 1;
-    if (length == 0) {
-      this.addError(start - this.tokenStart - 2, length + 2, ErrorCode.ERR_InvalidEscapeSequenceUnicode);
+    if (length === 0) {
+      this.addError(start - this.tokenStart - 2, 4, ErrorCode.ERR_InvalidEscapeSequenceUnicode);
       return this.offset - start;
     }
 
     if (Number.parseInt(this.text.substring(start + 1, length), 16) > 0x10FFFF) {
-      this.addError(start - this.tokenStart - 2, length + 2, ErrorCode.ERR_UnicodeEscapeSequenceOverflow);
+      this.addError(start - this.tokenStart - 2, length + 4, ErrorCode.ERR_UnicodeEscapeSequenceOverflow);
     }
 
     return this.offset - start;
@@ -2360,7 +2389,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     // Optional opening quote.
     let ch = this.peek(this.offset);
-    if (ch == Character.DoubleQuote || ch == Character.SingleQuote) {
+    if (ch === Character.DoubleQuote || ch === Character.SingleQuote) {
       quoteCh = ch;
       this.offset++;
     }
@@ -2393,14 +2422,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     // A line break after the label is required as well.
     ch = this.peek(this.offset);
-    if (ch == Character.CarriageReturn) {
+    if (ch === Character.CarriageReturn) {
       this.offset++;
       // PHP does NOT require a well-formed CRLF here.
-      if (this.peek(this.offset) == Character.LineFeed) {
+      if (this.peek(this.offset) === Character.LineFeed) {
         this.offset++;
       }
     }
-    else if (ch == Character.LineFeed) {
+    else if (ch === Character.LineFeed) {
       this.offset++;
     }
     else {
@@ -2409,7 +2438,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       return null;
     }
 
-    return new HeredocLabelInfo(label, this.offset - start, quoteCh == Character.SingleQuote);
+    return new HeredocLabelInfo(label, this.offset - start, quoteCh === Character.SingleQuote);
   }
 
 }

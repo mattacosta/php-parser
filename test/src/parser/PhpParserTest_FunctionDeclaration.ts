@@ -273,12 +273,17 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function a(&', 'missing ellipsis or variable', [ErrorCode.ERR_VariableOrEllipsisExpected], [12]),
       new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_IncompleteParameter], [12]),
       new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_IncompleteParameterList], [13]),
+      new DiagnosticTestArgs('function a($b =', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [15]),
+      new DiagnosticTestArgs('function a($b = 1', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [17]),
       new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_ParameterExpected], [14]),
       new DiagnosticTestArgs('function a(...', 'missing variable', [ErrorCode.ERR_VariableExpected], [14]),
       new DiagnosticTestArgs('function a(...$b', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
 
       new DiagnosticTestArgs('function a(...$b = []) {}', 'should not parse variadic parameter with default value', [ErrorCode.ERR_VariadicHasDefaultValue], [17]),
       new DiagnosticTestArgs('function a(...$b, $c) {}', 'should not parse parameter after variadic parameter', [ErrorCode.ERR_VariadicIsNotLastParameter], [11]),
+
+      // @todo Recovery tests.
+      new DiagnosticTestArgs('function a($', 'missing variable name', [ErrorCode.ERR_VariableNameExpected], [11]),
     ];
     Test.assertDiagnostics(diagnosticTests);
 

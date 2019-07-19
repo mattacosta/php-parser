@@ -77,6 +77,23 @@ describe('SyntaxNode', function() {
     });
   });
 
+  describe('#isMissing', function() {
+    it('should be missing if all tokens are missing', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if () {}');
+      let statements = tree.root.childNodes();
+      let ifNode = <IfSyntaxNode>statements[0];
+      assert.equal(ifNode instanceof IfSyntaxNode, true);
+      assert.equal(ifNode.condition.isMissing, true);  // LocalVariableSyntaxNode
+    });
+    it('should not be missing if at least one token is present', () => {
+      let tree = PhpSyntaxTree.fromText('<?php if ($a) {}');
+      let statements = tree.root.childNodes();
+      let ifNode = <IfSyntaxNode>statements[0];
+      assert.equal(ifNode instanceof IfSyntaxNode, true);
+      assert.equal(ifNode.condition.isMissing, false);  // LocalVariableSyntaxNode
+    });
+  });
+
   describe('#span', function() {
     it('should not include leading trivia', () => {
       let tree = PhpSyntaxTree.fromText('<?php if() {}');

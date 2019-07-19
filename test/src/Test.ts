@@ -116,7 +116,7 @@ export class Test {
       assert.equal(token.containsDiagnostics, false, 'contains diagnostics');
       assert.equal(token.isMissing, false, 'is missing');
     }
-    assert.equal(token.kind, expectedKind, 'token kind');
+    assert.equal(TokenKind[token.kind], TokenKind[expectedKind], 'token kind');
     let span = token.span;
     let text = sourceText.substr(span.start, span.length);
     assert.equal(text, expectedText, 'token text');
@@ -127,7 +127,7 @@ export class Test {
     if (trivia === null) {
       return;
     }
-    assert.equal(trivia.kind, expectedKind, 'trivia kind');
+    assert.equal(TokenKind[trivia.kind], TokenKind[expectedKind], 'trivia kind');
     assert.equal(trivia.containsSkippedText, isSkippedToken);
     assert.equal(trivia.containsStructuredTrivia, hasStructure);
     let span = trivia.span;
@@ -155,7 +155,7 @@ export class Test {
           if (args.skipTrivia && TokenKindInfo.isTrivia(token.kind)) {
             continue;
           }
-          assert.equal(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]]);
+          assert.equal(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]], 'token kind');
           assert.equal(token.diagnostics.length, 0, 'contains diagnostics');
           if (args.expectedText[tokenCount]) {
             assert.equal(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
@@ -184,7 +184,7 @@ export class Test {
           if (token.kind == args.expectedToken) {
             found = true;
             assert.equal(token.diagnostics.length > 0, true, 'diagnostic not found');
-            assert.equal(token.diagnostics[0].code, args.expectedCode, 'diagnostic code');
+            assert.equal(ErrorCode[token.diagnostics[0].code], ErrorCode[args.expectedCode], 'diagnostic code');
             // if (args.expectedOffset === void 0) {
             //   assert.equal(token.diagnostics[0].offset, 0, 'diagnostic offset');
             // }
@@ -200,17 +200,20 @@ export class Test {
   }
 
   protected static assertDiagnosticsWithTag(argList: DiagnosticTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+    const options = new PhpParserOptions(Test.phpVersion);
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
+      const text = openTag + args.text;
       if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
         it(`[SKIP ${PhpVersionInfo.getText(Test.phpVersion)}] ${desc}`, Test.Pass);
         continue;
       }
       if (args.expectedCodes.length > 0) {
         it(desc, () => {
-          const options = new PhpParserOptions(Test.phpVersion);
-          const tree = PhpSyntaxTree.fromText(openTag + args.text, '', options);
+          const tree = PhpSyntaxTree.fromText(text, '', options);
+
+          assert.equal(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
 
           let n = 0;
           for (let d of tree.getDiagnostics()) {
@@ -223,7 +226,7 @@ export class Test {
               n++;
               continue;
             }
-            assert.equal(d.code, args.expectedCodes[n], 'diagnostic code');
+            assert.equal(ErrorCode[d.code], ErrorCode[args.expectedCodes[n]], 'diagnostic code');
             assert.equal(d.offset, args.expectedOffsets[n] + openTag.length, 'diagnostic offset');
             n++;
           }
@@ -239,9 +242,11 @@ export class Test {
   }
 
   protected static assertSyntaxNodesWithTag(argList: ParserTestArgs[], openTag: string, minVersion = PhpVersion.PHP7_0) {
+    const options = new PhpParserOptions(Test.phpVersion);
     for (let i = 0; i < argList.length; i++) {
       const args = argList[i];
       const desc = args.description || args.text;
+      const text = openTag + args.text;
       const testFn = args.testCallback;
       if (testFn) {
         if (!Test.isPhpVersionInRange(minVersion)) {
@@ -249,9 +254,8 @@ export class Test {
           continue;
         }
         it(desc, () => {
-          const text = openTag + args.text;
-          const options = new PhpParserOptions(Test.phpVersion);
           const tree = PhpSyntaxTree.fromText(text, '', options);
+          assert.equal(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
           const statements = tree.root.statements;
           assert.equal(tree.root.hasError, false, 'has error');
           assert.notStrictEqual(statements, null, 'statements not found');

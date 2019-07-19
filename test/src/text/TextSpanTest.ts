@@ -92,11 +92,20 @@ describe('TextSpan', function() {
       assert.equal(medium.contains(new TextSpan(9, 1)), false);
     });
 
+    it('should not contain an offset before start', () => {
+      assert.equal(medium.contains(2), false);
+    });
     it('should contain an offset at start', () => {
       assert.equal(medium.contains(3), true);
     });
+    it('should contain an offset in span', () => {
+      assert.equal(medium.contains(5), true);
+    });
     it('should not contain an offset at end', () => {
       assert.equal(medium.contains(7), false);
+    });
+    it('should not contain offset after end', () => {
+      assert.equal(medium.contains(8), false);
     });
   });
 
