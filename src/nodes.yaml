@@ -1563,7 +1563,7 @@ nodes:
   - name: doubleArrow
     type: TokenNode
     optional: true
-  - name: ampersand
+  - name: valueOperator
     type: TokenNode
     optional: true
   - name: value

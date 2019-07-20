@@ -90,7 +90,7 @@ function assertAnonymousClassDeclaration(statements: ISyntaxNode[], hasArgumentL
   return classDecl;
 }
 
-function assertArrayElement(node: ISyntaxNode, hasKey: boolean, hasAmpersand: boolean) {
+function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenKind | null) {
   let element = <ArrayElementSyntaxNode>node;
   assert.equal(element instanceof ArrayElementSyntaxNode, true, 'ArrayElementSyntaxNode');
   if (hasKey) {
@@ -99,11 +99,12 @@ function assertArrayElement(node: ISyntaxNode, hasKey: boolean, hasAmpersand: bo
   else {
     assert.strictEqual(element.key, null);
   }
-  if (hasAmpersand) {
-    assert.notStrictEqual(element.ampersand, null);
+  if (operator !== null) {
+    assert.notStrictEqual(element.valueOperator, null);
+    assert.strictEqual(element.valueOperator!.kind, operator);
   }
   else {
-    assert.strictEqual(element.ampersand, null);
+    assert.strictEqual(element.valueOperator, null);
   }
   assert.equal(element.value instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
 }
@@ -808,7 +809,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], false, false);
+        assertArrayElement(elements[0], false, null);
       }),
       new ParserTestArgs('array(&$a);', 'should parse an array creation expression with value (byref)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -817,7 +818,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], false, true);
+        assertArrayElement(elements[0], false, TokenKind.Ampersand);
       }),
       new ParserTestArgs('array($a, $b);', 'should parse an array creation expression with multiple values', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -826,8 +827,8 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 2);
-        assertArrayElement(elements[0], false, false);
-        assertArrayElement(elements[1], false, false);
+        assertArrayElement(elements[0], false, null);
+        assertArrayElement(elements[1], false, null);
       }),
       new ParserTestArgs('array($a,);', 'should parse an array creation expression with trailing comma', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -836,7 +837,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], false, false);
+        assertArrayElement(elements[0], false, null);
       }),
 
       // Key-value pairs.
@@ -847,7 +848,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], true, false);
+        assertArrayElement(elements[0], true, null);
       }),
       new ParserTestArgs('array(1 => &$a);', 'should parse an array creation expression with key-value pair (byref value)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -856,7 +857,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], true, true);
+        assertArrayElement(elements[0], true, TokenKind.Ampersand);
       }),
       new ParserTestArgs('array(1 => $a, 2 => $b);', 'should parse an array creation expression with multiple key-value pairs', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -865,11 +866,54 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 2);
-        assertArrayElement(elements[0], true, false);
-        assertArrayElement(elements[1], true, false);
+        assertArrayElement(elements[0], true, null);
+        assertArrayElement(elements[1], true, null);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests7_4 = [
+      new ParserTestArgs('array(...$a);', 'should parse an array creation expression with spread value', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 1);
+        assertArrayElement(elements[0], false, TokenKind.Ellipsis);
+      }),
+      new ParserTestArgs('array(...$a, ...$b);', 'should parse an array creation expression with multiple spread values', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 2);
+        assertArrayElement(elements[0], false, TokenKind.Ellipsis);
+        assertArrayElement(elements[1], false, TokenKind.Ellipsis);
+      }),
+      new ParserTestArgs('array(...$a, $b);', 'should parse an array creation expression with value after spread value', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 2);
+        assertArrayElement(elements[0], false, TokenKind.Ellipsis);
+        assertArrayElement(elements[1], false, null);
+      }),
+      new ParserTestArgs('array($a, ...$b);', 'should parse an array creation expression with value before spread value', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 2);
+        assertArrayElement(elements[0], false, null);
+        assertArrayElement(elements[1], false, TokenKind.Ellipsis);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
 
     let diagnosticTests = [
       new DiagnosticTestArgs('array', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
@@ -884,6 +928,11 @@ describe('PhpParser', function() {
       // new DiagnosticTestArgs('array(,$a);', 'should not parse an array with missing element', [ErrorCode.ERR_ExpressionExpected], [6]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTestsSpreadOperator = [
+      new DiagnosticTestArgs('array(...', 'missing expression', [ErrorCode.ERR_FeatureSpreadOperatorInArrays, ErrorCode.ERR_ExpressionExpectedEOF], [6, 9]),
+    ];
+    Test.assertDiagnostics(diagnosticTestsSpreadOperator, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
   });
 
   describe('array-creation-expression (short-syntax)', function() {
@@ -904,7 +953,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], false, false);
+        assertArrayElement(elements[0], false, null);
       }),
       new ParserTestArgs('[&$a];', 'should parse an array creation expression with value (byref)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -913,7 +962,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], false, true);
+        assertArrayElement(elements[0], false, TokenKind.Ampersand);
       }),
       new ParserTestArgs('[$a, $b];', 'should parse an array creation expression with multiple values', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -922,8 +971,8 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 2);
-        assertArrayElement(elements[0], false, false);
-        assertArrayElement(elements[1], false, false);
+        assertArrayElement(elements[0], false, null);
+        assertArrayElement(elements[1], false, null);
       }),
       new ParserTestArgs('[$a,];', 'should parse an array creation expression with trailing comma', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -932,7 +981,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], false, false);
+        assertArrayElement(elements[0], false, null);
       }),
 
       // Key-value pairs.
@@ -943,7 +992,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], true, false);
+        assertArrayElement(elements[0], true, null);
       }),
       new ParserTestArgs('[1 => &$a];', 'should parse an array creation expression with key-value pair (byref)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -952,7 +1001,7 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 1);
-        assertArrayElement(elements[0], true, true);
+        assertArrayElement(elements[0], true, TokenKind.Ampersand);
       }),
       new ParserTestArgs('[1 => $a, 2 => $b];', 'should parse an array creation expression with multiple key-value pairs', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -961,11 +1010,54 @@ describe('PhpParser', function() {
         assert.equal(arrayNode instanceof ArraySyntaxNode, true);
         let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
         assert.equal(elements.length, 2);
-        assertArrayElement(elements[0], true, false);
-        assertArrayElement(elements[1], true, false);
+        assertArrayElement(elements[0], true, null);
+        assertArrayElement(elements[1], true, null);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests7_4 = [
+      new ParserTestArgs('[...$a];', 'should parse an array creation expression with spread value', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 1);
+        assertArrayElement(elements[0], false, TokenKind.Ellipsis);
+      }),
+      new ParserTestArgs('[...$a, ...$b];', 'should parse an array creation expression with multiple spread values', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 2);
+        assertArrayElement(elements[0], false, TokenKind.Ellipsis);
+        assertArrayElement(elements[1], false, TokenKind.Ellipsis);
+      }),
+      new ParserTestArgs('[...$a, $b];', 'should parse an array creation expression with value after spread value', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 2);
+        assertArrayElement(elements[0], false, TokenKind.Ellipsis);
+        assertArrayElement(elements[1], false, null);
+      }),
+      new ParserTestArgs('[$a, ...$b];', 'should parse an array creation expression with value before spread value', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let arrayNode = <ArraySyntaxNode>exprNode.expression;
+        assert.equal(arrayNode instanceof ArraySyntaxNode, true);
+        let elements = arrayNode.initializerList ? arrayNode.initializerList.childNodes() : [];
+        assert.equal(elements.length, 2);
+        assertArrayElement(elements[0], false, null);
+        assertArrayElement(elements[1], false, TokenKind.Ellipsis);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
 
     // NOTE: See array-creation-expression for array element tests.
     let diagnosticTests = [
@@ -979,6 +1071,11 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('[,', 'should not parse as a destructuring assignment if expression is missing', [ErrorCode.ERR_IncompleteArrayOrDestructure], [2]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTestsSpreadOperator = [
+      new DiagnosticTestArgs('[...', 'missing expression', [ErrorCode.ERR_FeatureSpreadOperatorInArrays, ErrorCode.ERR_ExpressionExpectedEOF], [1, 4]),
+    ];
+    Test.assertDiagnostics(diagnosticTestsSpreadOperator, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
   });
 
   describe('unary-expression', function() {

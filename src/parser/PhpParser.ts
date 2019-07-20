@@ -746,7 +746,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token starts an element within an array.
    */
   protected isArrayElementStart(kind: TokenKind): boolean {
-    return kind == TokenKind.Ampersand || this.isExpressionStart(kind);
+    return this.isExpressionStart(kind) || kind == TokenKind.Ampersand || kind == TokenKind.Ellipsis;
   }
 
   /**
@@ -4768,12 +4768,22 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `expr => expr`
    * - `& expr`
    * - `expr => & expr`
+   * - `... expr`
    */
   protected parseArrayElement(): ArrayElementNode {
     let ampersand = this.eatOptional(TokenKind.Ampersand);
     if (ampersand) {
       let byRefValue = this.parseExpression(ExpressionType.Explicit);
       return new ArrayElementNode(null, null, ampersand, byRefValue);
+    }
+
+    let ellipsis = this.eatOptional(TokenKind.Ellipsis);
+    if (ellipsis) {
+      if (!this.isSupportedVersion(PhpVersion.PHP7_4)) {
+        ellipsis = this.addError(ellipsis, ErrorCode.ERR_FeatureSpreadOperatorInArrays);
+      }
+      let spreadValue = this.parseExpression();
+      return new ArrayElementNode(null, null, ellipsis, spreadValue);
     }
 
     let key: ExpressionNode | null = null;
