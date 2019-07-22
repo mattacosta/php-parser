@@ -107,6 +107,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     ['extends', TokenKind.Extends],
     ['final', TokenKind.Final],
     ['finally', TokenKind.Finally],
+    ['fn', TokenKind.Fn],
     ['for', TokenKind.For],
     ['foreach', TokenKind.ForEach],
     ['function', TokenKind.Function],
@@ -1975,6 +1976,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected textToIdentifierToken(): TokenKind {
     let tokenText = this.text.substring(this.tokenStart, this.offset - this.tokenStart).toLowerCase();
     if (PhpLexer.KeywordTokens.has(tokenText)) {
+      // Backward compatibility: Am I a joke to you?
+      if (tokenText === 'fn' && this.phpVersion < PhpVersion.PHP7_4) {
+        return TokenKind.Identifier;
+      }
       // Suppress TS2322: Result cannot be undefined due to if-condition.
       return <TokenKind>PhpLexer.KeywordTokens.get(tokenText);
     }

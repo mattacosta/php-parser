@@ -25,6 +25,7 @@ import {
   ArgumentNode,
   ArrayElementNode,
   ArrayNode,
+  ArrowFunctionNode,
   AssignmentNode,
   BinaryNode,
   BreakNode,
@@ -908,6 +909,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.DNumber:
       case TokenKind.Dollar:
       case TokenKind.FlexdocTemplate:
+      case TokenKind.Fn:
       case TokenKind.Function:
       case TokenKind.HeredocTemplate:
       case TokenKind.LNumber:
@@ -4426,6 +4428,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         expr = this.parseFlexdocTemplate();
         type = ExpressionType.Implicit;
         break;
+      case TokenKind.Fn:
+        expr = this.parseArrowFunction(null);
+        type = ExpressionType.Implicit;
+        break;
       case TokenKind.HeredocTemplate:
         expr = this.parseHeredocTemplate();
         type = ExpressionType.Implicit;
@@ -4838,6 +4844,60 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     return new Expression(arrayLiteral, type);
+  }
+
+  /**
+   * Parses an anonymous function (closure) that returns an expression.
+   *
+   * Syntax:
+   * - `FN & ( parameter-list ) return-type => expr`
+   * - `STATIC FN & ( parameter-list ) return-type => expr`
+   */
+  protected parseArrowFunction(staticKeyword: TokenNode | null): ArrowFunctionNode {
+    let fnKeyword = this.eat(TokenKind.Fn);
+    let ampersand = this.eatOptional(TokenKind.Ampersand);
+
+    let openParen: TokenNode;
+    let parameters: NodeList | null;
+    let closeParen: TokenNode;
+
+    if (this.currentToken.kind == TokenKind.OpenParen) {
+      let parameterList = this.parseParameterList();
+      openParen = parameterList.openParen;
+      parameters = parameterList.parameterList;
+      closeParen = parameterList.closeParen;
+    }
+    else {
+      let code = ampersand ? ErrorCode.ERR_OpenParenExpected : ErrorCode.ERR_IncompleteArrowFunction;
+      openParen = this.createMissingTokenWithError(TokenKind.OpenParen, code);
+      parameters = null;
+      closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
+    }
+
+    let colon = this.eatOptional(TokenKind.Colon);
+    let returnType = colon ? this.parseType() : null;
+
+    let doubleArrow: TokenNode;
+    if (this.currentToken.kind == TokenKind.DoubleArrow || colon != null) {
+      doubleArrow = this.eat(TokenKind.DoubleArrow);
+    }
+    else {
+      doubleArrow = this.createMissingTokenWithError(TokenKind.DoubleArrow, ErrorCode.ERR_ColonOrDoubleArrowExpected);
+    }
+    let expr = this.parseExpression();
+
+    return new ArrowFunctionNode(
+      staticKeyword,
+      fnKeyword,
+      ampersand,
+      openParen,
+      parameters,
+      closeParen,
+      colon,
+      returnType,
+      doubleArrow,
+      expr
+    );
   }
 
   /**
@@ -5989,6 +6049,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       let ampersand = this.eatOptional(TokenKind.Ampersand);
       let closure = this.parseClosure(staticKeyword, functionKeyword, ampersand);
       return new Expression(closure, ExpressionType.Implicit);
+    }
+
+    if (this.currentToken.kind == TokenKind.Fn) {
+      let arrowFunction = this.parseArrowFunction(staticKeyword);
+      return new Expression(arrowFunction, ExpressionType.Implicit);
     }
 
     // The qualifier of scoped access nodes cannot be a token.

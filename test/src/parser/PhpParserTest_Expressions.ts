@@ -30,6 +30,7 @@ import {
   AnonymousObjectCreationSyntaxNode,
   ArrayElementSyntaxNode,
   ArraySyntaxNode,
+  ArrowFunctionSyntaxNode,
   AssignmentSyntaxNode,
   BinarySyntaxNode,
   CloneSyntaxNode,
@@ -621,6 +622,66 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function() use($a):', 'missing type (after lexical variables)', [ErrorCode.ERR_TypeExpected], [19]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+  });
+
+  describe('arrow-function-creation', function() {
+    let syntaxTests = [
+      new ParserTestArgs('fn() => $a;', 'should parse an arrow function', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
+        assert.equal(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.strictEqual(closure.returnType, null);
+        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+      }),
+      new ParserTestArgs('fn(): A => $a;', 'should parse an arrow function with return type', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
+        assert.equal(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.notStrictEqual(closure.returnType, null);
+        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+      }),
+      new ParserTestArgs('fn &() => $a;', 'should parse a byref arrow function', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
+        assert.equal(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.notStrictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.strictEqual(closure.returnType, null);
+        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+      }),
+      new ParserTestArgs('static fn() => $a;', 'should parse a static arrow function', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
+        assert.equal(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.notStrictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.strictEqual(closure.returnType, null);
+        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_4);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('fn', 'missing ampersand or open paren', [ErrorCode.ERR_IncompleteArrowFunction], [2]),
+      new DiagnosticTestArgs('fn()', 'missing colon or double arrow', [ErrorCode.ERR_ColonOrDoubleArrowExpected], [4]),
+      new DiagnosticTestArgs('fn() =>', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
+      new DiagnosticTestArgs('fn():', 'missing type', [ErrorCode.ERR_TypeExpected], [5]),
+      new DiagnosticTestArgs('fn(): A', 'missing double arrow', [ErrorCode.ERR_Syntax], [7]),
+      new DiagnosticTestArgs('fn(): A =>', 'missing expression (after type)', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
+    ];
+    Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP7_4);
   });
 
   describe('object-creation-expression (new-expression)', function() {

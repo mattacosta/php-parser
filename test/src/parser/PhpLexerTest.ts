@@ -152,6 +152,16 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php window', 'should not match keyword in middle of string (do in window)', [TokenKind.Identifier], ['window']),
       ];
       Test.assertTokens(tests);
+
+      let tests7_4 = [
+        new LexerTestArgs('<?php fn', 'fn', [TokenKind.Fn]),
+      ];
+      Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
+
+      let regressionTests7_4 = [
+        new LexerTestArgs('<?php fn', 'fn', [TokenKind.Identifier]),
+      ];
+      Test.assertTokens(regressionTests7_4, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
     });
 
     describe('string literals', function() {

@@ -55,6 +55,7 @@ export enum TokenKind {
   Extends,
   Final,
   Finally,
+  Fn,
   For,
   ForEach,
   Function,
@@ -301,6 +302,8 @@ export class TokenKindInfo {
         return 'final';
       case TokenKind.Finally:
         return 'finally';
+      case TokenKind.Fn:
+        return 'fn';
       case TokenKind.For:
         return 'for';
       case TokenKind.ForEach:
