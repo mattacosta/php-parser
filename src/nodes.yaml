@@ -1277,6 +1277,9 @@ nodes:
   properties:
   - name: modifiers
     type: NodeList
+  - name: type
+    type: Type
+    optional: true
   - name: properties
     type: NodeList
   - name: semicolon

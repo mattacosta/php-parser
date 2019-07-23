@@ -1071,6 +1071,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Determines if a token starts a property declaration.
+   */
+  protected isPropertyStart(kind: TokenKind): boolean {
+    return kind == TokenKind.Dollar || kind == TokenKind.Variable || this.isTypeStart(kind);
+  }
+
+  /**
    * Determines if a token is a right-associative *binary* operator.
    */
   protected isRightAssociative(kind: TokenKind): boolean {
@@ -1813,25 +1820,26 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let modifiers: TokenNode[] = [];
     let modifierFlags = this.parseClassMemberModifiers(modifiers, context);
-    switch (this.currentToken.kind) {
-      case TokenKind.Const:
-        return this.parseClassConstantDeclaration(modifiers, context);
-      case TokenKind.Function:
-        return this.parseMethodDeclaration(modifiers, modifierFlags, context);
-      case TokenKind.Dollar:
-      case TokenKind.Variable:
-        return this.parsePropertyDeclaration(modifiers, context);
-      default:
-        let code: ErrorCode;
-        if (context == ParseContext.ClassMembers) {
-          code = ErrorCode.ERR_ClassMemberExpected;
-        }
-        else {
-          code = context == ParseContext.InterfaceMembers ? ErrorCode.ERR_InterfaceMemberExpected : ErrorCode.ERR_TraitMemberExpected;
-        }
-        modifiers[modifiers.length - 1] = this.addError(modifiers[modifiers.length - 1], code);
-        return new IncompleteMemberNode(this.factory.createList(modifiers));
+
+    if (this.currentToken.kind == TokenKind.Const) {
+      return this.parseClassConstantDeclaration(modifiers, context);
     }
+    if (this.currentToken.kind == TokenKind.Function) {
+      return this.parseMethodDeclaration(modifiers, modifierFlags, context);
+    }
+    if (this.isPropertyStart(this.currentToken.kind)) {
+      return this.parsePropertyDeclaration(modifiers, context);
+    }
+
+    let code: ErrorCode;
+    if (context == ParseContext.ClassMembers) {
+      code = ErrorCode.ERR_ClassMemberExpected;
+    }
+    else {
+      code = context == ParseContext.InterfaceMembers ? ErrorCode.ERR_InterfaceMemberExpected : ErrorCode.ERR_TraitMemberExpected;
+    }
+    modifiers[modifiers.length - 1] = this.addError(modifiers[modifiers.length - 1], code);
+    return new IncompleteMemberNode(this.factory.createList(modifiers));
   }
 
   /**
@@ -3020,7 +3028,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Parses a property declaration statement.
    *
-   * Syntax: `property-modifiers property-list ;`
+   * Syntax: `property-modifiers type property-list ;`
    *
    * Where `property-modifiers` is:
    * - `modifiers`
@@ -3044,6 +3052,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         if (context != ParseContext.InterfaceMembers) {
           modifiers[i] = this.addError(modifiers[i], ErrorCode.ERR_BadPropertyModifier);
         }
+      }
+    }
+
+    // Even though 'callable' is semantically invalid, it is not a parse error.
+    let type: TypeNode | null = null;
+    if (this.isTypeStart(this.currentToken.kind)) {
+      type = this.parseType();
+      if (!this.isSupportedVersion(PhpVersion.PHP7_4)) {
+        type = this.addError(type, ErrorCode.ERR_FeatureTypedProperties);
       }
     }
 
@@ -3075,6 +3092,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     return new PropertyDeclarationNode(
       this.factory.createList(modifiers),
+      type,
       this.factory.createList(nodes),
       semicolon
     );

@@ -159,6 +159,8 @@ describe('PhpParser', function() {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -170,6 +172,8 @@ describe('PhpParser', function() {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -181,6 +185,8 @@ describe('PhpParser', function() {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -192,6 +198,8 @@ describe('PhpParser', function() {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 2);
           let firstProperty = <PropertyElementSyntaxNode>elements[0];
@@ -208,6 +216,7 @@ describe('PhpParser', function() {
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -220,6 +229,7 @@ describe('PhpParser', function() {
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -232,6 +242,7 @@ describe('PhpParser', function() {
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -245,6 +256,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -258,6 +270,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -268,6 +281,94 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
+      let syntaxTests7_4 = [
+        new ParserTestArgs('trait A { public B $c; }', 'should parse a typed property declaration', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.notStrictEqual(declNode.type, null);
+          assert.strictEqual(declNode.type!.question, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
+        new ParserTestArgs('trait A { var B $c; }', 'should parse a typed property declaration (var)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
+          assert.notStrictEqual(declNode.type, null);
+          assert.strictEqual(declNode.type!.question, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
+        new ParserTestArgs('trait A { public \\B $c; }', 'should parse a typed property declaration with fully qualified name', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.notStrictEqual(declNode.type, null);
+          assert.strictEqual(declNode.type!.question, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
+        new ParserTestArgs('trait A { public namespace\\B $c; }', 'should parse a typed property declaration with relative name', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.notStrictEqual(declNode.type, null);
+          assert.strictEqual(declNode.type!.question, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
+        new ParserTestArgs('trait A { public array $c; }', 'should parse a property declaration with predefined type', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.notStrictEqual(declNode.type, null);
+          assert.strictEqual(declNode.type!.question, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
+        new ParserTestArgs('trait A { public ?B $c; }', 'should parse a property declaration with nullable type', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.notStrictEqual(declNode.type, null);
+          assert.notStrictEqual(declNode.type!.question, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.equal(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
+          assert.strictEqual(propertyNode.expression, null);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
+
       let diagnosticTests = [
         new DiagnosticTestArgs('trait A { var }', 'missing property', [ErrorCode.ERR_PropertyExpected], [13]),
 
@@ -275,6 +376,11 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('trait A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadPropertyModifier], [10]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTestsTypedProperties = [
+        new DiagnosticTestArgs('trait A { public B }', 'missing property after type', [ErrorCode.ERR_FeatureTypedProperties, ErrorCode.ERR_PropertyExpected], [17, 18]),
+      ];
+      Test.assertDiagnostics(diagnosticTestsTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
     });
 
     // Everything except for the parameter list and statement block needs full
