@@ -398,12 +398,12 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTestsClassConstantModifiers = [
-        new DiagnosticTestArgs('class A { private const B = 1; }', 'private modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
-        new DiagnosticTestArgs('class A { protected const B = 1; }', 'protected modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
-        new DiagnosticTestArgs('class A { public const B = 1; }', 'public modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+      let featureClassConstantModifiers = [
+        new DiagnosticTestArgs('class A { private const B = 1; }', 'should not parse a class constant declaration with private modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+        new DiagnosticTestArgs('class A { protected const B = 1; }', 'should not parse a class constant declaration with protected modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+        new DiagnosticTestArgs('class A { public const B = 1; }', 'should not parse a class constant declaration with public modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
       ];
-      Test.assertDiagnostics(diagnosticTestsClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+      Test.assertDiagnostics(featureClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('property-declaration', function() {
@@ -637,10 +637,15 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTestsTypedProperties = [
-        new DiagnosticTestArgs('class A { public B }', 'missing property after type', [ErrorCode.ERR_FeatureTypedProperties, ErrorCode.ERR_PropertyExpected], [17, 18]),
+      let diagnosticTests7_4 = [
+        new DiagnosticTestArgs('class A { public B }', 'missing property after type', [ErrorCode.ERR_PropertyExpected], [18]),
       ];
-      Test.assertDiagnostics(diagnosticTestsTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+      Test.assertDiagnostics(diagnosticTests7_4, PhpVersion.PHP7_4);
+
+      let featureTypedProperties = [
+        new DiagnosticTestArgs('class A { public B $c; }', 'should not parse a typed property', [ErrorCode.ERR_FeatureTypedProperties], [17]),
+      ];
+      Test.assertDiagnostics(featureTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
     });
 
     // Everything except for the parameter list and statement block needs full

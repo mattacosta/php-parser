@@ -298,11 +298,17 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTestsTrailingComma = [
-        new DiagnosticTestArgs('use function A\\{ B,', 'missing name or close brace in function import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_IdentifierOrCloseBraceExpected], [18, 19]),
-        new DiagnosticTestArgs('use const A\\{ B,', 'missing name or close brace in constant import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_IdentifierOrCloseBraceExpected], [15, 16]),
+      let diagnosticTests7_2 = [
+        new DiagnosticTestArgs('use function A\\{ B,', 'missing name or close brace in function import', [ErrorCode.ERR_IdentifierOrCloseBraceExpected], [19]),
+        new DiagnosticTestArgs('use const A\\{ B,', 'missing name or close brace in constant import', [ErrorCode.ERR_IdentifierOrCloseBraceExpected], [16]),
       ];
-      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
+      Test.assertDiagnostics(diagnosticTests7_2, PhpVersion.PHP7_2);
+
+      let featureTrailingCommas = [
+        new DiagnosticTestArgs('use function A\\{ B, };', 'should not parse trailing comma in function import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [18]),
+        new DiagnosticTestArgs('use const A\\{ B, };', 'should not parse trailing comma in constant import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [15]),
+      ];
+      Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
     });
 
     describe('use-group-declaration (mixed types)', function() {
@@ -385,11 +391,17 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTestsTrailingComma = [
-        new DiagnosticTestArgs('use A\\{ function B,', 'missing identifier, import type, or close brace', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_UseTypeOrCloseBraceExpected], [18, 19]),
-        new DiagnosticTestArgs('use A\\{ function B as C,', 'missing identifier, import type, or close brace (after aliased import)', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_UseTypeOrCloseBraceExpected], [23, 24]),
+      let diagnosticTests7_2 = [
+        new DiagnosticTestArgs('use A\\{ function B,', 'missing identifier, import type, or close brace', [ErrorCode.ERR_UseTypeOrCloseBraceExpected], [19]),
+        new DiagnosticTestArgs('use A\\{ function B as C,', 'missing identifier, import type, or close brace (after alias)', [ErrorCode.ERR_UseTypeOrCloseBraceExpected], [24]),
       ];
-      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
+      Test.assertDiagnostics(diagnosticTests7_2, PhpVersion.PHP7_2);
+
+      let featureTrailingCommas = [
+        new DiagnosticTestArgs('use A\\{ function B, };', 'should not parse trailing comma in mixed type import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [18]),
+        new DiagnosticTestArgs('use A\\{ function B as C, };', 'should not parse trailing comma in mixed type import (after alias)', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [23]),
+      ];
+      Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
     });
 
   });

@@ -469,11 +469,17 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTestsTrailingComma = [
-        new DiagnosticTestArgs('isset($a,', 'missing expression or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
-        new DiagnosticTestArgs('isset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [12, 13]),
+      let diagnosticTests7_3 = [
+        new DiagnosticTestArgs('isset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
+        new DiagnosticTestArgs('isset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
       ];
-      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
+      Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
+
+      let featureTrailingCommas = [
+        new DiagnosticTestArgs('isset($a,);', 'should not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
+        new DiagnosticTestArgs('isset($a, $b,);', 'should not parse trailing comma in argument list (multiple arguments)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [12]),
+      ];
+      Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
     });
 
     describe('print-intrinsic', function() {
@@ -990,10 +996,15 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests);
 
-    let diagnosticTestsSpreadOperator = [
-      new DiagnosticTestArgs('array(...', 'missing expression', [ErrorCode.ERR_FeatureSpreadOperatorInArrays, ErrorCode.ERR_ExpressionExpectedEOF], [6, 9]),
+    let diagnosticTests7_4 = [
+      new DiagnosticTestArgs('array(...', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
     ];
-    Test.assertDiagnostics(diagnosticTestsSpreadOperator, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+    Test.assertDiagnostics(diagnosticTests7_4, PhpVersion.PHP7_4);
+
+    let featureSpreadOperator = [
+      new DiagnosticTestArgs('array(...$a);', 'should not parse an array with unpacked value', [ErrorCode.ERR_FeatureSpreadOperatorInArrays], [6]),
+    ];
+    Test.assertDiagnostics(featureSpreadOperator, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
   });
 
   describe('array-creation-expression (short-syntax)', function() {
@@ -1133,10 +1144,15 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests);
 
-    let diagnosticTestsSpreadOperator = [
-      new DiagnosticTestArgs('[...', 'missing expression', [ErrorCode.ERR_FeatureSpreadOperatorInArrays, ErrorCode.ERR_ExpressionExpectedEOF], [1, 4]),
+    let diagnosticTests7_4 = [
+      new DiagnosticTestArgs('[...', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [4]),
     ];
-    Test.assertDiagnostics(diagnosticTestsSpreadOperator, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+    Test.assertDiagnostics(diagnosticTests7_4, PhpVersion.PHP7_4);
+
+    let featureSpreadOperator = [
+      new DiagnosticTestArgs('[...$a];', 'should not parse an array with unpacked value', [ErrorCode.ERR_FeatureSpreadOperatorInArrays], [1]),
+    ];
+    Test.assertDiagnostics(featureSpreadOperator, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
   });
 
   describe('unary-expression', function() {

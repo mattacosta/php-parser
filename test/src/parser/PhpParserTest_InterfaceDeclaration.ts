@@ -236,10 +236,10 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTests7_0 = [
-        new DiagnosticTestArgs('class A { public const B = 1; }', 'public modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [10]),
+      let featureClassConstantModifiers = [
+        new DiagnosticTestArgs('interface A { public const B = 1; }', 'should not parse a class constant declaration with public modifier', [ErrorCode.ERR_FeatureClassConstantModifiers], [14]),
       ];
-      Test.assertDiagnostics(diagnosticTests7_0, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+      Test.assertDiagnostics(featureClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('property-declaration', function() {

@@ -377,10 +377,15 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests);
 
-      let diagnosticTestsTypedProperties = [
-        new DiagnosticTestArgs('trait A { public B }', 'missing property after type', [ErrorCode.ERR_FeatureTypedProperties, ErrorCode.ERR_PropertyExpected], [17, 18]),
+      let diagnosticTests7_4 = [
+        new DiagnosticTestArgs('trait A { public B }', 'missing property after type', [ErrorCode.ERR_PropertyExpected], [18]),
       ];
-      Test.assertDiagnostics(diagnosticTestsTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+      Test.assertDiagnostics(diagnosticTests7_4, PhpVersion.PHP7_4);
+
+      let featureTypedProperties = [
+        new DiagnosticTestArgs('trait A { public B $c; }', 'should not parse a typed property', [ErrorCode.ERR_FeatureTypedProperties], [17]),
+      ];
+      Test.assertDiagnostics(featureTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
     });
 
     // Everything except for the parameter list and statement block needs full

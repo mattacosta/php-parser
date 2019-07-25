@@ -821,12 +821,19 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticsTests);
 
-      let diagnosticTestsTrailingComma = [
-        new DiagnosticTestArgs('a($b,', 'missing expression, ellipsis, or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [4, 5]),
-        new DiagnosticTestArgs('a($b, $c,', 'missing expression, ellipsis, or close paren (in list)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
-        new DiagnosticTestArgs('a(...$b,', 'missing ellipsis or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_EllipsisOrCloseParenExpected], [7, 8]),
+      let diagnosticTests7_3 = [
+        new DiagnosticTestArgs('a($b,', 'missing expression, ellipsis, or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [5]),
+        new DiagnosticTestArgs('a($b, $c,', 'missing expression, ellipsis, or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
+        new DiagnosticTestArgs('a(...$b,', 'missing ellipsis or close paren', [ErrorCode.ERR_EllipsisOrCloseParenExpected], [8]),
       ];
-      Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
+      Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
+
+      let featureTrailingCommas = [
+        new DiagnosticTestArgs('a($b,);', 'shoud not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [4]),
+        new DiagnosticTestArgs('a($b, $c,);', 'shoud not parse trailing comma in argument list (multiple arguments)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
+        new DiagnosticTestArgs('a(...$b,);', 'shoud not parse trailing comma in argument list (after unpacked argument)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [7]),
+      ];
+      Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
     });
 
   });
