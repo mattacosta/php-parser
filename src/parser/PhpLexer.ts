@@ -602,15 +602,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Space:
       case Character.Tab:
         this.offset++;
-
-        while (this.offset < this.end) {
-          ch = this.text.charCodeAt(this.offset);
-          if (!CharacterInfo.isWhitespace(ch)) {
-            break;
-          }
-          this.offset++;
-        }
-
+        this.scanWhitespace();
         this.tokenKind = TokenKind.Whitespace;
         return this.state;
       case Character.Minus:
@@ -623,13 +615,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       default:
         if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
           this.offset++;
-          while (this.offset < this.end) {
-            ch = this.text.charCodeAt(this.offset);
-            if (!CharacterInfo.isIdentifierPart(ch, this.phpVersion)) {
-              break;
-            }
-            this.offset++;
-          }
+          this.tryScanIdentifierPart();
           this.tokenKind = TokenKind.Identifier;
           return this.state = PhpLexerState.InScript;
         }
@@ -880,9 +866,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Dollar:
         if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
           this.offset = this.offset + 2;
-          while (this.offset < this.end && CharacterInfo.isIdentifierPart(this.text.charCodeAt(this.offset), this.phpVersion)) {
-            this.offset++;
-          }
+          this.tryScanIdentifierPart();
           this.tokenKind = TokenKind.Variable;
         }
         else {
@@ -2287,9 +2271,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const castStart = this.offset;
 
     this.offset++;
-    while (this.offset < this.end && CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))) {
-      this.offset++;
-    }
+    this.scanWhitespace();
 
     const typeStart = this.offset;
     while (this.offset < this.end) {
@@ -2313,9 +2295,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // Cast types are between 3 and 7 characters inclusive.
     let length = this.offset - typeStart;
     if (length >= 3) {
-      while (this.offset < this.end && CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))) {
-        this.offset++;
-      }
+      this.scanWhitespace();
       // It's still not a cast until we get a closing parenthesis.
       if (this.peek(this.offset) === Character.CloseParen) {
         let type = this.text.substring(typeStart, length).toLowerCase();
@@ -2386,9 +2366,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     this.offset = this.offset + 3;  // "<<<"
 
     // Skip leading tabs and spaces after the operator.
-    while (this.offset < this.end && CharacterInfo.isWhitespace(this.text.charCodeAt(this.offset))) {
-      this.offset++;
-    }
+    this.scanWhitespace();
 
     let quoteCh = 0;
 
