@@ -751,7 +751,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
       // Numbers
       case Character._0:
-        this.tryScanHexOrBinDigits();
+        this.scanNumberWithPrefix();
         return this.state;
       case Character._1:
       case Character._2:
@@ -1184,12 +1184,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     switch (ch) {
       // Numbers.
       case Character._0:
-        if (next === Character.x) {
+        if (next === Character.x && CharacterInfo.isHexDigit(this.peek(this.offset + 2))) {
+          this.offset = this.offset + 2;
           this.scanHexDigits();
           this.tokenKind = TokenKind.StringNumber;
           break;
         }
-        if (next === Character.b) {
+        if (next === Character.b && CharacterInfo.isBinDigit(this.peek(this.offset + 2))) {
+          this.offset = this.offset + 2;
           this.scanBinDigits();
           this.tokenKind = TokenKind.StringNumber;
           break;
@@ -1248,9 +1250,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected scanBinDigits(): number {
     const start = this.offset;
-    let length = 0;
-
-    this.offset = this.offset + 2;  // "0b"
 
     // Skip leading zeroes.
     while (this.offset < this.end && this.text.charCodeAt(this.offset) === Character._0) {
@@ -1258,12 +1257,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     // Get the number of significant digits.
+    let digitStart = this.offset;
     while (this.offset < this.end && CharacterInfo.isBinDigit(this.text.charCodeAt(this.offset))) {
-      length++;
       this.offset++;
     }
 
-    this.tokenKind = length < this.ptrSize * 8 ? TokenKind.LNumber : TokenKind.DNumber;
+    this.tokenKind = this.offset - digitStart < this.ptrSize * 8 ? TokenKind.LNumber : TokenKind.DNumber;
     return this.offset - start;
   }
 
@@ -1345,9 +1344,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected scanHexDigits(): number {
     const start = this.offset;
-    let length = 0;
-
-    this.offset = this.offset + 2;  // "0x"
 
     // Skip leading zeroes.
     while (this.offset < this.end && this.text.charCodeAt(this.offset) === Character._0) {
@@ -1355,13 +1351,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     // Get the number of significant digits.
+    let digitStart = this.offset;
     while (this.offset < this.end && CharacterInfo.isHexDigit(this.text.charCodeAt(this.offset))) {
-      length++;
       this.offset++;
     }
 
-    let firstDigit = this.peek(this.offset - length);
-    if (length < this.ptrSize * 2 || (length === this.ptrSize * 2 && firstDigit <= Character._7)) {
+    let digitLength = this.offset - digitStart;
+    if (digitLength < this.ptrSize * 2 || (digitLength === this.ptrSize * 2 && this.peek(digitStart) <= Character._7)) {
       this.tokenKind = TokenKind.LNumber;
     }
     else {
@@ -1785,16 +1781,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
       switch (this.peek(this.offset)) {
         case Character._0:
-          if (this.peek(this.offset + 1) === Character.x) {
-            if (this.scanHexDigits() === 2) {
-              this.offset--;  // "x"
-            }
+          if (this.peek(this.offset + 1) === Character.x && CharacterInfo.isHexDigit(this.peek(this.offset + 2))) {
+            this.offset = this.offset + 2;
+            this.scanHexDigits();
             break;
           }
-          else if (this.peek(this.offset + 1) === Character.b) {
-            if (this.scanBinDigits() === 2) {
-              this.offset--;  // "b"
-            }
+          else if (this.peek(this.offset + 1) === Character.b && CharacterInfo.isBinDigit(this.peek(this.offset + 2))) {
+            this.offset = this.offset + 2;
+            this.scanBinDigits();
             break;
           }
           // Fall through.
@@ -1973,6 +1967,46 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     this.tokenKind = isDouble ? TokenKind.DNumber : TokenKind.LNumber;
     return this.offset - numberStart;
+  }
+
+  /**
+   * Scans a hexadecimal or binary number. If not found, a decimal
+   * or octal number is scanned instead.
+   */
+  protected scanNumberWithPrefix(): number {
+    const start = this.offset;
+
+    let length = 0;
+    if (this.peek(this.offset + 1) === Character.x) {
+      this.offset = this.offset + 2;  // "0x"
+      length = this.scanHexDigits();
+    }
+    else if (this.peek(this.offset + 1) === Character.b) {
+      this.offset = this.offset + 2;  // "0b"
+      length = this.scanBinDigits();
+    }
+    else {
+      return this.scanNumber();
+    }
+
+    if (length === 0) {
+      // There are no productions where a number can be followed by an identifier.
+      //
+      // It is also much more likely that the user intends on adding digits after
+      // a valid prefix, instead of deleting the letter or going back and adding
+      // some other token inbetween the two characters:
+      //
+      //   if ($x == 0x) {
+      //             ~~     // Error: Invalid numeric literal.
+      //
+      // Normally, the above example would generate two tokens, but leaving it as
+      // a single token results in the same error and less work for the parser.
+
+      this.addError(0, 2, ErrorCode.ERR_InvalidNumber);
+      this.tokenKind = TokenKind.LNumber;
+    }
+
+    return this.offset - start;
   }
 
   /**
@@ -2208,44 +2242,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     return this.offset - start;
-  }
-
-  /**
-   * Attempts to scan a hexadecimal or binary number. If not found, a decimal
-   * or octal number is scanned instead.
-   */
-  protected tryScanHexOrBinDigits(): number {
-    const start = this.offset;
-
-    let length = 0;
-    if (this.peek(this.offset + 1) === Character.x) {
-      length = this.scanHexDigits();
-    }
-    else if (this.peek(this.offset + 1) === Character.b) {
-      length = this.scanBinDigits();
-    }
-    else {
-      return this.scanNumber();
-    }
-
-    if (length === 2) {
-      // There are no productions where a number can be followed by an identifier.
-      //
-      // It is also much more likely that the user intends on adding digits after
-      // a valid prefix, instead of deleting the letter or going back and adding
-      // some other token inbetween the two characters:
-      //
-      //   if ($x == 0x) {
-      //             ~~     // Error: Invalid numeric literal.
-      //
-      // Normally, the above example would generate two tokens, but leaving it as
-      // a single token results in the same error and less work for the parser.
-
-      this.addError(0, 2, ErrorCode.ERR_InvalidNumber);
-      this.tokenKind = TokenKind.LNumber;
-    }
-
-    return length;
   }
 
   /**

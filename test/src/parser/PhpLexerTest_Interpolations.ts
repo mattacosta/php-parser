@@ -346,45 +346,66 @@ describe('PhpLexer', function() {
     describe('in variable offset', function() {
       let lexerTests = [
         new LexerTestArgs('"$a[10]"', 'variable with integer offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '10', ']', '"']
         ),
         new LexerTestArgs('"$a[01]"', 'variable with integer offset (leading zero)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '01', ']', '"']
         ),
         new LexerTestArgs('"$a[-1]"', 'variable with integer offset (negative)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '-', '1', ']', '"']
         ),
         new LexerTestArgs('"$a[0]"', 'variable with integer offset (zero)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', ']', '"']
         ),
         new LexerTestArgs('"$a[0xFF]"', 'variable with hexadecimal offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0xFF', ']', '"']
         ),
         new LexerTestArgs('"$a[0b11]"', 'variable with binary offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0b11', ']', '"']
         ),
         new LexerTestArgs('"$a[$b]"', 'variable with variable offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Variable, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Variable, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '$b', ']', '"']
         ),
         new LexerTestArgs('"$a[B]"', 'variable with constant offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Identifier, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Identifier, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', 'B', ']', '"']
         ),
 
         // Invalid offsets.
         new LexerTestArgs('"$a[0.1]"', 'variable with floating-point offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', '.1]', '"']
         ),
         new LexerTestArgs('"$a[-B]"', 'negative constant',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '-', 'B]', '"']
         ),
         new LexerTestArgs('"$a[-]"', 'minus without integer offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '-', ']', '"']
         ),
         new LexerTestArgs('"$a[0-]"', 'minus after integer offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', '-]', '"']
         ),
         new LexerTestArgs('"$a[:]"', 'invalid offset character',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', ':]', '"']
+        ),
+        new LexerTestArgs('"$a[0xZZ]"', 'invalid hex offset',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', 'xZZ]', '"']
+        ),
+        new LexerTestArgs('"$a[0bAA]"', 'invalid bin offset',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', 'bAA]', '"']
         ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
