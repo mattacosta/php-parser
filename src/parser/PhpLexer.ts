@@ -2055,12 +2055,9 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       else if ((this.state === PhpLexerState.InFlexibleHeredoc || this.state === PhpLexerState.LookingForHeredocIndent) && CharacterInfo.isLineBreak(ch)) {
         break;
       }
-      else if (ch === Character.Backslash) {
+
+      if (ch === Character.Backslash && CharacterInfo.isDoubleQuoteEscape(next)) {
         this.offset++;
-        if (CharacterInfo.isDoubleQuoteEscape(next)) {
-          this.offset++;
-        }
-        continue;
       }
 
       this.offset++;
