@@ -1910,7 +1910,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       if (ch === Character.SingleQuote) {
         break;
       }
-      else if (ch === Character.Backslash) {
+      else if (ch === Character.Backslash && this.offset + 1 < this.end) {
         this.offset = this.offset + 2;
       }
       else {
