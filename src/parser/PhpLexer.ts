@@ -1922,27 +1922,21 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    *   finally a long.
    */
   protected scanNumber(): number {
-    const numberStart = this.offset;
+    const start = this.offset;
 
-    let ch = 0;
-    let numberEnd = 0;
+    // Integer part.
+    this.scanNumberPart();
+
+    // Fractional part.
     let isDouble = false;
-
-    while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
-      this.offset++;
-    }
-
     if (this.peek(this.offset) === Character.Period) {
       isDouble = true;
       this.offset++;
-      while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
-        this.offset++;
-      }
+      this.scanNumberPart();
     }
 
-    numberEnd = this.offset;
-
-    ch = this.peek(this.offset);
+    let exponentStart = this.offset;
+    let ch = this.peek(this.offset);
     if (ch === Character.e || ch === Character.E) {
       this.offset++;
 
@@ -1954,19 +1948,27 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       ch = this.peek(this.offset);
       if (CharacterInfo.isDigit(ch)) {
         isDouble = true;
-        this.offset++;
-        while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
-          this.offset++;
-        }
+        this.scanNumberPart();
       }
       else {
         // Found 'e' but no number.
-        this.offset = numberEnd;
+        this.offset = exponentStart;
       }
     }
 
     this.tokenKind = isDouble ? TokenKind.DNumber : TokenKind.LNumber;
-    return this.offset - numberStart;
+    return this.offset - start;
+  }
+
+  /**
+   * Scans for the digits of a decimal or octal number.
+   */
+  protected scanNumberPart(): number {
+    const start = this.offset;
+    while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
+      this.offset++;
+    }
+    return this.offset - start;
   }
 
   /**
