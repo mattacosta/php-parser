@@ -497,7 +497,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
     else {
       this.offset++;
-      this.tryScanIdentifierPart();
+      this.scanIdentifierPart();
       this.tokenKind = TokenKind.HeredocEnd;
     }
     return this.state;
@@ -551,12 +551,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Space:
       case Character.Tab:
         if (this.state === PhpLexerState.LookingForHeredocIndent) {
-          this.tryScanFlexdocIndent();
+          this.scanFlexdocIndent();
           this.tokenKind = TokenKind.StringIndent;
           this.state = PhpLexerState.InFlexibleNowdoc;
           break;
         }
-        this.tryScanNowdocString();
+        this.scanNowdocString();
         this.tokenKind = TokenKind.StringTemplateLiteral;
         break;
       case Character.CarriageReturn:
@@ -569,7 +569,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.state = PhpLexerState.LookingForHeredocIndent;
         break;
       default:
-        this.tryScanNowdocString();
+        this.scanNowdocString();
         this.tokenKind = TokenKind.StringTemplateLiteral;
         break;
     }
@@ -615,7 +615,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       default:
         if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
           this.offset++;
-          this.tryScanIdentifierPart();
+          this.scanIdentifierPart();
           this.tokenKind = TokenKind.Identifier;
           return this.state = PhpLexerState.InScript;
         }
@@ -866,7 +866,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Dollar:
         if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
           this.offset = this.offset + 2;
-          this.tryScanIdentifierPart();
+          this.scanIdentifierPart();
           this.tokenKind = TokenKind.Variable;
         }
         else {
@@ -1106,7 +1106,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         else {
           this.offset++;
-          this.tryScanStringTemplateLiteral();
+          this.scanStringTemplateLiteral();
           this.tokenKind = TokenKind.StringTemplateLiteral;
         }
         break;
@@ -1116,7 +1116,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.tokenKind = TokenKind.OpenBrace;
         }
         else {
-          this.tryScanStringTemplateLiteral();
+          this.scanStringTemplateLiteral();
           this.tokenKind = TokenKind.StringTemplateLiteral;
         }
         break;
@@ -1124,13 +1124,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Tab:
         if (this.state === PhpLexerState.LookingForHeredocIndent) {
           this.state = PhpLexerState.InFlexibleHeredoc;
-          let length = this.tryScanFlexdocIndent();
+          let length = this.scanFlexdocIndent();
           if (length > 0) {
             this.tokenKind = TokenKind.StringIndent;
             break;
           }
         }
-        this.tryScanStringTemplateLiteral();
+        this.scanStringTemplateLiteral();
         this.tokenKind = TokenKind.StringTemplateLiteral;
         break;
       case Character.CarriageReturn:
@@ -1144,13 +1144,13 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.state = PhpLexerState.LookingForHeredocIndent;
         }
         else {
-          this.tryScanStringTemplateLiteral();
+          this.scanStringTemplateLiteral();
           this.tokenKind = TokenKind.StringTemplateLiteral;
         }
         break;
       default:
         // @todo Assert that this length is greater than 0.
-        this.tryScanStringTemplateLiteral();
+        this.scanStringTemplateLiteral();
         this.tokenKind = TokenKind.StringTemplateLiteral;
         break;
     }
@@ -1169,7 +1169,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // string template has already been found to have an identifier, so there
     // isn't anything to actually check.
     this.offset++;
-    this.tryScanIdentifierPart();
+    this.scanIdentifierPart();
     this.tokenKind = TokenKind.StringIdentifier;
     return this.state = PhpLexerState.InScript;
   }
@@ -1219,7 +1219,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character.Dollar:
         // In this state, only a variable is valid.
         this.offset = this.offset + 2;
-        this.tryScanIdentifierPart();
+        this.scanIdentifierPart();
         this.tokenKind = TokenKind.Variable;
         break;
       case Character.Minus:
@@ -1235,7 +1235,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       default:
         // Debug.assert(CharacterInfo.isIdentifierStart(ch, this.phpVersion));
         this.offset++;
-        this.tryScanIdentifierPart();
+        this.scanIdentifierPart();
         this.tokenKind = TokenKind.Identifier;
         break;
     }
@@ -1264,6 +1264,49 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     this.tokenKind = length < this.ptrSize * 8 ? TokenKind.LNumber : TokenKind.DNumber;
+    return this.offset - start;
+  }
+
+  /**
+   * Scans for the indent in a flexible heredoc.
+   */
+  protected scanFlexdocIndent(): number {
+    const start = this.offset;
+
+    let hasMismatchedIndentation = false;
+
+    for (let i = 0; i < this.flexibleIndent.length; i++) {
+      if (this.offset >= this.end) {
+        throw new Exception('Missing end label');  // Unreachable.
+      }
+
+      let ch = this.text.charCodeAt(this.offset);
+      if (ch != this.flexibleIndent.charCodeAt(i)) {
+        if (CharacterInfo.isLineBreak(ch)) {
+          // Found an empty line.
+          break;
+        }
+        else {
+          // Either this is a space instead of a tab, a tab instead of a space,
+          // or some other non-whitespace character. In the first two cases,
+          // continue scanning the indent in order to prevent "indent expected"
+          // errors when there is clearly whitespace present.
+          hasMismatchedIndentation = true;
+
+          // Found a line without enough indentation.
+          if (!CharacterInfo.isWhitespace(ch)) {
+            break;
+          }
+        }
+      }
+
+      this.offset++;
+    }
+
+    if (hasMismatchedIndentation && this.offset - start > 0) {
+      this.addError(0, this.offset - start, ErrorCode.ERR_HeredocIndentMismatch);
+    }
+
     return this.offset - start;
   }
 
@@ -1334,7 +1377,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const start = this.offset;
 
     this.offset++;
-    this.tryScanIdentifierPart();
+    this.scanIdentifierPart();
 
     this.tokenKind = this.textToIdentifierToken();
 
@@ -1358,6 +1401,21 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
     }
 
+    return this.offset - start;
+  }
+
+  /**
+   * Scans for additional characters that may be part of an identifer name.
+   */
+  protected scanIdentifierPart(): number {
+    const start = this.offset;
+    while (this.offset < this.end) {
+      let ch = this.text.charCodeAt(this.offset);
+      if (!CharacterInfo.isIdentifierPart(ch, this.phpVersion)) {
+        break;
+      }
+      this.offset++;
+    }
     return this.offset - start;
   }
 
@@ -1399,7 +1457,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         default:
           if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
             this.offset++;
-            this.tryScanIdentifierPart();
+            this.scanIdentifierPart();
           }
           return this.offset - start;
       }
@@ -1615,10 +1673,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           }
           else if (next === Character.u) {
             this.offset++;
-            this.tryScanUnicodeEscape();
+            this.scanUnicodeEscape();
           }
           else {
-            this.tryScanOctalEscape();
+            this.scanOctalEscape();
           }
           break;
         case Character.Dollar:
@@ -1637,7 +1695,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           else if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
             spanOffset = this.offset;
             this.offset = this.offset + 2;  // "$a"
-            this.tryScanIdentifierPart();
+            this.scanIdentifierPart();
 
             if (this.startsWithObjectProperty()) {
               this.scanInterpolatedProperty();  // "$a->b"
@@ -1759,12 +1817,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     else if (ch === Character.Dollar) {
       if (CharacterInfo.isIdentifierStart(next)) {
         this.offset = this.offset + 2;
-        this.tryScanIdentifierPart();
+        this.scanIdentifierPart();
       }
     }
     else if (CharacterInfo.isIdentifierStart(ch)) {
       this.offset++;
-      this.tryScanIdentifierPart();
+      this.scanIdentifierPart();
     }
 
     if (this.peek(this.offset) === Character.CloseBracket) {
@@ -1842,6 +1900,20 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Scans for constant text within a nowdoc string.
+   */
+  protected scanNowdocString(): number {
+    const start = this.offset;
+    while (this.offset < this.end) {
+      if (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
+        break;
+      }
+      this.offset++;
+    }
+    return this.offset - start;
+  }
+
+  /**
    * Scans a decimal integer or floating-point number.
    *
    * A long consists of:
@@ -1904,6 +1976,36 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Scans for an octal escape sequence.
+   */
+  protected scanOctalEscape(): number {
+    const start = this.offset;
+
+    let firstDigit = this.peek(this.offset);
+    if (!CharacterInfo.isOctDigit(firstDigit)) {
+      return 0;
+    }
+
+    this.offset++;
+
+    let i = 0;
+    while (this.offset < this.end && i < 2) {
+      let ch = this.text.charCodeAt(this.offset);
+      if (!CharacterInfo.isOctDigit(ch)) {
+        return this.offset - start;
+      }
+      // Max: 255 = 0xFF = \377
+      if (i === 1 && firstDigit > Character._3) {
+        this.addError(start - this.tokenStart - 1, i + 3, ErrorCode.WRN_OctalEscapeSequenceOverflow);
+      }
+      this.offset++;
+      i++;
+    }
+
+    return this.offset - start;
+  }
+
+  /**
    * Scans the contents of a constant string.
    */
   protected scanSingleQuoteString(): number {
@@ -1920,6 +2022,90 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       else {
         this.offset++;
       }
+    }
+
+    return this.offset - start;
+  }
+
+  /**
+   * Scans for constant text within a string template.
+   */
+  protected scanStringTemplateLiteral(): number {
+    const start = this.offset;
+
+    while (this.offset < this.end) {
+      let ch = this.text.charCodeAt(this.offset);
+      let next = this.peek(this.offset + 1);
+
+      // String terminators.
+      if (this.state === PhpLexerState.InDoubleQuote && ch === Character.DoubleQuote) {
+        break;
+      }
+      else if (this.state === PhpLexerState.InBackQuote && ch === Character.BackQuote) {
+        break;
+      }
+
+      // End of constant text.
+      if (ch === Character.Dollar && (next === Character.OpenBrace || CharacterInfo.isIdentifierStart(next, this.phpVersion))) {
+        break;
+      }
+      else if (ch === Character.OpenBrace && next === Character.Dollar) {
+        break;
+      }
+      else if ((this.state === PhpLexerState.InFlexibleHeredoc || this.state === PhpLexerState.LookingForHeredocIndent) && CharacterInfo.isLineBreak(ch)) {
+        break;
+      }
+      else if (ch === Character.Backslash) {
+        this.offset++;
+        if (CharacterInfo.isDoubleQuoteEscape(next)) {
+          this.offset++;
+        }
+        continue;
+      }
+
+      this.offset++;
+    }
+
+    return this.offset - start;
+  }
+
+  /**
+   * Scans for a unicode escape sequence.
+   */
+  protected scanUnicodeEscape(): number {
+    const start = this.offset;
+
+    let ch = this.peek(this.offset);
+
+    // JSON-serialized strings are silently ignored since they may contain
+    // unicode escape sequences that do not follow the PHP format.
+    if (ch != Character.OpenBrace) {
+      return 0;
+    }
+
+    this.offset++;  // "{"
+
+    while (this.offset < this.end) {
+      ch = this.text.charCodeAt(this.offset);
+      if (ch === Character.CloseBrace) {
+        break;
+      }
+      if (!CharacterInfo.isHexDigit(ch)) {
+        this.addError(start - this.tokenStart - 2, this.offset - start + 2, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence);
+        return this.offset - start;
+      }
+      this.offset++;
+    }
+
+    // A unicode escape sequence cannot be empty.
+    let length = this.offset - start - 1;
+    if (length === 0) {
+      this.addError(start - this.tokenStart - 2, 4, ErrorCode.ERR_InvalidEscapeSequenceUnicode);
+      return this.offset - start;
+    }
+
+    if (Number.parseInt(this.text.substring(start + 1, length), 16) > 0x10FFFF) {
+      this.addError(start - this.tokenStart - 2, length + 4, ErrorCode.ERR_UnicodeEscapeSequenceOverflow);
     }
 
     return this.offset - start;
@@ -1969,50 +2155,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       return <TokenKind>PhpLexer.KeywordTokens.get(tokenText);
     }
     return TokenKind.Identifier;
-  }
-
-  /**
-   * Attempts to scan for the indent in a flexible heredoc. If not found,
-   * nothing is scanned.
-   */
-  protected tryScanFlexdocIndent(): number {
-    const start = this.offset;
-
-    let hasMismatchedIndentation = false;
-
-    for (let i = 0; i < this.flexibleIndent.length; i++) {
-      if (this.offset >= this.end) {
-        throw new Exception('Missing end label');  // Unreachable.
-      }
-
-      let ch = this.text.charCodeAt(this.offset);
-      if (ch != this.flexibleIndent.charCodeAt(i)) {
-        if (CharacterInfo.isLineBreak(ch)) {
-          // Found an empty line.
-          break;
-        }
-        else {
-          // Either this is a space instead of a tab, a tab instead of a space,
-          // or some other non-whitespace character. In the first two cases,
-          // continue scanning the indent in order to prevent "indent expected"
-          // errors when there is clearly whitespace present.
-          hasMismatchedIndentation = true;
-
-          // Found a line without enough indentation.
-          if (!CharacterInfo.isWhitespace(ch)) {
-            break;
-          }
-        }
-      }
-
-      this.offset++;
-    }
-
-    if (hasMismatchedIndentation && this.offset - start > 0) {
-      this.addError(0, this.offset - start, ErrorCode.ERR_HeredocIndentMismatch);
-    }
-
-    return this.offset - start;
   }
 
   /**
@@ -2110,22 +2252,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Attempts to scan for additional characters that may be part of an
-   * identifer name. If not found, nothing is scanned.
-   */
-  protected tryScanIdentifierPart(): number {
-    const start = this.offset;
-    while (this.offset < this.end) {
-      let ch = this.text.charCodeAt(this.offset);
-      if (!CharacterInfo.isIdentifierPart(ch, this.phpVersion)) {
-        break;
-      }
-      this.offset++;
-    }
-    return this.offset - start;
-  }
-
-  /**
    * Attempts to scan for a variable name in a string template that uses "${}"
    * syntax to explicity specify the name. If not found, nothing is scanned.
    */
@@ -2135,7 +2261,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     let ch = this.peek(this.offset);
     if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
       this.offset++;
-      this.tryScanIdentifierPart();
+      this.scanIdentifierPart();
 
       ch = this.peek(this.offset);
       if (ch === Character.OpenBracket || ch === Character.CloseBrace) {
@@ -2145,52 +2271,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     this.offset = start;
     return 0;
-  }
-
-  /**
-   * Attempts to scan for constant text within a nowdoc.
-   */
-  protected tryScanNowdocString(): number {
-    const start = this.offset;
-
-    while (this.offset < this.end) {
-      if (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
-        break;
-      }
-      this.offset++;
-    }
-
-    return this.offset - start;
-  }
-
-  /**
-   * Attempts to scan for an octal escape sequence.
-   */
-  protected tryScanOctalEscape(): number {
-    const start = this.offset;
-
-    let firstDigit = this.peek(this.offset);
-    if (!CharacterInfo.isOctDigit(firstDigit)) {
-      return 0;
-    }
-
-    this.offset++;
-
-    let i = 0;
-    while (this.offset < this.end && i < 2) {
-      let ch = this.text.charCodeAt(this.offset);
-      if (!CharacterInfo.isOctDigit(ch)) {
-        return this.offset - start;
-      }
-      // Max: 255 = 0xFF = \377
-      if (i === 1 && firstDigit > Character._3) {
-        this.addError(start - this.tokenStart - 1, i + 3, ErrorCode.WRN_OctalEscapeSequenceOverflow);
-      }
-      this.offset++;
-      i++;
-    }
-
-    return this.offset - start;
   }
 
   /**
@@ -2217,48 +2297,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
       }
     }
-    return this.offset - start;
-  }
-
-  /**
-   * Attempts to scan for constant text within a string template.
-   */
-  protected tryScanStringTemplateLiteral(): number {
-    const start = this.offset;
-
-    while (this.offset < this.end) {
-      let ch = this.text.charCodeAt(this.offset);
-      let next = this.peek(this.offset + 1);
-
-      // String terminators.
-      if (this.state === PhpLexerState.InDoubleQuote && ch === Character.DoubleQuote) {
-        break;
-      }
-      else if (this.state === PhpLexerState.InBackQuote && ch === Character.BackQuote) {
-        break;
-      }
-
-      // End of constant text.
-      if (ch === Character.Dollar && (next === Character.OpenBrace || CharacterInfo.isIdentifierStart(next, this.phpVersion))) {
-        break;
-      }
-      else if (ch === Character.OpenBrace && next === Character.Dollar) {
-        break;
-      }
-      else if ((this.state === PhpLexerState.InFlexibleHeredoc || this.state === PhpLexerState.LookingForHeredocIndent) && CharacterInfo.isLineBreak(ch)) {
-        break;
-      }
-      else if (ch === Character.Backslash) {
-        this.offset++;
-        if (CharacterInfo.isDoubleQuoteEscape(next)) {
-          this.offset++;
-        }
-        continue;
-      }
-
-      this.offset++;
-    }
-
     return this.offset - start;
   }
 
@@ -2316,48 +2354,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Attempts to scan for a unicode escape sequence.
-   */
-  protected tryScanUnicodeEscape(): number {
-    const start = this.offset;
-
-    let ch = this.peek(this.offset);
-
-    // JSON-serialized strings are silently ignored since they may contain
-    // unicode escape sequences that do not follow the PHP format.
-    if (ch != Character.OpenBrace) {
-      return 0;
-    }
-
-    this.offset++;  // "{"
-
-    while (this.offset < this.end) {
-      ch = this.text.charCodeAt(this.offset);
-      if (ch === Character.CloseBrace) {
-        break;
-      }
-      if (!CharacterInfo.isHexDigit(ch)) {
-        this.addError(start - this.tokenStart - 2, this.offset - start + 2, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence);
-        return this.offset - start;
-      }
-      this.offset++;
-    }
-
-    // A unicode escape sequence cannot be empty.
-    let length = this.offset - start - 1;
-    if (length === 0) {
-      this.addError(start - this.tokenStart - 2, 4, ErrorCode.ERR_InvalidEscapeSequenceUnicode);
-      return this.offset - start;
-    }
-
-    if (Number.parseInt(this.text.substring(start + 1, length), 16) > 0x10FFFF) {
-      this.addError(start - this.tokenStart - 2, length + 4, ErrorCode.ERR_UnicodeEscapeSequenceOverflow);
-    }
-
-    return this.offset - start;
-  }
-
-  /**
    * Attempts to scan for the opening label or a heredoc string. If not found,
    * nothing is scanned.
    */
@@ -2389,7 +2385,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     this.offset++;
-    this.tryScanIdentifierPart();
+    this.scanIdentifierPart();
 
     // Closing quote.
     if (quoteCh) {
