@@ -1492,6 +1492,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           break;
 
         // Comments.
+        case Character.Hash:
+            this.offset++;
+            this.scanLineComment();
+            break;
         case Character.Slash:
           if (this.peek(this.offset + 1) === Character.Slash) {
             this.offset = this.offset + 2;  // "//"

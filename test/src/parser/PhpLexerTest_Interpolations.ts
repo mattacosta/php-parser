@@ -248,6 +248,10 @@ describe('PhpLexer', function() {
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '//}', '\n', '}', '"']
         ),
+        new LexerTestArgs('"${#}\n}"', 'should not end at close brace in line comment (# syntax)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '#}', '\n', '}', '"']
+        ),
         new LexerTestArgs('"${/*comment*/}"', 'embedded multiple line comment',
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.MultipleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '/*comment*/', '}', '"']
