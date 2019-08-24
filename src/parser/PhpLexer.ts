@@ -1499,9 +1499,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           }
           else if (this.peek(this.offset + 1) === Character.Asterisk) {
             this.offset = this.offset + 2;  // "/*"
-            if (this.peek(this.offset) === Character.Asterisk && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 1))) {
-              this.offset = this.offset + 2;
-            }
             this.scanMultipleLineComment();
             if (this.peek(this.offset) === Character.Asterisk && this.peek(this.offset + 1) === Character.Slash) {
               this.offset = this.offset + 2;  // "*/"
