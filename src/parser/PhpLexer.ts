@@ -2303,8 +2303,17 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           // Nothing to do except take precedence over the full open tag. This
           // is technically a bug in PHP since the lexer should be greedy.
         }
-        else if (this.startsWith('php') && CharacterInfo.isWhitespaceLike(this.peek(this.offset + 3))) {
-          this.offset = this.offset + 3;
+        else if (this.startsWith('php')) {
+          if (CharacterInfo.isWhitespaceLike(this.peek(this.offset + 3))) {
+            this.offset = this.offset + 3;
+          }
+          else if (this.offset + 3 === this.end && this.phpVersion >= PhpVersion.PHP7_4) {
+            this.offset = this.offset + 3;
+          }
+          else {
+            // Partial match, not an open tag.
+            this.offset = start;
+          }
         }
         else {
           this.offset = start;

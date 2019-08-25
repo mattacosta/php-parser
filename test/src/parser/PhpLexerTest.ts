@@ -36,7 +36,6 @@ describe('PhpLexer', function() {
 
         new LexerTestArgs('<?php ', 'should match open tag', [TokenKind.OpenTag], [], false),
         new LexerTestArgs('<h1><?php ', 'should match open tag after inline text', [TokenKind.InlineText, TokenKind.OpenTag], [], false),
-        new LexerTestArgs('<?php', 'should not match open tag without trailing whitespace', [TokenKind.InlineText], [], false),
         new LexerTestArgs('<?phpunit', 'should not partially match open tag', [TokenKind.InlineText], [], false),
 
         new LexerTestArgs('<?=', 'should match open tag with echo', [TokenKind.OpenTagWithEcho], [], false),
@@ -51,6 +50,16 @@ describe('PhpLexer', function() {
         new LexerTestArgs('?>', 'should not match close tag without open tag', [TokenKind.InlineText], [], false),
       ];
       Test.assertTokens(tests);
+
+      let tests7_4 = [
+        new LexerTestArgs('<?php', 'should match open tag at EOF', [TokenKind.OpenTag], [], false),
+      ];
+      Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
+
+      let regressionTests7_4 = [
+        new LexerTestArgs('<?php', 'should not match open tag at EOF', [TokenKind.InlineText], [], false),
+      ];
+      Test.assertTokens(regressionTests7_4, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
     });
 
     describe('comments', function() {
