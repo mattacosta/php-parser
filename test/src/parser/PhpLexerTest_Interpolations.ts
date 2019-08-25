@@ -467,6 +467,10 @@ describe('PhpLexer', function() {
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
         ['<<<END\n', 'ENDLABEL\n', 'END']
       ),
+      new LexerTestArgs('<<<END\nEND1\nEND\n', 'heredoc end label should not partially match text with digit',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
+        ['<<<END\n', 'END1\n', 'END']
+      ),
 
       new LexerTestArgs('<<<LABEL\n\nLABEL\n', 'should match end label after line break in text',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
