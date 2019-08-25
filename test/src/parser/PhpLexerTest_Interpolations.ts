@@ -18,61 +18,67 @@
 
 import * as assert from 'assert';
 
-import { LexerTestArgs } from '../Test';
+import { LexerTestArgs, Test } from '../Test';
 
 import { PhpLexer } from '../../../src/parser/PhpLexer';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
 import { TokenKind, TokenKindInfo } from '../../../src/language/TokenKind';
 
-function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) {
+function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
   for (let i = 0; i < tests.length; i++) {
     let test = tests[i];
-    if (test.expectedTokens.length > 0) {
-      it(test.description || test.text, () => {
-        let code = '<?php ' + test.text;
-        let fullText = SourceTextFactory.from(code);
-        let lexer = new PhpLexer(fullText);
 
-        // Find the template.
-        let token = lexer.lex(lexer.currentState);
-        while (TokenKindInfo.isTrivia(token.kind)) {
-          token = lexer.lex(lexer.currentState);
-        }
-        assert.equal(token.kind, templateKind, 'template kind');
-
-        // Create a new lexer to rescan the template. This must use a substring
-        // of the original source text to test the bounds of the template's span.
-        let rescanText = SourceTextFactory.from(fullText.substring(token.offset, token.length));
-        let rescanLexer = new PhpLexer(rescanText);
-        if (templateKind == TokenKind.StringTemplate) {
-          rescanLexer.rescanInterpolatedString(lexer.templateSpans);
-        }
-        else if (templateKind == TokenKind.BackQuoteTemplate) {
-          rescanLexer.rescanInterpolatedBackQuote(lexer.templateSpans);
-        }
-        else if (templateKind == TokenKind.HeredocTemplate) {
-          rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
-        }
-        else if (templateKind == TokenKind.FlexdocTemplate) {
-          rescanLexer.rescanInterpolatedFlexdoc(lexer.templateSpans);
-        }
-        else {
-          assert.fail('Unknown template kind');
-        }
-
-        for (let n = 0; n < test.expectedTokens.length; n++) {
-          let rescanToken = rescanLexer.lex(rescanLexer.currentState);
-          assert.equal(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
-          if (test.expectedText.length > 0) {
-            let text = rescanText.substring(rescanToken.offset, rescanToken.length);
-            assert.equal(text, test.expectedText[n], 'token text');
-          }
-        }
-      });
-    }
-    else {
+    if (test.expectedTokens.length == 0) {
       it(test.description || test.text);
+      continue;
     }
+    if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
+      it(test.description || test.text, Test.Pass);
+      continue;
+    }
+
+    it(test.description || test.text, () => {
+      let code = '<?php ' + test.text;
+      let fullText = SourceTextFactory.from(code);
+      let lexer = new PhpLexer(fullText, Test.PhpVersion);
+
+      // Find the template.
+      let token = lexer.lex(lexer.currentState);
+      while (TokenKindInfo.isTrivia(token.kind)) {
+        token = lexer.lex(lexer.currentState);
+      }
+      assert.equal(token.kind, templateKind, 'template kind');
+
+      // Create a new lexer to rescan the template. This must use a substring
+      // of the original source text to test the bounds of the template's span.
+      let rescanText = SourceTextFactory.from(fullText.substring(token.offset, token.length));
+      let rescanLexer = new PhpLexer(rescanText, Test.PhpVersion);
+      if (templateKind == TokenKind.StringTemplate) {
+        rescanLexer.rescanInterpolatedString(lexer.templateSpans);
+      }
+      else if (templateKind == TokenKind.BackQuoteTemplate) {
+        rescanLexer.rescanInterpolatedBackQuote(lexer.templateSpans);
+      }
+      else if (templateKind == TokenKind.HeredocTemplate) {
+        rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
+      }
+      else if (templateKind == TokenKind.FlexdocTemplate) {
+        rescanLexer.rescanInterpolatedFlexdoc(lexer.templateSpans);
+      }
+      else {
+        assert.fail('Unknown template kind');
+      }
+
+      for (let n = 0; n < test.expectedTokens.length; n++) {
+        let rescanToken = rescanLexer.lex(rescanLexer.currentState);
+        assert.equal(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
+        if (test.expectedText.length > 0) {
+          let text = rescanText.substring(rescanToken.offset, rescanToken.length);
+          assert.equal(text, test.expectedText[n], 'token text');
+        }
+      }
+    });
   }
 }
 
@@ -409,6 +415,22 @@ describe('PhpLexer', function() {
         ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
+
+      let lexerTests7_4 = [
+        new LexerTestArgs('"$a[1_000]"', 'variable with integer offset containing separator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '1_000', ']', '"']
+        ),
+        new LexerTestArgs('"$a[0x00_FF]"', 'variable with hexadecimal offset containing separator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0x00_FF', ']', '"']
+        ),
+        new LexerTestArgs('"$a[0b00_11]"', 'variable with binary offset containing separator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0b00_11', ']', '"']
+        ),
+      ];
+      assertRescannedTokens(lexerTests7_4, TokenKind.StringTemplate, PhpVersion.PHP7_4);
     });
 
   });

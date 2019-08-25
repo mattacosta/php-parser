@@ -238,6 +238,55 @@ describe('PhpLexer', function() {
       Test.assertTokenDiagnostics(diagnosticTests);
     });
 
+    describe('numeric separators', function() {
+      let tests = [
+        new LexerTestArgs('<?php 1_000', 'integer with separator', [TokenKind.LNumber], ['1_000']),
+        new LexerTestArgs('<?php 1.000_000', 'floating-point with separator', [TokenKind.DNumber], ['1.000_000']),
+        new LexerTestArgs('<?php 1e1_000', 'exponent with separator', [TokenKind.DNumber], ['1e1_000']),
+        new LexerTestArgs('<?php 0xAA_BB', 'hexadecimal number with separator', [TokenKind.LNumber], ['0xAA_BB']),
+        new LexerTestArgs('<?php 0x00_00', 'hexadecimal number with separator in leading zeroes', [TokenKind.LNumber], ['0x00_00']),
+        new LexerTestArgs('<?php 0x00_AA', 'hexadecimal number with separator between leading zeroes and digits', [TokenKind.LNumber], ['0x00_AA']),
+        new LexerTestArgs('<?php 0b11_11', 'binary number with separator', [TokenKind.LNumber], ['0b11_11']),
+        new LexerTestArgs('<?php 0b00_00', 'binary number with separator in leading zeroes', [TokenKind.LNumber], ['0b00_00']),
+        new LexerTestArgs('<?php 0b00_11', 'binary number with separator between leading zeroes and digits', [TokenKind.LNumber], ['0b00_11']),
+
+        new LexerTestArgs('<?php 1_000_000', 'integer with multiple separators', [TokenKind.LNumber], ['1_000_000']),
+        new LexerTestArgs('<?php 1.000_000_1', 'floating-point with multiple separators', [TokenKind.DNumber], ['1.000_000_1']),
+        new LexerTestArgs('<?php 1e1_000_000', 'exponent with multiple separators', [TokenKind.DNumber], ['1e1_000_000']),
+
+        new LexerTestArgs('<?php _1', 'should not start with separator (integer)', [TokenKind.Identifier], ['_1']),
+        new LexerTestArgs('<?php 1._', 'should not start with separator (floating-point)', [TokenKind.DNumber, TokenKind.Identifier], ['1.', '_']),
+        new LexerTestArgs('<?php 1e_1', 'should not start with separator (exponent)', [TokenKind.LNumber, TokenKind.Identifier], ['1', 'e_1']),
+        // new LexerTestArgs('<?php 0x_FF', 'should not start with separator (hexadecimal number)', [TokenKind.LNumber, TokenKind.Identifier], ['0x', '_FF']),
+        // new LexerTestArgs('<?php 0b_11', 'should not start with separator (binary number)', [TokenKind.LNumber, TokenKind.Identifier], ['0b', '_11']),
+
+        new LexerTestArgs('<?php 1_', 'should not end with separator (integer)', [TokenKind.LNumber, TokenKind.Identifier], ['1', '_']),
+        new LexerTestArgs('<?php 1_.', 'should not end with separator (integer followed by period)', [TokenKind.LNumber, TokenKind.Identifier, TokenKind.Period], ['1', '_', '.']),
+        new LexerTestArgs('<?php 1.0_', 'should not end with separator (floating-point)', [TokenKind.DNumber, TokenKind.Identifier], ['1.0', '_']),
+        new LexerTestArgs('<?php 1e1_', 'should not end with separator (exponent)', [TokenKind.DNumber, TokenKind.Identifier], ['1e1', '_']),
+        new LexerTestArgs('<?php 0xFF_', 'should not end with separator (hexadecimal number)', [TokenKind.LNumber, TokenKind.Identifier], ['0xFF', '_']),
+        new LexerTestArgs('<?php 0x00_', 'should not end with separator (hexadecimal number with leading zeroes)', [TokenKind.LNumber, TokenKind.Identifier], ['0x00', '_']),
+        new LexerTestArgs('<?php 0b11_', 'should not end with separator (binary number)', [TokenKind.LNumber, TokenKind.Identifier], ['0b11', '_']),
+        new LexerTestArgs('<?php 0b00_', 'should not end with separator (binary number with leading zeroes)', [TokenKind.LNumber, TokenKind.Identifier], ['0b00', '_']),
+
+        new LexerTestArgs('<?php 1__1', 'should not contain consecutive separators in integer digits', [TokenKind.LNumber, TokenKind.Identifier], ['1', '__1']),
+        new LexerTestArgs('<?php 1.0__0', 'should not contain consecutive separators in floating-point digits', [TokenKind.DNumber, TokenKind.Identifier], ['1.0', '__0']),
+        new LexerTestArgs('<?php 1e1__0', 'should not contain consecutive separators in exponent digits', [TokenKind.DNumber, TokenKind.Identifier], ['1e1', '__0']),
+        new LexerTestArgs('<?php 0xF__F', 'should not contain consecutive separators in hex digits', [TokenKind.LNumber, TokenKind.Identifier], ['0xF', '__F']),
+        new LexerTestArgs('<?php 0x0__0', 'should not contain consecutive separators in hex digits (leading zeroes)', [TokenKind.LNumber, TokenKind.Identifier], ['0x0', '__0']),
+        new LexerTestArgs('<?php 0x0__F', 'should not contain consecutive separators in hex digits (between zeroes and digits)', [TokenKind.LNumber, TokenKind.Identifier], ['0x0', '__F']),
+        new LexerTestArgs('<?php 0b1__1', 'should not contain consecutive separators in bin digits', [TokenKind.LNumber, TokenKind.Identifier], ['0b1', '__1']),
+        new LexerTestArgs('<?php 0b0__0', 'should not contain consecutive separators in bin digits (leading zeroes)', [TokenKind.LNumber, TokenKind.Identifier], ['0b0', '__0']),
+        new LexerTestArgs('<?php 0b0__1', 'should not contain consecutive separators in bin digits (between zeroes and digits)', [TokenKind.LNumber, TokenKind.Identifier], ['0b0', '__1']),
+
+        new LexerTestArgs('<?php 0x7FFF_FFFF_FFFF_FFFF', 'hex max int (64-bit)', [TokenKind.LNumber]),
+        new LexerTestArgs('<?php 0x8FFF_FFFF_FFFF_FFFF', 'hex max int overflow (64-bit)', [TokenKind.DNumber]),
+        new LexerTestArgs('<?php 0b01111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111', 'bin max int (64-bit)', [TokenKind.LNumber]),
+        new LexerTestArgs('<?php 0b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111', 'bin max int overflow (64-bit)', [TokenKind.DNumber]),
+      ];
+      Test.assertTokens(tests, PhpVersion.PHP7_4);
+    });
+
     describe('punctuation', function() {
       let tests = [
         // Do not combine into single test (need to see multiple failures).

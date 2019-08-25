@@ -1206,10 +1206,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       case Character._7:
       case Character._8:
       case Character._9:
-        this.offset++;
-        while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
-          this.offset++;
-        }
+        this.scanNumberPart(CharacterInfo.isDigit);
         this.tokenKind = TokenKind.StringNumber;
         break;
 
@@ -1252,17 +1249,18 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const start = this.offset;
 
     // Skip leading zeroes.
-    while (this.offset < this.end && this.text.charCodeAt(this.offset) === Character._0) {
-      this.offset++;
+    this.scanNumberPart(ch => ch === Character._0);
+
+    // Allow a numeric separator between the zeros and trailing digits.
+    if (this.offset - start > 0 && this.phpVersion >= PhpVersion.PHP7_4) {
+      if (this.peek(this.offset) === Character.Underscore && CharacterInfo.isBinDigit(this.peek(this.offset + 1))) {
+        this.offset++;
+      }
     }
 
-    // Get the number of significant digits.
-    let digitStart = this.offset;
-    while (this.offset < this.end && CharacterInfo.isBinDigit(this.text.charCodeAt(this.offset))) {
-      this.offset++;
-    }
-
-    this.tokenKind = this.offset - digitStart < this.ptrSize * 8 ? TokenKind.LNumber : TokenKind.DNumber;
+    // Significant digits.
+    let part = this.scanNumberPart(CharacterInfo.isBinDigit);
+    this.tokenKind = part[0] - part[1] < this.ptrSize * 8 ? TokenKind.LNumber : TokenKind.DNumber;
     return this.offset - start;
   }
 
@@ -1346,17 +1344,20 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const start = this.offset;
 
     // Skip leading zeroes.
-    while (this.offset < this.end && this.text.charCodeAt(this.offset) === Character._0) {
-      this.offset++;
+    this.scanNumberPart(ch => ch === Character._0);
+
+    // Allow a numeric separator between the zeros and trailing digits.
+    if (this.offset - start > 0 && this.phpVersion >= PhpVersion.PHP7_4) {
+      if (this.peek(this.offset) === Character.Underscore && CharacterInfo.isHexDigit(this.peek(this.offset + 1))) {
+        this.offset++;
+      }
     }
 
-    // Get the number of significant digits.
+    // Significant digits.
     let digitStart = this.offset;
-    while (this.offset < this.end && CharacterInfo.isHexDigit(this.text.charCodeAt(this.offset))) {
-      this.offset++;
-    }
+    let part = this.scanNumberPart(CharacterInfo.isHexDigit);
 
-    let digitLength = this.offset - digitStart;
+    let digitLength = part[0] - part[1];
     if (digitLength < this.ptrSize * 2 || (digitLength === this.ptrSize * 2 && this.peek(digitStart) <= Character._7)) {
       this.tokenKind = TokenKind.LNumber;
     }
@@ -1801,10 +1802,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         case Character._7:
         case Character._8:
         case Character._9:
-          this.offset++;
-          while (this.offset < this.end && CharacterInfo.isDigit(this.peek(this.offset))) {
-            this.offset++;
-          }
+          // Only integers are allowed, so only do the first part of scanNumber().
+          this.scanNumberPart(CharacterInfo.isDigit);
           break;
       }
     }
@@ -1925,14 +1924,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const start = this.offset;
 
     // Integer part.
-    this.scanNumberPart();
+    this.scanNumberPart(CharacterInfo.isDigit);
 
     // Fractional part.
     let isDouble = false;
     if (this.peek(this.offset) === Character.Period) {
       isDouble = true;
       this.offset++;
-      this.scanNumberPart();
+      this.scanNumberPart(CharacterInfo.isDigit);
     }
 
     let exponentStart = this.offset;
@@ -1948,7 +1947,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       ch = this.peek(this.offset);
       if (CharacterInfo.isDigit(ch)) {
         isDouble = true;
-        this.scanNumberPart();
+        this.scanNumberPart(CharacterInfo.isDigit);
       }
       else {
         // Found 'e' but no number.
@@ -1961,14 +1960,34 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Scans for the digits of a decimal or octal number.
+   * Scans for the digits of a number.
+   *
+   * @param {(ch: number) => boolean} predicate
+   *   A callback used to determine what characters are valid digits in the
+   *   number.
+   *
+   * @returns A tuple containing the total length of the scanned digits, and
+   *   how many separators were present.
    */
-  protected scanNumberPart(): number {
+  protected scanNumberPart(predicate: (ch: number) => boolean): [number, number] {
     const start = this.offset;
-    while (this.offset < this.end && CharacterInfo.isDigit(this.text.charCodeAt(this.offset))) {
+
+    while (this.offset < this.end && predicate(this.text.charCodeAt(this.offset))) {
       this.offset++;
     }
-    return this.offset - start;
+
+    let separatorCount = 0;
+    if (this.offset - start > 0 && this.phpVersion >= PhpVersion.PHP7_4) {
+      while (this.peek(this.offset) == Character.Underscore && predicate(this.peek(this.offset + 1))) {
+        this.offset++;  // "_"
+        separatorCount++;
+        while (this.offset < this.end && predicate(this.text.charCodeAt(this.offset))) {
+          this.offset++;
+        }
+      }
+    }
+
+    return [this.offset - start, separatorCount];
   }
 
   /**
