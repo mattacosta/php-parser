@@ -4217,6 +4217,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       let operand = this.parseExpression(unaryType, unaryPrecedence);
 
       let unaryNode = new UnaryNode(operator, operand);
+      if (kind == TokenKind.RealCast) {
+        // No version check; deprecation warnings are retroactive.
+        unaryNode = this.addError(unaryNode, ErrorCode.WRN_RealCast);
+      }
       if (kind == TokenKind.UnsetCast) {
         // No version check; deprecation warnings are retroactive.
         unaryNode = this.addError(unaryNode, ErrorCode.WRN_UnsetCast);

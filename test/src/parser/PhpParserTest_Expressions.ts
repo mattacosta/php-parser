@@ -1331,6 +1331,14 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.StringCast, '(string)');
           assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
+        new ParserTestArgs('(unset)$a;', 'should parse an unset cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.equal(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.UnsetCast, '(unset)');
+          assert.equal(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
@@ -1344,10 +1352,9 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('(int)', 'missing expression (int)', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
         new DiagnosticTestArgs('(integer)', 'missing expression (integer)', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
         new DiagnosticTestArgs('(object)', 'missing expression (object)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
-        new DiagnosticTestArgs('(real)', 'missing expression (real)', [ErrorCode.ERR_ExpressionExpectedEOF], [6]),
+        new DiagnosticTestArgs('(real)', 'missing expression (real)', [ErrorCode.WRN_RealCast, ErrorCode.ERR_ExpressionExpectedEOF], [0, 6]),
         new DiagnosticTestArgs('(string)', 'missing expression (string)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
-
-        new DiagnosticTestArgs('(unset)$a;', 'should warn unset cast is deprecated', [ErrorCode.WRN_UnsetCast], [0]),
+        new DiagnosticTestArgs('(unset)', 'missing expression (unset)', [ErrorCode.WRN_UnsetCast, ErrorCode.ERR_ExpressionExpectedEOF], [0, 7]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

@@ -344,6 +344,9 @@ diagnostics:
 - name: WRN_PossibleMistakenEmptyStatement
   text: "Possible mistaken empty statement (use '{}' if this was intended)"
   severity: 2
+- name: WRN_RealCast
+  text: "The '(real)' type cast is deprecated, use '(float)' instead"
+  severity: 2
 - name: WRN_UnsetCast
   text: "The '(unset)' type cast is deprecated, use 'null' instead"
   severity: 2
