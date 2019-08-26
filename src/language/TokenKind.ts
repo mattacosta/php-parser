@@ -22,7 +22,7 @@
 export enum TokenKind {
 
   Unknown,
-  Error,
+  Error,                    // T_BAD_CHARACTER
 
   // Keywords
   Abstract,
@@ -55,6 +55,7 @@ export enum TokenKind {
   Extends,
   Final,
   Finally,
+  Fn,
   For,
   ForEach,
   Function,
@@ -138,6 +139,7 @@ export enum TokenKind {
   BooleanAnd,               // "&&"
   BooleanOr,                // "||"
   Coalesce,
+  CoalesceEqual,
   ConcatEqual,
   Decrement,
   DivideEqual,
@@ -300,6 +302,8 @@ export class TokenKindInfo {
         return 'final';
       case TokenKind.Finally:
         return 'finally';
+      case TokenKind.Fn:
+        return 'fn';
       case TokenKind.For:
         return 'for';
       case TokenKind.ForEach:
@@ -460,6 +464,8 @@ export class TokenKindInfo {
         return '||';
       case TokenKind.Coalesce:
         return '??';
+      case TokenKind.CoalesceEqual:
+        return '??=';
       case TokenKind.ConcatEqual:
         return '.=';
       case TokenKind.Decrement:

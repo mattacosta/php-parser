@@ -264,11 +264,16 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests);
 
-    let diagnosticTestsUnionTypes = [
-      new DiagnosticTestArgs('try {} catch (A |', 'missing identifier after vertical bar', [ErrorCode.ERR_FeatureTryCatchUnionTypes, ErrorCode.ERR_TypeExpected], [14, 17]),
-      new DiagnosticTestArgs('try {} catch (A B $e) {}', 'should expect vertical bar between catch types', [ErrorCode.ERR_FeatureTryCatchUnionTypes, ErrorCode.ERR_Syntax], [14, 15]),
+    let diagnosticTests7_1 = [
+      new DiagnosticTestArgs('try {} catch (A |', 'missing identifier after vertical bar', [ErrorCode.ERR_TypeExpected], [17]),
+      new DiagnosticTestArgs('try {} catch (A B $e) {}', 'should expect vertical bar between catch types', [ErrorCode.ERR_Syntax], [15]),
     ];
-    Test.assertDiagnostics(diagnosticTestsUnionTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+    Test.assertDiagnostics(diagnosticTests7_1, PhpVersion.PHP7_1);
+
+    let featureUnionTypes = [
+      new DiagnosticTestArgs('try {} catch (A | B $e) {}', 'should not parse a catch clause with union type', [ErrorCode.ERR_FeatureTryCatchUnionTypes], [14]),
+    ];
+    Test.assertDiagnostics(featureUnionTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
   });
 
   describe('declare-statement', function() {
@@ -450,11 +455,17 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests);
 
-    let diagnosticTestsTrailingComma = [
-      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
-      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [12, 13]),
+    let diagnosticTests7_3 = [
+      new DiagnosticTestArgs('unset($a,', 'missing expression or close paren', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [9]),
+      new DiagnosticTestArgs('unset($a, $b,', 'missing expression or close paren (in list)', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [13]),
     ];
-    Test.assertDiagnostics(diagnosticTestsTrailingComma, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
+    Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
+
+    let featureTrailingCommas = [
+      new DiagnosticTestArgs('unset($a,);', 'should not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
+      new DiagnosticTestArgs('unset($a, $b,);', 'should not parse trailing comma in argument list (multiple arguments)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [12]),
+    ];
+    Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
   });
 
   describe('const-declaration', function() {

@@ -53,12 +53,16 @@ diagnostics:
   text: "The feature 'shortened list deconstruction syntax' requires PHP 7.1 or later"
 - name: ERR_FeatureNullableTypes
   text: "The feature 'nullable types' requires PHP 7.1 or later"
+- name: ERR_FeatureSpreadOperatorInArrays
+  text: "The feature 'spread operators in array initializers' requires PHP 7.4 or later"
 - name: ERR_FeatureTrailingCommasInArgumentLists
   text: "The feature 'trailing commas in argument lists' requires PHP 7.3 or later"
 - name: ERR_FeatureTrailingCommasInUseDeclarations
   text: "The feature 'trailing commas in use declarations' requires PHP 7.2 or later"
 - name: ERR_FeatureTryCatchUnionTypes
   text: "The feature 'try-catch union types' requires PHP 7.1 or later"
+- name: ERR_FeatureTypedProperties
+  text: "The feature 'typed properties' requires PHP 7.4 or later"
 
 # -----------------------------------------------------------------------------
 # Lexer diagnostics
@@ -148,6 +152,8 @@ diagnostics:
   text: "']' expected"
 - name: ERR_CloseParenExpected
   text: "')' expected"
+- name: ERR_ColonOrDoubleArrowExpected
+  text: "':' or '=>' expected"
 - name: ERR_ColonOrSemicolonExpected
   text: "':' or ';' expected"
 - name: ERR_CommaOrCloseBraceExpected
@@ -197,6 +203,8 @@ diagnostics:
 # @todo Improve text?
 - name: ERR_IncompleteArrayOrDestructure
   text: "Expected an array initialization expression or destructuring assignment"
+- name: ERR_IncompleteArrowFunction
+  text: "Closure parameters or '&' expected"
 - name: ERR_IncompleteClassDeclaration
   text: "Base clause, interface list, or '{' expected"
 - name: ERR_IncompleteClassDeclarationWithExtends
@@ -335,6 +343,9 @@ diagnostics:
   severity: 2
 - name: WRN_PossibleMistakenEmptyStatement
   text: "Possible mistaken empty statement (use '{}' if this was intended)"
+  severity: 2
+- name: WRN_RealCast
+  text: "The '(real)' type cast is deprecated, use '(float)' instead"
   severity: 2
 - name: WRN_UnsetCast
   text: "The '(unset)' type cast is deprecated, use 'null' instead"

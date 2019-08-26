@@ -249,6 +249,13 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_4 = [
+        new ParserTestArgs('$a ??= $b ??= 1;', 'coalesce equal', (statements) => {
+          assertAssignmentAssociativity(statements);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
     });
 
     describe('non-associative operators', function() {
@@ -812,6 +819,14 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_4 = [
+        new ParserTestArgs('$a ??= 2;', 'should parse a coalesce equals expression', (statements, text) => {
+          let assignment = assertAssignmentNode(statements);
+          Test.assertSyntaxToken(assignment.operator, text, TokenKind.CoalesceEqual, '??=');
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
     });
 
   });

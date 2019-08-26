@@ -157,6 +157,35 @@ nodes:
   - name: closeParenOrBracket
     type: TokenNode
   visitorName: visitArray
+- name: ArrowFunction
+  extends: Expression
+  properties:
+  - name: staticKeyword
+    type: TokenNode
+    optional: true
+  - name: fnKeyword
+    type: TokenNode
+  - name: ampersand
+    type: TokenNode
+    optional: true
+  - name: openParen
+    type: TokenNode
+  - name: parameters
+    type: NodeList
+    optional: true
+  - name: closeParen
+    type: TokenNode
+  - name: colon
+    type: TokenNode
+    optional: true
+  - name: returnType
+    type: Type
+    optional: true
+  - name: doubleArrow
+    type: TokenNode
+  - name: expr
+    type: Expression
+  visitorName: visitArrowFunction
 - name: Assignment
   extends: Expression
   properties:
@@ -1248,6 +1277,9 @@ nodes:
   properties:
   - name: modifiers
     type: NodeList
+  - name: type
+    type: Type
+    optional: true
   - name: properties
     type: NodeList
   - name: semicolon
@@ -1563,7 +1595,7 @@ nodes:
   - name: doubleArrow
     type: TokenNode
     optional: true
-  - name: ampersand
+  - name: valueOperator
     type: TokenNode
     optional: true
   - name: value

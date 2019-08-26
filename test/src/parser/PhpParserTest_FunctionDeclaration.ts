@@ -287,10 +287,15 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests);
 
-    let diagnosticTestsNullableTypes = [
-      new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_FeatureNullableTypes, ErrorCode.ERR_TypeExpected], [11, 12]),
+    let diagnosticTests7_1 = [
+      new DiagnosticTestArgs('function a(?', 'missing type', [ErrorCode.ERR_TypeExpected], [12]),
     ];
-    Test.assertDiagnostics(diagnosticTestsNullableTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+    Test.assertDiagnostics(diagnosticTests7_1, PhpVersion.PHP7_1);
+
+    let featureNullableTypes = [
+      new DiagnosticTestArgs('function a(?B $c) {}', 'should not parse parameter with nullable type', [ErrorCode.ERR_FeatureNullableTypes], [11]),
+    ];
+    Test.assertDiagnostics(featureNullableTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
   });
 
 });

@@ -18,61 +18,67 @@
 
 import * as assert from 'assert';
 
-import { LexerTestArgs } from '../Test';
+import { LexerTestArgs, Test } from '../Test';
 
 import { PhpLexer } from '../../../src/parser/PhpLexer';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
 import { TokenKind, TokenKindInfo } from '../../../src/language/TokenKind';
 
-function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind) {
+function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
   for (let i = 0; i < tests.length; i++) {
     let test = tests[i];
-    if (test.expectedTokens.length > 0) {
-      it(test.description || test.text, () => {
-        let code = '<?php ' + test.text;
-        let fullText = SourceTextFactory.from(code);
-        let lexer = new PhpLexer(fullText);
 
-        // Find the template.
-        let token = lexer.lex(lexer.currentState);
-        while (TokenKindInfo.isTrivia(token.kind)) {
-          token = lexer.lex(lexer.currentState);
-        }
-        assert.equal(token.kind, templateKind, 'template kind');
-
-        // Create a new lexer to rescan the template. This must use a substring
-        // of the original source text to test the bounds of the template's span.
-        let rescanText = SourceTextFactory.from(fullText.substring(token.offset, token.length));
-        let rescanLexer = new PhpLexer(rescanText);
-        if (templateKind == TokenKind.StringTemplate) {
-          rescanLexer.rescanInterpolatedString(lexer.templateSpans);
-        }
-        else if (templateKind == TokenKind.BackQuoteTemplate) {
-          rescanLexer.rescanInterpolatedBackQuote(lexer.templateSpans);
-        }
-        else if (templateKind == TokenKind.HeredocTemplate) {
-          rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
-        }
-        else if (templateKind == TokenKind.FlexdocTemplate) {
-          rescanLexer.rescanInterpolatedFlexdoc(lexer.templateSpans);
-        }
-        else {
-          assert.fail('Unknown template kind');
-        }
-
-        for (let n = 0; n < test.expectedTokens.length; n++) {
-          let rescanToken = rescanLexer.lex(rescanLexer.currentState);
-          assert.equal(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
-          if (test.expectedText.length > 0) {
-            let text = rescanText.substring(rescanToken.offset, rescanToken.length);
-            assert.equal(text, test.expectedText[n], 'token text');
-          }
-        }
-      });
-    }
-    else {
+    if (test.expectedTokens.length == 0) {
       it(test.description || test.text);
+      continue;
     }
+    if (!Test.isPhpVersionInRange(minVersion, maxVersion)) {
+      it(test.description || test.text, Test.Pass);
+      continue;
+    }
+
+    it(test.description || test.text, () => {
+      let code = '<?php ' + test.text;
+      let fullText = SourceTextFactory.from(code);
+      let lexer = new PhpLexer(fullText, Test.PhpVersion);
+
+      // Find the template.
+      let token = lexer.lex(lexer.currentState);
+      while (TokenKindInfo.isTrivia(token.kind)) {
+        token = lexer.lex(lexer.currentState);
+      }
+      assert.equal(TokenKind[token.kind], TokenKind[templateKind], 'template kind');
+
+      // Create a new lexer to rescan the template. This must use a substring
+      // of the original source text to test the bounds of the template's span.
+      let rescanText = SourceTextFactory.from(fullText.substring(token.offset, token.length));
+      let rescanLexer = new PhpLexer(rescanText, Test.PhpVersion);
+      if (templateKind == TokenKind.StringTemplate) {
+        rescanLexer.rescanInterpolatedString(lexer.templateSpans);
+      }
+      else if (templateKind == TokenKind.BackQuoteTemplate) {
+        rescanLexer.rescanInterpolatedBackQuote(lexer.templateSpans);
+      }
+      else if (templateKind == TokenKind.HeredocTemplate) {
+        rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
+      }
+      else if (templateKind == TokenKind.FlexdocTemplate) {
+        rescanLexer.rescanInterpolatedFlexdoc(lexer.templateSpans);
+      }
+      else {
+        assert.fail('Unknown template kind');
+      }
+
+      for (let n = 0; n < test.expectedTokens.length; n++) {
+        let rescanToken = rescanLexer.lex(rescanLexer.currentState);
+        assert.equal(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
+        if (test.expectedText.length > 0) {
+          let text = rescanText.substring(rescanToken.offset, rescanToken.length);
+          assert.equal(text, test.expectedText[n], 'token text');
+        }
+      }
+    });
   }
 }
 
@@ -248,6 +254,10 @@ describe('PhpLexer', function() {
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '//}', '\n', '}', '"']
         ),
+        new LexerTestArgs('"${#}\n}"', 'should not end at close brace in line comment (# syntax)',
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          ['"', '${', '#}', '\n', '}', '"']
+        ),
         new LexerTestArgs('"${/*comment*/}"', 'embedded multiple line comment',
           [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.MultipleLineComment, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '/*comment*/', '}', '"']
@@ -342,48 +352,85 @@ describe('PhpLexer', function() {
     describe('in variable offset', function() {
       let lexerTests = [
         new LexerTestArgs('"$a[10]"', 'variable with integer offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '10', ']', '"']
         ),
         new LexerTestArgs('"$a[01]"', 'variable with integer offset (leading zero)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '01', ']', '"']
         ),
         new LexerTestArgs('"$a[-1]"', 'variable with integer offset (negative)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '-', '1', ']', '"']
         ),
         new LexerTestArgs('"$a[0]"', 'variable with integer offset (zero)',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', ']', '"']
         ),
         new LexerTestArgs('"$a[0xFF]"', 'variable with hexadecimal offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0xFF', ']', '"']
         ),
         new LexerTestArgs('"$a[0b11]"', 'variable with binary offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0b11', ']', '"']
         ),
         new LexerTestArgs('"$a[$b]"', 'variable with variable offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Variable, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Variable, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '$b', ']', '"']
         ),
         new LexerTestArgs('"$a[B]"', 'variable with constant offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Identifier, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Identifier, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', 'B', ']', '"']
         ),
 
         // Invalid offsets.
         new LexerTestArgs('"$a[0.1]"', 'variable with floating-point offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', '.1]', '"']
         ),
         new LexerTestArgs('"$a[-B]"', 'negative constant',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '-', 'B]', '"']
         ),
         new LexerTestArgs('"$a[-]"', 'minus without integer offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.CloseBracket, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.Minus, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '-', ']', '"']
         ),
         new LexerTestArgs('"$a[0-]"', 'minus after integer offset',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', '-]', '"']
         ),
         new LexerTestArgs('"$a[:]"', 'invalid offset character',
-          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote]
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', ':]', '"']
+        ),
+        new LexerTestArgs('"$a[0xZZ]"', 'invalid hex offset',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', 'xZZ]', '"']
+        ),
+        new LexerTestArgs('"$a[0bAA]"', 'invalid bin offset',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0', 'bAA]', '"']
         ),
       ];
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
+
+      let lexerTests7_4 = [
+        new LexerTestArgs('"$a[1_000]"', 'variable with integer offset containing separator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '1_000', ']', '"']
+        ),
+        new LexerTestArgs('"$a[0x00_FF]"', 'variable with hexadecimal offset containing separator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0x00_FF', ']', '"']
+        ),
+        new LexerTestArgs('"$a[0b00_11]"', 'variable with binary offset containing separator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.OpenBracket, TokenKind.StringNumber, TokenKind.CloseBracket, TokenKind.DoubleQuote],
+          ['"', '$a', '[', '0b00_11', ']', '"']
+        ),
+      ];
+      assertRescannedTokens(lexerTests7_4, TokenKind.StringTemplate, PhpVersion.PHP7_4);
     });
 
   });
@@ -419,6 +466,10 @@ describe('PhpLexer', function() {
       new LexerTestArgs('<<<END\nENDLABEL\nEND\n', 'heredoc end label should not partially match text',
         [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
         ['<<<END\n', 'ENDLABEL\n', 'END']
+      ),
+      new LexerTestArgs('<<<END\nEND1\nEND\n', 'heredoc end label should not partially match text with digit',
+        [TokenKind.HeredocStart, TokenKind.StringTemplateLiteral, TokenKind.HeredocEnd],
+        ['<<<END\n', 'END1\n', 'END']
       ),
 
       new LexerTestArgs('<<<LABEL\n\nLABEL\n', 'should match end label after line break in text',
@@ -534,7 +585,7 @@ describe('PhpLexer', function() {
           ['<<<LABEL\n', '  ', 'LABEL']
         ),
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
     describe('line breaks', function() {
@@ -559,7 +610,7 @@ describe('PhpLexer', function() {
 
         // @todo Test that line breaks stop at text and interpolations?
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
   });
@@ -620,7 +671,7 @@ describe('PhpLexer', function() {
           ['<<<\'LABEL\'\n', '  ', 'LABEL']
         ),
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
     describe('line breaks', function() {
@@ -639,7 +690,7 @@ describe('PhpLexer', function() {
           ['<<<\'LABEL\'\r\n', '  ', '\r\n\r\n\r\n', '  ', 'LABEL']
         ),
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
   });
