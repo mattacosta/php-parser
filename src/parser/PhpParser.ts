@@ -905,7 +905,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       // primary-expression
       case TokenKind.Array:
-      case TokenKind.BackQuoteTemplate:
       case TokenKind.DNumber:
       case TokenKind.Dollar:
       case TokenKind.FlexdocTemplate:
@@ -915,6 +914,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.LNumber:
       case TokenKind.OpenBracket:
       case TokenKind.OpenParen:
+      case TokenKind.ShellCommandTemplate:
       case TokenKind.Static:
       case TokenKind.StringLiteral:
       case TokenKind.StringTemplate:
@@ -4420,10 +4420,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         expr = this.parseErrorControl();
         type = ExpressionType.Implicit;
         break;
-      case TokenKind.BackQuoteTemplate:
-        expr = this.parseShellCommandTemplate();
-        type = ExpressionType.Implicit;
-        break;
       case TokenKind.Clone:
         expr = this.parseClone();
         type = ExpressionType.Implicit;
@@ -4487,6 +4483,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         break;
       case TokenKind.Print:
         expr = this.parsePrint();
+        type = ExpressionType.Implicit;
+        break;
+      case TokenKind.ShellCommandTemplate:
+        expr = this.parseShellCommandTemplate();
         type = ExpressionType.Implicit;
         break;
       case TokenKind.StringTemplate:
@@ -5977,11 +5977,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
     const fullText = this.lexer.sourceText.slice(fullSpan);
 
-    let template = this.eat(TokenKind.BackQuoteTemplate);
+    let template = this.eat(TokenKind.ShellCommandTemplate);
 
     // Create a temporary lexer and parser.
     let lexer = new PhpLexer(fullText);
-    lexer.rescanInterpolatedBackQuote(this.lexer.templateSpans);
+    lexer.rescanInterpolatedShellCommand(this.lexer.templateSpans);
     let parser = new PhpParser(lexer);
     parser.nextToken();  // @todo Should be done in constructor?
 

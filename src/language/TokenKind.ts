@@ -195,7 +195,6 @@ export enum TokenKind {
   YieldFrom,
 
   // Literals
-  BackQuoteTemplate,        // Virtual.
   DNumber,
   FlexdocTemplate,          // Virtual.
   HeredocEnd,
@@ -204,6 +203,7 @@ export enum TokenKind {
   Identifier,               // T_STRING
   InlineText,               // T_INLINE_HTML
   LNumber,
+  ShellCommandTemplate,     // Virtual.
   StringIdentifier,         // T_STRING_VARNAME
   StringIndent,
   StringLiteral,            // T_CONSTANT_ENCAPSED_STRING (single-quoted text)

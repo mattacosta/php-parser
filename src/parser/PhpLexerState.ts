@@ -29,10 +29,6 @@ export enum PhpLexerState {
    */
   InHostLanguage,
   /**
-   * The default lexing state when rescanning a `BackQuoteTemplate`.
-   */
-  InBackQuote,
-  /**
    * The default lexing state when rescanning a `StringTemplate`.
    */
   InDoubleQuote,
@@ -60,6 +56,10 @@ export enum PhpLexerState {
    * @see PhpLexerState.InHostLanguage
    */
   InScript,
+  /**
+   * The default lexing state when rescanning a `ShellCommandTemplate`.
+   */
+  InShellCommand,
   /**
    * A lexing state used when scanning an element access expression within a
    * string interpolation.

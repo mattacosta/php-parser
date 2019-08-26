@@ -253,10 +253,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         break;
 
       // Rescanning states.
-      case PhpLexerState.InBackQuote:
       case PhpLexerState.InDoubleQuote:
       case PhpLexerState.InFlexibleHeredoc:
       case PhpLexerState.InHeredoc:
+      case PhpLexerState.InShellCommand:
         this.state = this.lexString();
         break;
       case PhpLexerState.InFlexibleNowdoc:
@@ -307,19 +307,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
   /**
    * Initializes the lexer with predetermined lexing regions found after
-   * scanning a `BackQuoteTemplate` token.
-   */
-  public rescanInterpolatedBackQuote(spans: TemplateSpan[]) {
-    this.state = this.defaultState = PhpLexerState.InBackQuote;
-    this.templateStack = spans;
-
-    if (spans.length > 0 && this.offset === spans[0].start) {
-      this.state = spans[0].state;
-    }
-  }
-
-  /**
-   * Initializes the lexer with predetermined lexing regions found after
    * scanning a `FlexdocTemplate` token.
    */
   public rescanInterpolatedFlexdoc(spans: TemplateSpan[]) {
@@ -365,6 +352,19 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     // be "appended" and scanned normally.
     if (spans.length > 0 && spans[spans.length - 1].state === PhpLexerState.LookingForHeredocLabel) {
       this.end = this.end - spans[spans.length - 1].length;
+    }
+  }
+
+  /**
+   * Initializes the lexer with predetermined lexing regions found after
+   * scanning a `ShellCommandTemplate` token.
+   */
+  public rescanInterpolatedShellCommand(spans: TemplateSpan[]) {
+    this.state = this.defaultState = PhpLexerState.InShellCommand;
+    this.templateStack = spans;
+
+    if (spans.length > 0 && this.offset === spans[0].start) {
+      this.state = spans[0].state;
     }
   }
 
@@ -665,7 +665,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         else {
           this.addError(0, this.offset - this.tokenStart, ErrorCode.ERR_UnterminatedString);
         }
-        this.tokenKind = TokenKind.BackQuoteTemplate;
+        this.tokenKind = TokenKind.ShellCommandTemplate;
         return this.state;
       case Character.DoubleQuote:
         this.offset++;
@@ -1090,7 +1090,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       this.tokenKind = TokenKind.DoubleQuote;
       return this.state;
     }
-    else if (this.state === PhpLexerState.InBackQuote && ch === Character.BackQuote) {
+    else if (this.state === PhpLexerState.InShellCommand && ch === Character.BackQuote) {
       this.offset++;
       this.tokenKind = TokenKind.BackQuote;
       return this.state;
@@ -2064,7 +2064,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       if (this.state === PhpLexerState.InDoubleQuote && ch === Character.DoubleQuote) {
         break;
       }
-      else if (this.state === PhpLexerState.InBackQuote && ch === Character.BackQuote) {
+      else if (this.state === PhpLexerState.InShellCommand && ch === Character.BackQuote) {
         break;
       }
 

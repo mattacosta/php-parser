@@ -57,8 +57,8 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, 
       if (templateKind == TokenKind.StringTemplate) {
         rescanLexer.rescanInterpolatedString(lexer.templateSpans);
       }
-      else if (templateKind == TokenKind.BackQuoteTemplate) {
-        rescanLexer.rescanInterpolatedBackQuote(lexer.templateSpans);
+      else if (templateKind == TokenKind.ShellCommandTemplate) {
+        rescanLexer.rescanInterpolatedShellCommand(lexer.templateSpans);
       }
       else if (templateKind == TokenKind.HeredocTemplate) {
         rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
@@ -233,7 +233,7 @@ describe('PhpLexer', function() {
           ['"', '${', '"}"', '}', '"']
         ),
         new LexerTestArgs('"${`}`}"', 'should not end at close brace in back-quoted string',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.BackQuoteTemplate, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.ShellCommandTemplate, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '`}`', '}', '"']
         ),
         new LexerTestArgs('"${<<<LABEL\n}\nLABEL\n}"', 'should not end at close brace in heredoc',
@@ -701,7 +701,7 @@ describe('PhpLexer', function() {
       new LexerTestArgs('`abc`', 'plain text', [TokenKind.BackQuote, TokenKind.StringTemplateLiteral, TokenKind.BackQuote]),
       new LexerTestArgs('`$a`', 'simple variable', [TokenKind.BackQuote, TokenKind.Variable, TokenKind.BackQuote]),
     ];
-    assertRescannedTokens(lexerTests, TokenKind.BackQuoteTemplate);
+    assertRescannedTokens(lexerTests, TokenKind.ShellCommandTemplate);
   });
 
 });
