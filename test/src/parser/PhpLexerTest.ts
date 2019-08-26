@@ -66,8 +66,8 @@ describe('PhpLexer', function() {
       let tests = [
         new LexerTestArgs('<?php // line comment', 'single line comment using // syntax', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment], [], false),
         new LexerTestArgs('<?php # line comment', 'single line comment using # syntax', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment], [], false),
-        new LexerTestArgs('<?php // comment\n ', 'single line comment with LF', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.Whitespace], [], false),
-        new LexerTestArgs('<?php // comment\r\n ', 'single line comment with CRLF', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.Whitespace], [], false),
+        new LexerTestArgs('<?php // comment\n ', 'single line comment with LF', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.LineBreak, TokenKind.Whitespace], [], false),
+        new LexerTestArgs('<?php // comment\r\n ', 'single line comment with CRLF', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.LineBreak, TokenKind.Whitespace], [], false),
         new LexerTestArgs('<?php // comment ?> ', 'single line comment with close tag', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.SingleLineComment, TokenKind.CloseTag, TokenKind.InlineText], [], false),
 
         new LexerTestArgs('<?php /* */', 'multiple line comment on single line', [TokenKind.OpenTag, TokenKind.Whitespace, TokenKind.MultipleLineComment], [], false),

@@ -126,8 +126,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     ['new', TokenKind.New],
     ['or', TokenKind.LogicalOr],
     ['print', TokenKind.Print],
-    ['protected', TokenKind.Protected],
     ['private', TokenKind.Private],
+    ['protected', TokenKind.Protected],
     ['public', TokenKind.Public],
     ['require', TokenKind.Require],
     ['require_once', TokenKind.RequireOnce],
@@ -565,7 +565,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         while (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
           this.offset++;
         }
-        this.tokenKind = TokenKind.StringNewLine;
+        this.tokenKind = TokenKind.StringLineBreak;
         this.state = PhpLexerState.LookingForHeredocIndent;
         break;
       default:
@@ -595,7 +595,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.offset++;
         }
 
-        this.tokenKind = TokenKind.NewLine;
+        this.tokenKind = TokenKind.LineBreak;
         return this.state;
 
       // Whitespace
@@ -643,7 +643,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.offset++;
         }
 
-        this.tokenKind = TokenKind.NewLine;
+        this.tokenKind = TokenKind.LineBreak;
         return this.state;
 
       // Whitespace
@@ -1140,7 +1140,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           while (CharacterInfo.isLineBreak(this.text.charCodeAt(this.offset))) {
             this.offset++;
           }
-          this.tokenKind = TokenKind.StringNewLine;
+          this.tokenKind = TokenKind.StringLineBreak;
           this.state = PhpLexerState.LookingForHeredocIndent;
         }
         else {

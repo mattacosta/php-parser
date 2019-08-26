@@ -78,9 +78,9 @@ export enum TokenKind {
   MagicDirectory,           // T_DIR
   MagicFile,                // T_FILE
   MagicFunction,            // T_FUNC_C
+  MagicLine,                // T_LINE
   MagicMethod,              // T_METHOD_C
   MagicNamespace,           // T_NS_C
-  MagicLine,                // T_LINE
   MagicTrait,               // T_TRAIT_C
   Namespace,
   New,
@@ -206,8 +206,8 @@ export enum TokenKind {
   ShellCommandTemplate,     // Virtual.
   StringIdentifier,         // T_STRING_VARNAME
   StringIndent,
+  StringLineBreak,
   StringLiteral,            // T_CONSTANT_ENCAPSED_STRING (single-quoted text)
-  StringNewLine,
   StringNumber,             // T_NUM_STRING
   StringTemplate,           // Virtual.
   StringTemplateLiteral,    // T_ENCAPSED_AND_WHITESPACE (double-quoted text)
@@ -219,8 +219,8 @@ export enum TokenKind {
   DocumentationComment,     // "/**{WHITESPACE}"
   ElasticSpace,             // @todo Experimental.
   ElasticTab,               // @todo Experimental.
+  LineBreak,
   MultipleLineComment,      // "/*"
-  NewLine,
   OpenTag,                  // "<?php"
   RegionEnd,                // @todo Experimental.
   RegionStart,              // @todo Experimental.

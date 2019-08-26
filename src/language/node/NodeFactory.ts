@@ -43,12 +43,12 @@ export class NodeFactory {
   /**
    * A trivia node representing a CRLF token.
    */
-  protected static readonly CRLF = new TriviaNode(TokenKind.NewLine, 2);
+  protected static readonly CRLF = new TriviaNode(TokenKind.LineBreak, 2);
 
   /**
    * A trivia node representing a LF token.
    */
-  protected static readonly LF = new TriviaNode(TokenKind.NewLine, 1);
+  protected static readonly LF = new TriviaNode(TokenKind.LineBreak, 1);
 
   /**
    * A trivia node representing a single whitespace character.
@@ -208,7 +208,7 @@ export class NodeFactory {
       return new TriviaNode(kind, fullWidth, diagnostics);
     }
     // Whitespace is very common, bypass the cache if possible.
-    if (kind == TokenKind.NewLine) {
+    if (kind == TokenKind.LineBreak) {
       // if (fullWidth == 1) {
       //   return NodeFactory.LF;
       // }

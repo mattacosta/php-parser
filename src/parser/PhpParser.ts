@@ -5285,8 +5285,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.HeredocEnd) {
-      if (this.currentToken.kind == TokenKind.StringNewLine) {
-        elements.push(new LiteralNode(this.eat(TokenKind.StringNewLine)));
+      if (this.currentToken.kind == TokenKind.StringLineBreak) {
+        elements.push(new LiteralNode(this.eat(TokenKind.StringLineBreak)));
         if (this.isFlexdocTemplateLineStart(this.currentToken.kind)) {
           elements.push(this.parseFlexdocTemplateLine());
         }
@@ -5333,7 +5333,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       nodes.push(this.parseStringTemplateElement());
     }
 
-    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.StringNewLine) {
+    while (this.currentToken.kind != TokenKind.EOF && this.currentToken.kind != TokenKind.StringLineBreak) {
       if (this.currentToken.kind == TokenKind.StringTemplateLiteral) {
         nodes.push(this.parseStringTemplateLiteral());
         continue;
@@ -6524,7 +6524,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     //   and then check the next TWO tokens. However, since the parser does not
     //   have a "peek" method (yet?), settle for a strict check of an immediate
     //   line break.
-    if (this.leadingTrivia[0].kind != TokenKind.NewLine) {
+    if (this.leadingTrivia[0].kind != TokenKind.LineBreak) {
       return false;
     }
 

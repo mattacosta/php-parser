@@ -237,13 +237,13 @@ describe('PhpLexer', function() {
           ['"', '${', '`}`', '}', '"']
         ),
         new LexerTestArgs('"${<<<LABEL\n}\nLABEL\n}"', 'should not end at close brace in heredoc',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.HeredocTemplate, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.HeredocTemplate, TokenKind.LineBreak, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '<<<LABEL\n}\nLABEL', '\n', '}', '"']
         ),
 
         // Embedded comments.
         new LexerTestArgs('"${//comment\n}"', 'embedded line comment',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.LineBreak, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '//comment', '\n', '}', '"']
         ),
         new LexerTestArgs('"${//comment"', 'embedded line comment (unterminated)',
@@ -251,11 +251,11 @@ describe('PhpLexer', function() {
           ['"', '${', '//comment"']
         ),
         new LexerTestArgs('"${//}\n}"', 'should not end at close brace in line comment',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.LineBreak, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '//}', '\n', '}', '"']
         ),
         new LexerTestArgs('"${#}\n}"', 'should not end at close brace in line comment (# syntax)',
-          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.NewLine, TokenKind.CloseBrace, TokenKind.DoubleQuote],
+          [TokenKind.DoubleQuote, TokenKind.DollarOpenBrace, TokenKind.SingleLineComment, TokenKind.LineBreak, TokenKind.CloseBrace, TokenKind.DoubleQuote],
           ['"', '${', '#}', '\n', '}', '"']
         ),
         new LexerTestArgs('"${/*comment*/}"', 'embedded multiple line comment',
@@ -530,52 +530,52 @@ describe('PhpLexer', function() {
       let lexerTests = [
         // InFlexibleHeredoc
         new LexerTestArgs('<<<LABEL\n  \n  LABEL', 'should tokenize a full indent',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n\t\t\n\t\tLABEL', 'should tokenize a full indent (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '\t\t', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n  \n\t\tLABEL', 'should tokenize a full indent (mixed)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n  abc\n  LABEL', 'should tokenize a full indent with trailing text',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', 'abc', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n\t\tabc\n\t\tLABEL', 'should tokenize a full indent with trailing text (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '\t\t', 'abc', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n    \n  LABEL', 'should tokenize a full indent with trailing whitespace',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', '  ', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n\t\t\t\t\n\t\tLABEL', 'should tokenize a full indent with trailing whitespace (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '\t\t', '\t\t', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n \n  LABEL', 'should tokenize a partial indent',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', ' ', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n\t\n\t\tLABEL', 'should tokenize a partial indent (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '\t', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n\t\n  LABEL', 'should tokenize a partial indent (mixed)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '\t', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n abc\n  LABEL', 'should tokenize a partial indent with trailing text',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', ' ', 'abc', '\n', '  ', 'LABEL']
         ),
 
         new LexerTestArgs('<<<LABEL\n  $a  \n  LABEL', 'should not tokenize whitespace after interpolation as indentation',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', '$a', '  ', '\n', '  ', 'LABEL']
         ),
 
@@ -592,19 +592,19 @@ describe('PhpLexer', function() {
       let lexerTests = [
         // NOTE: Other tests already cover line breaks after literals and indents.
         new LexerTestArgs('<<<LABEL\n  $a\n  LABEL', 'should tokenize a line break after an interpolation',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.Variable, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.Variable, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', '$a', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n\n  LABEL', 'should tokenize a line break after the starting label',
-          [TokenKind.HeredocStart, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\n  \n\n\n  LABEL', 'should tokenize multiple line breaks',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\n', '  ', '\n\n\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<LABEL\r\n  \r\n\r\n\r\n  LABEL', 'should tokenize multiple line breaks (CRLF)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<LABEL\r\n', '  ', '\r\n\r\n\r\n', '  ', 'LABEL']
         ),
 
@@ -621,47 +621,47 @@ describe('PhpLexer', function() {
       let lexerTests = [
         // InFlexibleNowdoc
         new LexerTestArgs('<<<\'LABEL\'\n  \n  LABEL', 'should tokenize a full indent',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '  ', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n\t\t\n\t\tLABEL', 'should tokenize a full indent (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '\t\t', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n  \n\t\tLABEL', 'should tokenize a full indent (mixed)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '  ', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n  abc\n  LABEL', 'should tokenize a full indent with trailing text',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '  ', 'abc', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n\t\tabc\n\t\tLABEL', 'should tokenize a full indent with trailing text (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '\t\t', 'abc', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n    \n  LABEL', 'should tokenize a full indent with trailing whitespace',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '  ', '  ', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n\t\t\t\t\n\t\tLABEL', 'should tokenize a full indent with trailing whitespace (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '\t\t', '\t\t', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n \n  LABEL', 'should tokenize a partial indent',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', ' ', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n\t\n\t\tLABEL', 'should tokenize a partial indent (tabs)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '\t', '\n', '\t\t', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n\t\n  LABEL', 'should tokenize a partial indent (mixed)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '\t', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n abc\n  LABEL', 'should tokenize a partial indent with trailing text',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringTemplateLiteral, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', ' ', 'abc', '\n', '  ', 'LABEL']
         ),
 
@@ -678,15 +678,15 @@ describe('PhpLexer', function() {
       let lexerTests = [
         // NOTE: Other tests already cover line breaks after literals and indents.
         new LexerTestArgs('<<<\'LABEL\'\n\n  LABEL', 'should tokenize a line break after the starting label',
-          [TokenKind.HeredocStart, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\n  \n\n\n  LABEL', 'should tokenize multiple line breaks',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\n', '  ', '\n\n\n', '  ', 'LABEL']
         ),
         new LexerTestArgs('<<<\'LABEL\'\r\n  \r\n\r\n\r\n  LABEL', 'should tokenize multiple line breaks (CRLF)',
-          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringNewLine, TokenKind.StringIndent, TokenKind.HeredocEnd],
+          [TokenKind.HeredocStart, TokenKind.StringIndent, TokenKind.StringLineBreak, TokenKind.StringIndent, TokenKind.HeredocEnd],
           ['<<<\'LABEL\'\r\n', '  ', '\r\n\r\n\r\n', '  ', 'LABEL']
         ),
       ];

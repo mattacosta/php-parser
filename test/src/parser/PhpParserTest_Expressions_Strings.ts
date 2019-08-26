@@ -302,7 +302,7 @@ describe('PhpParser', function() {
         assert.equal(elements.length, 2);
         let lineBreak = <LiteralSyntaxNode>elements[0];
         assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
-        Test.assertSyntaxToken(lineBreak.value, text, TokenKind.StringNewLine, '\n');
+        Test.assertSyntaxToken(lineBreak.value, text, TokenKind.StringLineBreak, '\n');
         assertFlexibleHeredocLine(elements[1], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  \n  LABEL;', 'should parse an indented line', (statements, text) => {
