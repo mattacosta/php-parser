@@ -1431,39 +1431,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Scans an object access expression within an interpolated string.
-   */
-  protected scanInterpolatedProperty(): number {
-    const start = this.offset;
-
-    while (this.offset < this.end) {
-      let ch = this.text.charCodeAt(this.offset);
-      switch (ch) {
-        case Character.CarriageReturn:
-        case Character.LineFeed:
-        case Character.Space:
-        case Character.Tab:
-          this.offset++;
-          break;
-        case Character.Minus:
-          if (this.peek(this.offset + 1) === Character.GreaterThan) {
-            this.offset = this.offset + 2;  // "->"
-            break;
-          }
-          return this.offset - start;
-        default:
-          if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
-            this.offset++;
-            this.scanIdentifierPart();
-          }
-          return this.offset - start;
-      }
-    }
-
-    return this.offset - start;
-  }
-
-  /**
    * Scans any PHP script within an interpolated string.
    */
   protected scanInterpolatedScript(delimiter: Character): number {
@@ -1695,7 +1662,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.scanIdentifierPart();
 
             if (this.startsWithObjectProperty()) {
-              this.scanInterpolatedProperty();  // "$a->b"
+              this.offset = this.offset + 3;
+              this.scanIdentifierPart();
               spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
             }
             else if (this.peek(this.offset) === Character.OpenBracket) {
