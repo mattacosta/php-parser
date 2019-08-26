@@ -48,7 +48,7 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, 
       while (TokenKindInfo.isTrivia(token.kind)) {
         token = lexer.lex(lexer.currentState);
       }
-      assert.equal(token.kind, templateKind, 'template kind');
+      assert.equal(TokenKind[token.kind], TokenKind[templateKind], 'template kind');
 
       // Create a new lexer to rescan the template. This must use a substring
       // of the original source text to test the bounds of the template's span.
@@ -585,7 +585,7 @@ describe('PhpLexer', function() {
           ['<<<LABEL\n', '  ', 'LABEL']
         ),
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
     describe('line breaks', function() {
@@ -610,7 +610,7 @@ describe('PhpLexer', function() {
 
         // @todo Test that line breaks stop at text and interpolations?
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
   });
@@ -671,7 +671,7 @@ describe('PhpLexer', function() {
           ['<<<\'LABEL\'\n', '  ', 'LABEL']
         ),
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
     describe('line breaks', function() {
@@ -690,7 +690,7 @@ describe('PhpLexer', function() {
           ['<<<\'LABEL\'\r\n', '  ', '\r\n\r\n\r\n', '  ', 'LABEL']
         ),
       ];
-      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate);
+      assertRescannedTokens(lexerTests, TokenKind.FlexdocTemplate, PhpVersion.PHP7_3);
     });
 
   });
