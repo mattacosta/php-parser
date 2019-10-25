@@ -643,7 +643,7 @@ export class LongChildListNode extends ManyChildListNode {
     }
 
     let low = 0;
-    let high = this.offsets.length;
+    let high = this.offsets.length - 1;
     while (low <= high) {
       let middle = low + ((high - low) >> 1);
       if (this.offsets[middle] > relativeOffset) {
