@@ -24,7 +24,7 @@ import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
-import { SyntaxNode } from './SyntaxNode';
+import { SyntaxNodeExtensions } from './SyntaxNodeExtensions';
 import { SyntaxTriviaFilter } from './ISyntaxTrivia';
 import { SyntaxTriviaList } from './SyntaxTriviaList';
 import { TextSpan } from '../../text/TextSpan';
@@ -242,7 +242,7 @@ export class SyntaxToken implements ISyntaxToken {
           }
         }
         else {
-          let result = SyntaxNode.tryGetFirstToken(<ISyntaxNode>child, tokenFilter /*, triviaFilter */);
+          let result = SyntaxNodeExtensions.tryGetFirstToken(<ISyntaxNode>child, tokenFilter /*, triviaFilter */);
           if (result !== null) {
             return result;
           }
@@ -255,7 +255,7 @@ export class SyntaxToken implements ISyntaxToken {
     }
 
     // Not found in parent, check the grandparent.
-    return SyntaxNode.tryGetNextToken(token.parent, tokenFilter);
+    return SyntaxNodeExtensions.tryGetNextToken(token.parent, tokenFilter);
   }
 
   /**
@@ -285,7 +285,7 @@ export class SyntaxToken implements ISyntaxToken {
           }
         }
         else {
-          let result = SyntaxNode.tryGetLastToken(<ISyntaxNode>child, tokenFilter /*, triviaFilter */);
+          let result = SyntaxNodeExtensions.tryGetLastToken(<ISyntaxNode>child, tokenFilter /*, triviaFilter */);
           if (result !== null) {
             return result;
           }
@@ -298,7 +298,7 @@ export class SyntaxToken implements ISyntaxToken {
     }
 
     // Not found in parent, check the grandparent.
-    return SyntaxNode.tryGetPreviousToken(token.parent, tokenFilter);
+    return SyntaxNodeExtensions.tryGetPreviousToken(token.parent, tokenFilter);
   }
 
   /**

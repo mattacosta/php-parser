@@ -35,6 +35,7 @@ export * from './language/syntax/SourceTextSyntaxNode';
 export { SyntaxList } from './language/syntax/SyntaxList';
 export * from './language/syntax/SyntaxNode.Generated';
 export * from './language/syntax/SyntaxNode';
+export * from './language/syntax/SyntaxNodeExtensions';
 export * from './language/syntax/SyntaxToken';
 export * from './language/syntax/SyntaxTransform.Generated';
 export * from './language/syntax/SyntaxTrivia';

@@ -203,160 +203,6 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   }
 
   /**
-   * Attempts to get the first token within the given node.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The parent node.
-   * @param {SyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetFirstToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter /*, triviaFilter?: SyntaxTriviaFilter */): ISyntaxToken | null {
-    // A recursive implementation would be simpler, but trees can be deep and
-    // this method will probably be called quite a few times...
-    let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
-    stack.push(node.getAllChildren());
-
-    while (stack.length > 0) {
-      // Suppress TS2322: Result cannot be undefined due to while condition.
-      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
-      let result = iterator.next();
-      if (result.value) {
-        let child = result.value;
-        if (child.isToken) {
-          let token = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
-          if (token !== null) {
-            return token;
-          }
-        }
-
-        if (!result.done) {
-          stack.push(iterator);
-        }
-
-        if (!child.isToken) {
-          stack.push((<ISyntaxNode>child).getAllChildren());
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Attempts to get the last token within the given node.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The parent node.
-   * @param {SyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetLastToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter /*, triviaFilter?: SyntaxTriviaFilter */): ISyntaxToken | null {
-    let stack: Array<IterableIterator<ISyntaxNode | ISyntaxToken>> = [];
-    stack.push(node.getAllChildrenReversed());
-
-    while (stack.length > 0) {
-      // Suppress TS2322: Result cannot be undefined due to while condition.
-      let iterator = <IterableIterator<ISyntaxNode | ISyntaxToken>>stack.pop();
-      let result = iterator.next();
-      if (result.value) {
-        let child = result.value;
-        if (child.isToken) {
-          let token = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
-          if (token !== null) {
-            return token;
-          }
-        }
-
-        if (!result.done) {
-          stack.push(iterator);
-        }
-
-        if (!child.isToken) {
-          stack.push((<ISyntaxNode>child).getAllChildrenReversed());
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Attempts to get the first token within the next node.
-   *
-   * So if parent node `A` has two children `B` and `C`, and the given node
-   * is `B`, then this method will return the first token within `C`.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The current node.
-   * @param {SyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetNextToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
-    while (node.parent != null) {
-      let found = false;
-      for (let child of node.parent.getAllChildren()) {
-        if (found) {
-          if (child.isToken) {
-            let result = SyntaxToken.tryGetFirstToken(<ISyntaxToken>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-          else {
-            let result = SyntaxNodeBase.tryGetFirstToken(<ISyntaxNode>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-        }
-        else if (!child.isToken && node.equals(child)) {
-          found = true;
-        }
-      }
-      node = node.parent;
-    }
-    return null;
-  }
-
-  /**
-   * Attempts to get the last token within the previous node.
-   *
-   * So if parent node `A` has two children `B` and `C`, and the given node
-   * is `C`, then this method will return the last token within `B`.
-   *
-   * @param {ISyntaxNodeOrList} node
-   *   The current node.
-   * @param {SyntaxTokenFilter=} tokenFilter
-   *   A callback used to limit what tokens are returned.
-   */
-  public static tryGetPreviousToken(node: ISyntaxNodeOrList, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
-    while (node.parent != null) {
-      let found = false;
-      for (let child of node.parent.getAllChildrenReversed()) {
-        if (found) {
-          if (child.isToken) {
-            let result = SyntaxToken.tryGetLastToken(<ISyntaxToken>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-          else {
-            let result = SyntaxNodeBase.tryGetLastToken(<ISyntaxNode>child, tokenFilter);
-            if (result !== null) {
-              return result;
-            }
-          }
-        }
-        else if (!child.isToken && node.equals(child)) {
-          found = true;
-        }
-      }
-      node = node.parent;
-    }
-    return null;
-  }
-
-  /**
    * Finds the child token at the given offset.
    *
    * @param {SyntaxNodeBase} parent
@@ -636,9 +482,9 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public firstToken(includeZeroWidth = false): ISyntaxToken | null {
     if (!includeZeroWidth) {
-      return SyntaxNodeBase.tryGetFirstToken(this, SyntaxToken.hasWidth);
+      return SyntaxNodeExtensions.tryGetFirstToken(this, SyntaxToken.hasWidth);
     }
-    return SyntaxNodeBase.tryGetFirstToken(this);
+    return SyntaxNodeExtensions.tryGetFirstToken(this);
   }
 
   /**
@@ -788,9 +634,9 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public lastToken(includeZeroWidth = false): ISyntaxToken | null {
     if (!includeZeroWidth) {
-      return SyntaxNodeBase.tryGetLastToken(this, SyntaxToken.hasWidth);
+      return SyntaxNodeExtensions.tryGetLastToken(this, SyntaxToken.hasWidth);
     }
-    return SyntaxNodeBase.tryGetLastToken(this);
+    return SyntaxNodeExtensions.tryGetLastToken(this);
   }
 
   /**

@@ -24,7 +24,7 @@ import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
 import { ISyntaxTrivia, SyntaxTriviaFilter } from './ISyntaxTrivia';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
-import { SyntaxNode } from './SyntaxNode';
+import { SyntaxNodeExtensions } from './SyntaxNodeExtensions';
 import { SyntaxTrivia } from './SyntaxTrivia';
 import { TextSpan } from '../../text/TextSpan';
 
@@ -112,7 +112,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
       if (trivia.containsStructuredTrivia && triviaFilter(trivia)) {
         // Suppress TS2345: Result cannot be null due to if-condition.
         const structure = <ISyntaxNode>trivia.getStructure();
-        const token = SyntaxNode.tryGetFirstToken(structure, tokenFilter);
+        const token = SyntaxNodeExtensions.tryGetFirstToken(structure, tokenFilter);
         if (token !== null) {
           return token;
         }
@@ -146,7 +146,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
       if (trivia.containsStructuredTrivia && triviaFilter(trivia)) {
         // Suppress TS2345: Result cannot be null due to if-condition.
         const structure = <ISyntaxNode>trivia.getStructure();
-        const token = SyntaxNode.tryGetLastToken(structure, tokenFilter);
+        const token = SyntaxNodeExtensions.tryGetLastToken(structure, tokenFilter);
         if (token !== null) {
           return token;
         }
