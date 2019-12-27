@@ -190,6 +190,8 @@ describe('PhpParser', function() {
 
       new DiagnosticTestArgs('"{$a";', 'missing close brace (expression)', [ErrorCode.ERR_UnterminatedString, ErrorCode.ERR_CloseBraceExpected], [0, 4]),
       new DiagnosticTestArgs('"{$a[0}";', 'missing close bracket (expression)', [ErrorCode.ERR_CloseBracketExpected], [6]),
+
+      new DiagnosticTestArgs('"$a" "";', 'should use template span of string template', [ErrorCode.ERR_SemicolonExpected], [4]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
@@ -226,6 +228,8 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('`', 'missing back quote', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('`a', 'missing back quote (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('`$a', 'missing back quote (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
+
+      new DiagnosticTestArgs('`$a` "";', 'should use template span of shell command template', [ErrorCode.ERR_SemicolonExpected], [4]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
@@ -262,6 +266,12 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('<<<LABEL\n', 'missing end label', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('<<<LABEL\na', 'missing end label (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('<<<LABEL\n$a', 'missing end label (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
+
+      // Unlike other templates, heredocs are not required to contain any
+      // template spans, which means that they can successfully parse with
+      // incorrect tokens. Adding leading text to the string will however
+      // force any incorrect tokens into causing a different parser exception.
+      new DiagnosticTestArgs('<<<LABEL\n  $a\nLABEL "";', 'should use template span of heredoc', [ErrorCode.ERR_SemicolonExpected], [19]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });
@@ -415,6 +425,8 @@ describe('PhpParser', function() {
 
       // @todo Recovery tests.
       new DiagnosticTestArgs('<<<LABEL\n  {$a $b}\n  LABEL;', 'missing close brace (in malformed interpolation)', [ErrorCode.ERR_CloseBraceExpected], [14]),
+
+      new DiagnosticTestArgs('<<<LABEL\n  $a\n  LABEL "";', 'should use template span of flexible heredoc', [ErrorCode.ERR_SemicolonExpected], [21]),
     ];
     Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP7_3);
   });

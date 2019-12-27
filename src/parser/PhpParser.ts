@@ -5246,11 +5246,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
     const fullText = this.lexer.sourceText.slice(fullSpan);
 
+    let templateSpans = this.lexer.templateSpans;
     let template = this.eat(TokenKind.FlexdocTemplate);
 
     // Create a temporary lexer and parser.
     let lexer = new PhpLexer(fullText);
-    lexer.rescanInterpolatedFlexdoc(this.lexer.templateSpans);
+    lexer.rescanInterpolatedFlexdoc(templateSpans);
     let parser = new PhpParser(lexer);
     parser.nextToken();  // @todo Should be done in constructor?
 
@@ -5406,11 +5407,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
     const fullText = this.lexer.sourceText.slice(fullSpan);
 
+    let templateSpans = this.lexer.templateSpans;
     let template = this.eat(TokenKind.HeredocTemplate);
 
     // Create a temporary lexer and parser.
     let lexer = new PhpLexer(fullText);
-    lexer.rescanInterpolatedHeredoc(this.lexer.templateSpans);
+    lexer.rescanInterpolatedHeredoc(templateSpans);
     let parser = new PhpParser(lexer);
     parser.nextToken();  // @todo Should be done in constructor?
 
@@ -5977,11 +5979,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
     const fullText = this.lexer.sourceText.slice(fullSpan);
 
+    let templateSpans = this.lexer.templateSpans;
     let template = this.eat(TokenKind.ShellCommandTemplate);
 
     // Create a temporary lexer and parser.
     let lexer = new PhpLexer(fullText);
-    lexer.rescanInterpolatedShellCommand(this.lexer.templateSpans);
+    lexer.rescanInterpolatedShellCommand(templateSpans);
     let parser = new PhpParser(lexer);
     parser.nextToken();  // @todo Should be done in constructor?
 
@@ -6113,11 +6116,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     const fullSpan = new TextSpan(this.currentToken.offset, this.currentToken.length);
     const fullText = this.lexer.sourceText.slice(fullSpan);
 
+    let templateSpans = this.lexer.templateSpans;
     let template = this.eat(TokenKind.StringTemplate);
 
     // Create a temporary lexer and parser.
     let lexer = new PhpLexer(fullText);
-    lexer.rescanInterpolatedString(this.lexer.templateSpans);
+    lexer.rescanInterpolatedString(templateSpans);
     let parser = new PhpParser(lexer);
     parser.nextToken();  // @todo Should be done in constructor?
 
