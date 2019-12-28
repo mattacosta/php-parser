@@ -266,14 +266,17 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('<<<LABEL\n', 'missing end label', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('<<<LABEL\na', 'missing end label (after literal)', [ErrorCode.ERR_UnterminatedString], [0]),
       new DiagnosticTestArgs('<<<LABEL\n$a', 'missing end label (after interpolation)', [ErrorCode.ERR_UnterminatedString], [0]),
+    ];
+    Test.assertDiagnostics(diagnosticTests);
 
+    let diagnosticTests7_3 = [
       // Unlike other templates, heredocs are not required to contain any
       // template spans, which means that they can successfully parse with
       // incorrect tokens. Adding leading text to the string will however
       // force any incorrect tokens into causing a different parser exception.
       new DiagnosticTestArgs('<<<LABEL\n  $a\nLABEL "";', 'should use template span of heredoc', [ErrorCode.ERR_SemicolonExpected], [19]),
     ];
-    Test.assertDiagnostics(diagnosticTests);
+    Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
   });
 
   describe('nowdoc', function() {
