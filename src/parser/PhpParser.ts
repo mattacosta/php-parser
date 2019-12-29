@@ -177,10 +177,7 @@ import { TriviaNode } from '../language/node/TriviaNode';
  */
 export class Expression {
 
-  constructor(public readonly node: ExpressionNode | StatementNode, public readonly type: ExpressionType) {
-    this.node = node;
-    this.type = type;
-  }
+  constructor(public readonly node: ExpressionNode | StatementNode, public readonly type: ExpressionType) {}
 
 }
 
