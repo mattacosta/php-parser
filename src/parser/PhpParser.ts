@@ -227,12 +227,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * current context, and when the action is complete, restore that context
    * (since the context may not have actually changed).
    */
-  protected currentContext!: ParseContext;  // @todo Set in only public method via `reset()`.
+  protected currentContext: ParseContext;
 
   /**
    * The current token from the lexer.
    */
-  protected currentToken!: Token;  // @todo Set in only public method via `reset()`.
+  protected currentToken: Token;
 
   /**
    * A factory service for creating tokens, trivia, and node lists.
@@ -271,6 +271,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @todo Implement cancellation token support.
    */
   constructor(lexer: PhpLexer, options = PhpParserOptions.Default /*, oldTree?: SourceTextSyntaxNode, changes?: TextChange[], cancellationToken?: any*/) {
+    this.currentContext = ParseContext.SourceElements;
+    this.currentToken = new Token(TokenKind.Unknown, 0, 0);
     this.factory = new NodeFactory();
     this.lexer = lexer;
     this.lexerState = lexer.currentState;
@@ -281,7 +283,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @inheritDoc
    */
   public parse(): SourceTextSyntaxNode {
-    this.reset();
     this.nextToken();
     return this.parseSourceText().createSyntaxNode();
   }
@@ -333,15 +334,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let statements = this.parseList(ParseContext.SourceElements);
     let eofToken = this.eat(TokenKind.EOF);
     return new SourceTextNode(statements, eofToken);
-  }
-
-  /**
-   * @todo Document reset().
-   */
-  protected reset() {
-    this.currentContext = ParseContext.SourceElements;
-    this.currentToken = new Token(TokenKind.Unknown, 0, 0);
-    this.lexerState = this.lexer.currentState;
   }
 
   // --------------------------------------------------------------------------
@@ -5253,7 +5245,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let lexer = new PhpLexer(fullText);
     lexer.rescanInterpolatedFlexdoc(templateSpans);
     let parser = new PhpParser(lexer);
-    parser.nextToken();  // @todo Should be done in constructor?
+    parser.nextToken();
 
     let heredocStart = parser.eat(TokenKind.HeredocStart);
     heredocStart = heredocStart.withDiagnostics(template.diagnostics);
@@ -5414,7 +5406,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let lexer = new PhpLexer(fullText);
     lexer.rescanInterpolatedHeredoc(templateSpans);
     let parser = new PhpParser(lexer);
-    parser.nextToken();  // @todo Should be done in constructor?
+    parser.nextToken();
 
     let heredocStart = parser.eat(TokenKind.HeredocStart);
     heredocStart = heredocStart.withDiagnostics(template.diagnostics);
@@ -5986,7 +5978,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let lexer = new PhpLexer(fullText);
     lexer.rescanInterpolatedShellCommand(templateSpans);
     let parser = new PhpParser(lexer);
-    parser.nextToken();  // @todo Should be done in constructor?
+    parser.nextToken();
 
     let openBackQuote = parser.eat(TokenKind.BackQuote);
     openBackQuote = openBackQuote.withDiagnostics(template.diagnostics);
@@ -6123,7 +6115,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let lexer = new PhpLexer(fullText);
     lexer.rescanInterpolatedString(templateSpans);
     let parser = new PhpParser(lexer);
-    parser.nextToken();  // @todo Should be done in constructor?
+    parser.nextToken();
 
     let openQuote = parser.eat(TokenKind.DoubleQuote);
     openQuote = openQuote.withDiagnostics(template.diagnostics);
