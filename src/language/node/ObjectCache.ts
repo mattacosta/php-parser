@@ -89,7 +89,7 @@ export class ObjectCache<T extends IHashable<object>> {
     }
     const index = hash & this.cacheMask;
     const entry = this.cache[index];
-    return entry !== void 0 && entry.value == value;
+    return entry !== void 0 && entry.value === value;
   }
 
   /**
@@ -119,7 +119,7 @@ export class ObjectCache<T extends IHashable<object>> {
       return value;
     }
     // Object at index must be equivalent.
-    if (entry.hashCode == hash && entry.value.equals(value)) {
+    if (entry.hashCode === hash && entry.value.equals(value)) {
       return entry.value;
     }
 

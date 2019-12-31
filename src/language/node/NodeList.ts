@@ -67,7 +67,7 @@ export abstract class NodeList extends NodeBase {
         if ((child1 !== null) !== (child2 !== null)) {
           return false;
         }
-        if (child1 && child2 && !child1.equals(child2)) {
+        if (child1 !== null && child2 !== null && !child1.equals(child2)) {
           return false;
         }
       }
@@ -149,7 +149,7 @@ export class SingleChildListNode extends NodeList {
    * @inheritDoc
    */
   public childAt(index: number): Node | null {
-    return index == 0 ? this.child : null;
+    return index === 0 ? this.child : null;
   }
 
   /**
@@ -247,7 +247,7 @@ export class TwoChildListNode extends NodeList {
     this.secondChild = secondChild;
 
     this.updateFlagsAndWidth(firstChild.flags, firstChild.fullWidth);
-    if (secondChild) {
+    if (secondChild !== null) {
       this.updateFlagsAndWidth(secondChild.flags, secondChild.fullWidth);
     }
 
@@ -451,7 +451,7 @@ abstract class ManyChildListNode extends NodeList {
     if ((firstChild !== null) !== (secondChild !== null)) {
       return false;
     }
-    if (firstChild && secondChild && !firstChild.equals(secondChild)) {
+    if (firstChild !== null && secondChild !== null && !firstChild.equals(secondChild)) {
       return false;
     }
     return true;

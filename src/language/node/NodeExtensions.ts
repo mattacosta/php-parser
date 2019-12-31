@@ -32,10 +32,10 @@ export class NodeExtensions {
    */
   public static childCount(node: INode): number {
     let n = 0;
-    let count = node.count;
+    const count = node.count;
     for (let i = 0; i < count; i++) {
-      let child = node.childAt(i);
-      if (child) {
+      const child = node.childAt(i);
+      if (child !== null) {
         n += child.isList ? child.count : 1;
       }
     }
@@ -51,11 +51,11 @@ export class NodeExtensions {
       return true;
     }
     // One is a node, but the other is not.
-    if ((a != null) != (b != null)) {
+    if ((a !== null) !== (b !== null)) {
       return false;
     }
     // Both are nodes, but they are not equal.
-    if (a && b && !a.equals(b)) {
+    if (a !== null && b !== null && !a.equals(b)) {
       return false;
     }
     // Neither are nodes, or both are nodes and they are equal.

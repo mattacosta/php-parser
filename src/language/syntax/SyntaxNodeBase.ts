@@ -122,7 +122,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       return false;
     }
     for (let d of this.getDiagnostics()) {
-      if (d.severity == DiagnosticSeverity.Error) {
+      if (d.severity === DiagnosticSeverity.Error) {
         return true;
       }
     }
@@ -173,7 +173,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * Determines if the node contains a child token with leading trivia.
    */
   public get hasLeadingTrivia(): boolean {
-    return this.leadingTrivia ? this.leadingTrivia.count > 0 : false;
+    return this.leadingTrivia !== null ? this.leadingTrivia.count > 0 : false;
   }
 
   /**
@@ -188,7 +188,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public get leadingTrivia(): ISyntaxTriviaList | null {
     let token = this.firstToken(true);
-    if (token) {
+    if (token !== null) {
       return token.leadingTrivia;
     }
     return null;
@@ -223,7 +223,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     let count = node.count;
     while (index < count) {
       let child = node.childAt(index);
-      if (child) {
+      if (child !== null) {
         let end = start + child.fullWidth;
         if (offset < end) {
           if (child.isToken) {
@@ -284,7 +284,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     let count = parent.node.count;
     while (nodeIndex < count) {
       child = parent.node.childAt(nodeIndex);
-      if (child) {
+      if (child !== null) {
         let size = child.isList ? child.count : 1;
         if (listIndex < size) {
           break;
@@ -295,12 +295,12 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       nodeIndex++;
     }
 
-    if (!child) {
+    if (child === null) {
       throw new Exception('Child node not found');
     }
 
     let syntaxNode = parent.defineChildAt(nodeIndex);
-    if (syntaxNode) {
+    if (syntaxNode !== null) {
       if (!child.isList) {
         // If the node is not a list, then neither is the syntax node.
         return <ISyntaxNode>syntaxNode;
@@ -312,7 +312,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       }
 
       let syntaxListChild = syntaxNode.defineChildAt(listIndex);
-      if (syntaxListChild) {
+      if (syntaxListChild !== null) {
         // Lists can only contain nodes.
         return <ISyntaxNode>syntaxListChild;
       }
@@ -321,7 +321,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       child = child.childAt(listIndex);
       offset = syntaxNode.offsetAt(listIndex);
 
-      if (!child) {
+      if (child === null) {
         throw new Exception('List nodes cannot contain undefined or null entries');
       }
     }
@@ -346,7 +346,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public ancestors(): ISyntaxNodeOrList[] {
-    return this.parent ? this.parent.ancestorsAndSelf() : [];
+    return this.parent !== null ? this.parent.ancestorsAndSelf() : [];
   }
 
   /**
@@ -355,7 +355,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   public ancestorsAndSelf(): ISyntaxNodeOrList[] {
     let parents = [];
     let node: ISyntaxNodeOrList | null = this;
-    while (node) {
+    while (node !== null) {
       parents.push(node);
       node = node.parent;
     }
@@ -396,7 +396,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public contains(node: ISyntaxNode | null): boolean {
-    if (!node || !this.fullSpan.contains(node.fullSpan)) {
+    if (node === null || !this.fullSpan.contains(node.fullSpan)) {
       return false;
     }
     while (node !== null) {
@@ -434,7 +434,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
     }
 
     if (!innermostNode) {
-      while (node.parent != null) {
+      while (node.parent !== null) {
         // @todo It would be faster to use `fullWidth` instead.
         if (!node.parent.fullSpan.equals(node.fullSpan)) {
           break;
@@ -454,7 +454,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public findChildToken(offset: number): ISyntaxToken {
     let end = this.offset + this.node.fullWidth;
-    if (offset == end && SyntaxNodeExtensions.isSourceTextSyntaxNode(this)) {
+    if (offset === end && SyntaxNodeExtensions.isSourceTextSyntaxNode(this)) {
       return this.eof;
     }
     if (!this.fullSpan.contains(offset)) {
@@ -468,8 +468,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public firstAncestorOrSelf(nodeFilter?: SyntaxNodeFilter<ISyntaxNodeOrList>): ISyntaxNodeOrList | null {
     let node: ISyntaxNodeOrList | null = this;
-    while (node != null) {
-      if (!nodeFilter || nodeFilter(node)) {
+    while (node !== null) {
+      if (nodeFilter === undefined || nodeFilter(node)) {
         return node;
       }
       node = node.parent;
@@ -491,7 +491,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public *getAllChildren(): IterableIterator<ISyntaxNode | ISyntaxToken> {
-    let count = NodeExtensions.childCount(this.node);
+    const count = NodeExtensions.childCount(this.node);
     for (let i = 0; i < count; i++) {
       yield SyntaxNodeBase.relativeChildAt(this, i);
     }
@@ -501,7 +501,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    * @inheritDoc
    */
   public *getAllChildrenReversed(): IterableIterator<ISyntaxNode | ISyntaxToken> {
-    let count = NodeExtensions.childCount(this.node);
+    const count = NodeExtensions.childCount(this.node);
     for (let i = count - 1; i >= 0; i--) {
       yield SyntaxNodeBase.relativeChildAt(this, i);
     }
@@ -512,7 +512,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public *getAncestors(): IterableIterator<ISyntaxNodeOrList> {
     let node = this.parent;
-    while (node) {
+    while (node !== null) {
       yield node;
       node = node.parent;
     }
@@ -523,7 +523,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
    */
   public *getAncestorsAndSelf(): IterableIterator<ISyntaxNodeOrList> {
     let node: ISyntaxNodeOrList | null = this;
-    while (node) {
+    while (node !== null) {
       yield node;
       node = node.parent;
     }
@@ -583,10 +583,10 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
 
       // If the child index is not 0, then the node was already processed and
       // the iterator is restarting from an earlier parent node.
-      if (iteration.childIndex == 0) {
+      if (iteration.childIndex === 0) {
         // Diagnostics on leading trivia.
         // @todo Get diagnostics on structured trivia.
-        if (node.leadingTrivia && node.leadingTrivia.containsDiagnostics) {
+        if (node.leadingTrivia !== null && node.leadingTrivia.containsDiagnostics) {
           let triviaDiagnostics = this.getTriviaDiagnostics(node.leadingTrivia);
           for (let i = 0; i < triviaDiagnostics.length; i++) {
             let start = offset + triviaDiagnostics[i].offset;
@@ -612,7 +612,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       let count = node.count;
       for (let i = iteration.childIndex; i < count; i++) {
         let child = node.childAt(i);
-        if (!child) {
+        if (child === null) {
           continue;
         }
         if (child.containsDiagnostics) {
@@ -682,8 +682,8 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
   protected relativeIndexAt(index: number): number {
     let relativeIndex = 0;
     for (let i = 0; i < index; i++) {
-      let child = this.node.childAt(i);
-      if (child) {
+      const child = this.node.childAt(i);
+      if (child !== null) {
         relativeIndex += child.isList ? child.count : 1;
       }
     }
@@ -702,7 +702,7 @@ export abstract class SyntaxNodeBase implements ISyntaxNodeOrList {
       let count = trivia.count;
       for (let i = 0; i < count; i++) {
         let child = trivia.childAt(i);
-        if (!child) {
+        if (child === null) {
           continue;
         }
 

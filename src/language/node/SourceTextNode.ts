@@ -59,7 +59,7 @@ export class SourceTextNode extends Node {
     this.statements = statements;
     this.eof = eof;
 
-    if (statements) {
+    if (statements !== null) {
       this.updateFlagsAndWidth(statements.flags, statements.fullWidth);
     }
     this.updateFlagsAndWidth(eof.flags, eof.fullWidth);

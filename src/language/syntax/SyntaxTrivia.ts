@@ -74,14 +74,14 @@ export class SyntaxTrivia implements ISyntaxTrivia {
    * @inheritDoc
    */
   public get containsSkippedText(): boolean {
-    return this.node ? this.node.containsSkippedText : false;
+    return this.node !== null ? this.node.containsSkippedText : false;
   }
 
   /**
    * @inheritDoc
    */
   public get fullSpan(): TextSpan {
-    return new TextSpan(this.offset, this.node ? this.node.fullWidth : 0);
+    return new TextSpan(this.offset, this.node !== null ? this.node.fullWidth : 0);
   }
 
   /**
@@ -89,14 +89,14 @@ export class SyntaxTrivia implements ISyntaxTrivia {
    */
   public get kind(): TokenKind {
     // @todo Use an interface.
-    return this.node ? (<TriviaNode>this.node).kind : TokenKind.Unknown;
+    return this.node !== null ? (<TriviaNode>this.node).kind : TokenKind.Unknown;
   }
 
   /**
    * @inheritDoc
    */
   public get span(): TextSpan {
-    return this.node
+    return this.node !== null
       ? new TextSpan(this.offset + this.node.leadingTriviaWidth, this.node.width)
       : new TextSpan(this.offset, 0);
   }
@@ -115,7 +115,7 @@ export class SyntaxTrivia implements ISyntaxTrivia {
     if (this === value) {
       return true;
     }
-    if (this.offset == value.offset && this.index == value.index && this.token.equals(value.token)) {
+    if (this.offset === value.offset && this.index === value.index && this.token.equals(value.token)) {
       return NodeExtensions.equals(this.node, value.node);
     }
     return false;

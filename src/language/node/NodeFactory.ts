@@ -132,11 +132,11 @@ export class NodeFactory {
    * Creates a `NodeList` and caches it, if possible.
    */
   public createList(nodes: Node[], diagnostics?: SyntaxDiagnostic[]): NodeList {
-    if (nodes.length == 1) {
+    if (nodes.length === 1) {
       let list = new SingleChildListNode(nodes[0], diagnostics);
       return this.getCachedList(list, list.hashCode());
     }
-    else if (nodes.length == 2) {
+    else if (nodes.length === 2) {
       let list = new TwoChildListNode(nodes[0], nodes[1], diagnostics);
       return this.getCachedList(list, list.hashCode());
     }
@@ -208,16 +208,16 @@ export class NodeFactory {
       return new TriviaNode(kind, fullWidth, diagnostics);
     }
     // Whitespace is very common, bypass the cache if possible.
-    if (kind == TokenKind.LineBreak) {
-      // if (fullWidth == 1) {
-      //   return NodeFactory.LF;
-      // }
-      if (fullWidth == 2) {
+    if (kind === TokenKind.LineBreak) {
+      if (fullWidth === 1) {
+        return NodeFactory.LF;
+      }
+      if (fullWidth === 2) {
         return NodeFactory.CRLF;
       }
     }
-    else if (kind == TokenKind.Whitespace) {
-      if (fullWidth == 1) {
+    else if (kind === TokenKind.Whitespace) {
+      if (fullWidth === 1) {
         return NodeFactory.SingleWhitespace;
       }
     }

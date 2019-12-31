@@ -73,7 +73,7 @@ export abstract class Node extends NodeBase implements INodeVisitorAccess {
           return false;
         }
         // Suppress TS2345: Transitive property prevents value(s) from being `null`.
-        if (child1 && !child1.equals(<INode>child2)) {
+        if (child1 !== null && !child1.equals(<INode>child2)) {
           return false;
         }
       }

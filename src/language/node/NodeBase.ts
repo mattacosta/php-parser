@@ -213,7 +213,7 @@ export abstract class NodeBase implements INode {
 
     for (let i = 0; i < length; i++) {
       const child = this.childAt(i);
-      if (child) {
+      if (child !== null) {
         width += child.fullWidth;
         if (relativeOffset < width) {
           return i;
@@ -236,7 +236,7 @@ export abstract class NodeBase implements INode {
     let offset = 0;
     for (let i = 0; i < index; i++) {
       const child = this.childAt(i);
-      if (child) {
+      if (child !== null) {
         offset += child.fullWidth;
       }
     }
@@ -269,22 +269,22 @@ export abstract class NodeBase implements INode {
 
     // Terminal nodes (tokens and trivia) should not indirectly call this
     // method, as that indicates a missing override.
-    Debug.assert(length != 0);
+    Debug.assert(length !== 0);
 
     do {
       let firstChild: INode | null = null;
       for (let i = 0; i < length; i++) {
         const child: INode | null = node.childAt(i);
-        if (child) {
+        if (child !== null) {
           firstChild = child;
           length = child.count;
           break;
         }
       }
       node = firstChild;
-    } while (node && length > 0);
+    } while (node !== null && length > 0);
 
-    if (!node) {
+    if (node === null) {
       // The parser should not have created this node.
       throw new Exception('Child node expected');
     }
@@ -301,22 +301,22 @@ export abstract class NodeBase implements INode {
 
     // Terminal nodes (tokens and trivia) should not indirectly call this
     // method, as that indicates a missing override.
-    Debug.assert(length != 0);
+    Debug.assert(length !== 0);
 
     do {
       let lastChild: INode | null = null;
       for (let i = length - 1; i >= 0; i--) {
         const child: INode | null = node.childAt(i);
-        if (child) {
+        if (child !== null) {
           lastChild = child;
           length = child.count;
           break;
         }
       }
       node = lastChild;
-    } while (node && length > 0);
+    } while (node !== null && length > 0);
 
-    if (!node) {
+    if (node === null) {
       // The parser should not have created this node.
       throw new Exception('Child node expected');
     }

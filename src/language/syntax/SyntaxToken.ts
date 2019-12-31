@@ -63,7 +63,7 @@ export class SyntaxToken implements ISyntaxToken {
    * Constructs a `SyntaxToken` object.
    */
   constructor(node: INode | null, parent: ISyntaxNode, offset: number, index: number) {
-    Debug.assert(node == null || node.isToken);
+    Debug.assert(node === null || node.isToken);
 
     this.node = node;
     this.parent = parent;
@@ -75,28 +75,28 @@ export class SyntaxToken implements ISyntaxToken {
    * @todo Unused.
    */
   protected get endOffset(): number {
-    return this.node ? this.offset + this.node.fullWidth : 0;
+    return this.node !== null ? this.offset + this.node.fullWidth : 0;
   }
 
   /**
    * @inheritDoc
    */
   public get containsDiagnostics(): boolean {
-    return this.node ? this.node.containsDiagnostics : false;
+    return this.node !== null ? this.node.containsDiagnostics : false;
   }
 
   /**
    * @inheritDoc
    */
   public get fullSpan(): TextSpan {
-    return new TextSpan(this.offset, this.node ? this.node.fullWidth : 0);
+    return new TextSpan(this.offset, this.node !== null ? this.node.fullWidth : 0);
   }
 
   /**
    * @inheritDoc
    */
   public get isMissing(): boolean {
-    return this.node ? this.node.isMissing : false;
+    return this.node !== null ? this.node.isMissing : false;
   }
 
   /**
@@ -110,7 +110,7 @@ export class SyntaxToken implements ISyntaxToken {
    * @inheritDoc
    */
   public get leadingTrivia(): ISyntaxTriviaList | null {
-    return this.node ? new SyntaxTriviaList(this.node.leadingTrivia, this, this.offset) : null;
+    return this.node !== null ? new SyntaxTriviaList(this.node.leadingTrivia, this, this.offset) : null;
   }
 
   /**
@@ -118,14 +118,14 @@ export class SyntaxToken implements ISyntaxToken {
    */
   public get kind(): TokenKind {
     // @todo This is cheating.
-    return this.node ? (<TokenNode>this.node).kind : TokenKind.Unknown;
+    return this.node !== null ? (<TokenNode>this.node).kind : TokenKind.Unknown;
   }
 
   /**
    * @inheritDoc
    */
   public get span(): TextSpan {
-    return this.node
+    return this.node !== null
       ? new TextSpan(this.offset + this.node.leadingTriviaWidth, this.node.width)
       : new TextSpan(this.offset, 0);
   }
@@ -134,8 +134,8 @@ export class SyntaxToken implements ISyntaxToken {
    * Determines if the token has a width (not including trivia).
    */
   public static hasWidth(token: ISyntaxToken): boolean {
-    let span = token.span;
-    let width = span ? span.length : 0;
+    const span = token.span;
+    const width = span ? span.length : 0;
     return width > 0;
   }
 
@@ -171,15 +171,15 @@ export class SyntaxToken implements ISyntaxToken {
    *   If not provided, trivia is not searched.
    */
   public static tryGetFirstToken(token: ISyntaxToken, tokenFilter?: SyntaxTokenFilter, triviaFilter?: SyntaxTriviaFilter): ISyntaxToken | null {
-    let leadingTrivia = token.leadingTrivia;
-    if (leadingTrivia && triviaFilter) {
-      let structuredToken = SyntaxTriviaList.tryGetFirstToken(leadingTrivia, triviaFilter, tokenFilter);
+    const leadingTrivia = token.leadingTrivia;
+    if (leadingTrivia !== null && triviaFilter !== undefined) {
+      const structuredToken = SyntaxTriviaList.tryGetFirstToken(leadingTrivia, triviaFilter, tokenFilter);
       if (structuredToken !== null) {
         return structuredToken;
       }
     }
 
-    if (!tokenFilter || tokenFilter(token)) {
+    if (tokenFilter === undefined || tokenFilter(token)) {
       return token;
     }
 
@@ -200,13 +200,13 @@ export class SyntaxToken implements ISyntaxToken {
    *   If not provided, trivia is not searched.
    */
   public static tryGetLastToken(token: ISyntaxToken, tokenFilter?: SyntaxTokenFilter, triviaFilter?: SyntaxTriviaFilter): ISyntaxToken | null {
-    if (!tokenFilter || tokenFilter(token)) {
+    if (tokenFilter === undefined || tokenFilter(token)) {
       return token;
     }
 
-    let leadingTrivia = token.leadingTrivia;
-    if (leadingTrivia && triviaFilter) {
-      let structuredToken = SyntaxTriviaList.tryGetLastToken(leadingTrivia, triviaFilter, tokenFilter);
+    const leadingTrivia = token.leadingTrivia;
+    if (leadingTrivia !== null && triviaFilter !== undefined) {
+      const structuredToken = SyntaxTriviaList.tryGetLastToken(leadingTrivia, triviaFilter, tokenFilter);
       if (structuredToken !== null) {
         return structuredToken;
       }
@@ -308,7 +308,7 @@ export class SyntaxToken implements ISyntaxToken {
     if (this === value) {
       return true;
     }
-    if (this.offset == value.offset && this.index == value.index && this.parent.equals(value.parent)) {
+    if (this.offset === value.offset && this.index === value.index && this.parent.equals(value.parent)) {
       return NodeExtensions.equals(this.node, value.node);
     }
     return false;

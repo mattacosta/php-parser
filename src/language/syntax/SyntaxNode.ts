@@ -45,8 +45,8 @@ export abstract class SyntaxNode extends SyntaxNodeBase implements ISyntaxNode {
    * @see createFirstChildNode()
    */
   protected createChildNode<T extends ISyntaxNodeOrList>(index: number): T | null {
-    let node = this.node.childAt(index);
-    if (node) {
+    const node = this.node.childAt(index);
+    if (node !== null) {
       // Suppress TS2322: Type `ISyntaxNodeOrList` is assignable to `ISyntaxNodeOrList`.
       return <T><any>node.createSyntaxNode(this, this.offsetAt(index));
     }
@@ -63,8 +63,8 @@ export abstract class SyntaxNode extends SyntaxNodeBase implements ISyntaxNode {
    *   node.
    */
   protected createFirstChildNode<T extends ISyntaxNodeOrList>(): T | null {
-    let node = this.node.childAt(0);
-    if (node) {
+    const node = this.node.childAt(0);
+    if (node !== null) {
       // Suppress TS2322: Type `ISyntaxNodeOrList` is assignable to `ISyntaxNodeOrList`.
       return <T><any>node.createSyntaxNode(this, this.offset);
     }

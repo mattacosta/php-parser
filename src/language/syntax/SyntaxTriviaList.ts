@@ -70,21 +70,21 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    * @inheritDoc
    */
   public get count(): number {
-    return this.node ? (this.node.isList ? this.node.count : 1) : 0;
+    return this.node !== null ? (this.node.isList ? this.node.count : 1) : 0;
   }
 
   /**
    * @inheritDoc
    */
   public get fullSpan(): TextSpan {
-    return new TextSpan(this.offset, this.node ? this.node.fullWidth : 0);
+    return new TextSpan(this.offset, this.node !== null ? this.node.fullWidth : 0);
   }
 
   /**
    * @inheritDoc
    */
   public get span(): TextSpan {
-    return this.node
+    return this.node !== null
       ? new TextSpan(this.offset + this.node.leadingTriviaWidth, this.node.width)
       : new TextSpan(this.offset, 0);
   }
@@ -104,7 +104,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    *   provided or no tokens matched the token filter.
    */
   public static tryGetFirstToken(triviaList: ISyntaxTriviaList, triviaFilter?: SyntaxTriviaFilter, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
-    if (!triviaFilter) {
+    if (triviaFilter === undefined) {
       return null;
     }
 
@@ -138,7 +138,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    *   provided or no tokens matched the token filter.
    */
   public static tryGetLastToken(triviaList: ISyntaxTriviaList, triviaFilter?: SyntaxTriviaFilter, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
-    if (!triviaFilter) {
+    if (triviaFilter === undefined) {
       return null;
     }
 
@@ -160,14 +160,14 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    * @todo Experimental.
    */
   public *[Symbol.iterator](): IterableIterator<SyntaxTrivia> {
-    if (!this.node) {
+    if (this.node === null) {
       return;
     }
     if (this.node.isList) {
       const length = this.node.count;
       for (let i = 0; i < length; i++) {
-        let node = this.node.childAt(i);
-        let offset = this.offset + this.node.offsetAt(i);
+        const node = this.node.childAt(i);
+        const offset = this.offset + this.node.offsetAt(i);
         yield new SyntaxTrivia(node, this.token, offset, this.index + i);
       }
     }
@@ -180,10 +180,10 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    * @inheritDoc
    */
   public equals(value: SyntaxTriviaList): boolean {
-    if (this == value) {
+    if (this === value) {
       return true;
     }
-    if (this.index == value.index && this.token.equals(value.token)) {
+    if (this.index === value.index && this.token.equals(value.token)) {
       return NodeExtensions.equals(this.node, value.node);
     }
     return false;
@@ -193,8 +193,8 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    * @inheritDoc
    */
   public *reversed(): IterableIterator<ISyntaxTrivia> {
-    if (this.node) {
-      let length = this.count;
+    if (this.node !== null) {
+      const length = this.count;
       for (let i = length - 1; i >= 0; i--) {
         yield this.triviaAt(i);
       }
@@ -205,14 +205,14 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    * @inheritDoc
    */
   public triviaAt(index: number): ISyntaxTrivia {
-    if (this.node) {
+    if (this.node !== null) {
       if (this.node.isList) {
         if (index >= 0 && index < this.node.count) {
           const offset = this.offset + this.node.offsetAt(index);
           return new SyntaxTrivia(this.node.childAt(index), this.token, offset, this.index + index);
         }
       }
-      else if (index == 0) {
+      else if (index === 0) {
         return new SyntaxTrivia(this.node, this.token, this.offset, this.index);
       }
     }
@@ -223,7 +223,7 @@ export class SyntaxTriviaList implements ISyntaxTriviaList {
    * @todo Experimental.
    */
   protected toArray(): ISyntaxTrivia[] {
-    if (!this.node) {
+    if (this.node === null) {
       return [];
     }
 
