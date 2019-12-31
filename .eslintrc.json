@@ -1,0 +1,43 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+        // eslint
+        "no-case-declarations": "off",
+        "no-fallthrough": "off",
+        "prefer-const": "off",
+        // @typescript-eslint
+        "@typescript-eslint/consistent-type-assertions": "off",
+        "@typescript-eslint/interface-name-prefix": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/no-this-alias": "off"
+    },
+    "overrides": [
+        {
+            // Exempt severity prefixes.
+            "files": [
+                "src/diagnostics/ErrorCode.Generated.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/camelcase": "off"
+            }
+        },
+        {
+            // Exempt variables containing versioned tests.
+            "files": [
+                "test/src/**/**.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/camelcase": "off"
+            }
+        }
+    ]
+}
