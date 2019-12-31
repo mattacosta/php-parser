@@ -195,7 +195,7 @@ export class SingleChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     this._flags = this._flags | (flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + fullWidth;
   }
@@ -342,7 +342,7 @@ export class TwoChildListNode extends NodeList {
   /**
    * @inheritDoc
    */
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     this._flags = this._flags | (flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + fullWidth;
   }
@@ -546,7 +546,7 @@ export class ShortChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  protected updateFromChildren(children: Node[]) {
+  protected updateFromChildren(children: Node[]): void {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       if (child !== null) {
@@ -558,7 +558,7 @@ export class ShortChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     this._flags = this._flags | (flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + fullWidth;
   }
@@ -677,7 +677,7 @@ export class LongChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  protected updateFromChildren(children: Node[]) {
+  protected updateFromChildren(children: Node[]): void {
     let offset = 0;
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -692,7 +692,7 @@ export class LongChildListNode extends ManyChildListNode {
   /**
    * @inheritDoc
    */
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     this._flags = this._flags | (flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + fullWidth;
   }

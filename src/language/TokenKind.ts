@@ -559,7 +559,7 @@ export class TokenKindInfo {
   /**
    * Determines if the token kind is non-essential.
    */
-  public static isTrivia(kind: TokenKind) {
+  public static isTrivia(kind: TokenKind): boolean {
     if (kind >= TokenKind.ConflictMarkerEnd && kind <= TokenKind.Whitespace) {
       return true;
     }

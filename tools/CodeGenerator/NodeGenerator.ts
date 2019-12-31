@@ -103,7 +103,7 @@ export class NodeGenerator {
       console.log(className + 'Node: Missing visitorName property.');
     }
 
-    let text = '  public accept(visitor: NodeVisitor) {\n';
+    let text = '  public accept(visitor: NodeVisitor): void {\n';
     if (!visitorName) {
       text += '    throw new Error(\'Not implemented\');\n';
     }
@@ -139,7 +139,7 @@ export class NodeGenerator {
     return text;
   }
 
-  protected addClass(info: NodeClass, index: number) {
+  protected addClass(info: NodeClass, index: number): void {
     this.assertClass(info);
 
     let abstract = info.abstract ? ' abstract' : '';
@@ -294,7 +294,7 @@ export class NodeGenerator {
     return text;
   }
 
-  protected addImports(classList: NodeClass[]) {
+  protected addImports(classList: NodeClass[]): void {
     this.text += 'import { Hash } from \'@mattacosta/php-common\';\n';
     this.text += '\n';
     this.text += 'import {\n';
@@ -357,7 +357,7 @@ export class NodeGenerator {
 
   protected addUpdateFlagsAndWidth(): string {
     let text = '';
-    text += '  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {\n';
+    text += '  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {\n';
     text += '    this._flags = this._flags | (flags & NodeFlags.InheritMask);\n';
     text += '    this._fullWidth = this._fullWidth + fullWidth;\n';
     text += '  }\n';
@@ -406,7 +406,7 @@ export class NodeGenerator {
     return type + 'Node';
   }
 
-  private assertClass(info: NodeClass) {
+  private assertClass(info: NodeClass): void {
     let knownProperties = new Set(['name', 'abstract', 'extends', 'properties', 'visitorName', 'visitorType']);
     for (let key of Object.keys(info)) {
       if (!knownProperties.has(key)) {
@@ -415,7 +415,7 @@ export class NodeGenerator {
     }
   }
 
-  private assertProperty(info: NodeProperty) {
+  private assertProperty(info: NodeProperty): void {
     let knownProperties = new Set(['name', 'type', 'inherited', 'optional']);
     for (let key of Object.keys(info)) {
       if (!knownProperties.has(key)) {

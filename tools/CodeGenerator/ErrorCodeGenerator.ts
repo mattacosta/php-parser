@@ -60,7 +60,7 @@ export class ErrorCodeGenerator {
     return generator.text;
   }
 
-  protected addEnum(diagnostics: DiagnosticInfo[]) {
+  protected addEnum(diagnostics: DiagnosticInfo[]): void {
     this.text += 'export enum ErrorCode {\n';
     this.text += '\n';
 

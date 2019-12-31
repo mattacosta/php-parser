@@ -91,7 +91,7 @@ function assertAnonymousClassDeclaration(statements: ISyntaxNode[], hasArgumentL
   return classDecl;
 }
 
-function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenKind | null) {
+function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenKind | null): void {
   let element = <ArrayElementSyntaxNode>node;
   assert.equal(element instanceof ArrayElementSyntaxNode, true, 'ArrayElementSyntaxNode');
   if (hasKey) {
@@ -110,7 +110,7 @@ function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenK
   assert.equal(element.value instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
 }
 
-function assertPrecedence(statements: ISyntaxNode[], text: string, kind: TokenKind, operator: string, rightKind: TokenKind, rightOperator: string) {
+function assertPrecedence(statements: ISyntaxNode[], text: string, kind: TokenKind, operator: string, rightKind: TokenKind, rightOperator: string): void {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let binaryNode = <BinarySyntaxNode>exprNode.expression;

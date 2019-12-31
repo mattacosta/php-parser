@@ -77,7 +77,7 @@ export class SourceTextNode extends Node {
     return this._fullWidth;
   }
 
-  public accept(visitor: NodeVisitor) {
+  public accept(visitor: NodeVisitor): void {
     visitor.visitSourceText(this);
   }
 
@@ -118,7 +118,7 @@ export class SourceTextNode extends Node {
     return hash;
   }
 
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     this._flags = this._flags | (flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + fullWidth;
   }

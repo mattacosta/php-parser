@@ -62,7 +62,7 @@ export class ErrorCodeInfoGenerator {
     return generator.text;
   }
 
-  protected addClass(diagnostics: DiagnosticInfo[]) {
+  protected addClass(diagnostics: DiagnosticInfo[]): void {
     this.text += 'export class ErrorCodeInfo {\n';
     this.text += '\n';
     this.text += '  protected static Resources = new ResourceSet<ErrorCodeData>(\'../ErrorCode.json\');\n';
@@ -80,7 +80,7 @@ export class ErrorCodeInfoGenerator {
     this.text += '}\n';
   }
 
-  protected addErrorCodeDataInterface() {
+  protected addErrorCodeDataInterface(): void {
     this.text += 'export interface ErrorCodeData {\n';
     this.text += '\n';
     this.text += '  severity: number;\n';
@@ -129,7 +129,7 @@ export class ErrorCodeInfoGenerator {
     return text;
   }
 
-  protected addImports() {
+  protected addImports(): void {
     this.text += 'import { ArgumentOutOfRangeException} from \'@mattacosta/php-common\';\n';
     this.text += '\n';
     this.text += 'import { ErrorCode } from \'./ErrorCode.Generated\';\n';

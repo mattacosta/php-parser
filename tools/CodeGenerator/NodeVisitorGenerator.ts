@@ -69,7 +69,7 @@ export class NodeVisitorGenerator {
     return generator.text;
   }
 
-  protected generateClass(list: NodeClass[]) {
+  protected generateClass(list: NodeClass[]): void {
     this.text += this.addImports(list);
     this.text += '\n';
     this.text += 'export abstract class NodeVisitor {\n';
@@ -99,7 +99,7 @@ export class NodeVisitorGenerator {
     let text = '';
 
     // Manually create the visitor method for root nodes.
-    text += '  public visitSourceText(node: SourceTextNode) {\n';
+    text += '  public visitSourceText(node: SourceTextNode): void {\n';
     text += '    this.defaultVisit(node);\n';
     text += '  }\n';
     text += '\n';
@@ -125,7 +125,7 @@ export class NodeVisitorGenerator {
         shared[visitorName] = true;
       }
 
-      text += '  public ' + list[i].visitorName + '(node: ' + name + ') {\n';
+      text += '  public ' + list[i].visitorName + '(node: ' + name + '): void {\n';
       text += '    this.defaultVisit(node);\n';
       text += '  }\n';
     }
@@ -134,19 +134,19 @@ export class NodeVisitorGenerator {
 
   protected addVisitMethods(): string {
     let text = '';
-    text += '  public defaultVisit(node: Node) {\n';
+    text += '  public defaultVisit(node: Node): void {\n';
     text += '    // Does nothing.\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visit(node: Node) {\n';  // @todo Technically INodeVisitorAccess.
+    text += '  public visit(node: Node): void {\n';  // @todo Technically INodeVisitorAccess.
     text += '    node.accept(this);\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visitToken(token: Node) {\n';  // @todo TokenNode
+    text += '  public visitToken(token: Node): void {\n';  // @todo TokenNode
     text += '    // this.defaultVisit(token);\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visitTrivia(trivia: Node) {\n';  // @todo TriviaNode
+    text += '  public visitTrivia(trivia: Node): void {\n';  // @todo TriviaNode
     text += '    // this.defaultVisit(trivia);\n';
     text += '  }\n';
     return text;

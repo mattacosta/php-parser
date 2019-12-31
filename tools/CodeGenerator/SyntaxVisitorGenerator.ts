@@ -69,7 +69,7 @@ export class SyntaxVisitorGenerator {
     return generator.text;
   }
 
-  protected generateClass(list: NodeClass[]) {
+  protected generateClass(list: NodeClass[]): void {
     this.text += this.addImports(list);
     this.text += '\n';
     this.text += 'export abstract class SyntaxVisitor {\n';
@@ -102,7 +102,7 @@ export class SyntaxVisitorGenerator {
     let text = '';
 
     // Manually create the visitor method for root nodes.
-    text += '  public visitSourceText(node: SourceTextSyntaxNode) {\n';
+    text += '  public visitSourceText(node: SourceTextSyntaxNode): void {\n';
     text += '    this.defaultVisit(node);\n';
     text += '  }\n';
     text += '\n';
@@ -128,7 +128,7 @@ export class SyntaxVisitorGenerator {
         shared[visitorName] = true;
       }
 
-      text += '  public ' + list[i].visitorName + '(node: ' + name + ') {\n';
+      text += '  public ' + list[i].visitorName + '(node: ' + name + '): void {\n';
       text += '    this.defaultVisit(node);\n';
       text += '  }\n';
     }
@@ -137,19 +137,19 @@ export class SyntaxVisitorGenerator {
 
   protected addVisitMethods(): string {
     let text = '';
-    text += '  public defaultVisit(node: ISyntaxNode) {\n';
+    text += '  public defaultVisit(node: ISyntaxNode): void {\n';
     text += '    // Does nothing.\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visit(node: ISyntaxVisitorAccess) {\n';
+    text += '  public visit(node: ISyntaxVisitorAccess): void {\n';
     text += '    node.accept(this);\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visitToken(token: ISyntaxToken) {\n';
+    text += '  public visitToken(token: ISyntaxToken): void {\n';
     text += '    // Does nothing.\n';
     text += '  }\n';
     text += '\n';
-    text += '  public visitTrivia(trivia: ISyntaxTrivia) {\n';
+    text += '  public visitTrivia(trivia: ISyntaxTrivia): void {\n';
     text += '    // Does nothing.\n';
     text += '  }\n';
     return text;

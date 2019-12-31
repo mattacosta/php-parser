@@ -69,7 +69,7 @@ export class SyntaxTransformGenerator {
     return generator.text;
   }
 
-  protected generateClass(list: NodeClass[]) {
+  protected generateClass(list: NodeClass[]): void {
     this.text += this.addImports(list);
     this.text += '\n';
     this.text += 'export abstract class SyntaxTransform<T> {\n';

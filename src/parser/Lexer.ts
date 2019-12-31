@@ -113,7 +113,7 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
   /**
    * @inheritDoc
    */
-  public setPosition(offset: number) {
+  public setPosition(offset: number): void {
     if (offset < this.start || offset > this.end) {
       throw new ArgumentOutOfRangeException('Offset must be within scanning bounds');
     }
@@ -128,7 +128,7 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
   /**
    * Adds a new diagnostic to the list of diagnostics found during a scan.
    */
-  protected addError(relativeOffset: number, width: number, code: ErrorCode, ...args: any[]) {
+  protected addError(relativeOffset: number, width: number, code: ErrorCode, ...args: any[]): void {
     this.diagnostics.push(this.createDiagnostic(relativeOffset, width, code, ...args));
   }
 
@@ -164,7 +164,7 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
    * @param {number} end
    *   The offset within the text to stop tokenizing.
    */
-  protected setBounds(start: number, end: number) {
+  protected setBounds(start: number, end: number): void {
     if (start < 0 || start > this.text.length) {
       throw new ArgumentOutOfRangeException();
     }

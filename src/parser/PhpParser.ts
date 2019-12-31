@@ -289,7 +289,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *
    * @todo Experimental.
    */
-  protected forceEndOfFile() {
+  protected forceEndOfFile(): void {
     // @todo Technically this should be the end of the scanning bounds.
     let end = this.lexer.sourceText.length;
 
@@ -360,7 +360,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Creates a missing token using the given error code.
    */
-  protected createMissingTokenWithError(expected: TokenKind, code: ErrorCode, ...args: any[]) {
+  protected createMissingTokenWithError(expected: TokenKind, code: ErrorCode, ...args: any[]): TokenNode {
     let diagnostic = this.createDiagnosticForMissingToken(code, ...args);
     return this.createMissingTokenWithDiagnostic(expected, [diagnostic]);
   }
@@ -371,7 +371,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * NOTE: This method should not be called directly from parsing methods.
    * Use `createMissingToken()` or `createMissingTokenWithError()` instead.
    */
-  protected createMissingTokenWithDiagnostic(expected: TokenKind, diagnostics: SyntaxDiagnostic[]) {
+  protected createMissingTokenWithDiagnostic(expected: TokenKind, diagnostics: SyntaxDiagnostic[]): TokenNode {
     return this.factory.createMissingToken(expected, null, diagnostics);
   }
 
@@ -443,7 +443,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Moves the lexer to the next non-trivia token.
    */
-  protected nextToken() {
+  protected nextToken(): void {
     this.scanToken();
     while (TokenKindInfo.isTrivia(this.currentToken.kind)) {
       let diagnostics = this.currentToken.diagnostics;
@@ -465,7 +465,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *
    * @todo Merge into nextToken() if not needed for incremental parsing.
    */
-  protected scanToken() {
+  protected scanToken(): void {
     this.currentToken = this.lexer.lex(this.lexerState);
     if (this.lexerState !== this.lexer.currentState) {
       // @todo May need to save the location of the state change.
@@ -477,15 +477,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Adds the current token to the leading trivia of the next token. The token
    * will be given a generic diagnostic as well.
    */
-  protected skipToken() {
-    return this.skipTokenWithError(ErrorCode.ERR_UnexpectedToken, TokenKindInfo.getText(this.currentToken.kind));
+  protected skipToken(): void {
+    this.skipTokenWithError(ErrorCode.ERR_UnexpectedToken, TokenKindInfo.getText(this.currentToken.kind));
   }
 
   /**
    * Adds the current token to the leading trivia of the next token with a
    * given error code.
    */
-  protected skipTokenWithError(code: ErrorCode, ...args: any[]) {
+  protected skipTokenWithError(code: ErrorCode, ...args: any[]): void {
     let diagnostic = this.createDiagnosticForSkippedToken(code, ...args);
     let trivia = this.factory.createSkippedTokenTrivia(this.currentToken.kind, this.currentToken.length, [diagnostic]);
     this.leadingTriviaWidth = this.leadingTriviaWidth + this.currentToken.length;
@@ -517,7 +517,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Creates a diagnostic for a token node with no width.
    */
-  protected createDiagnosticForMissingToken(code: ErrorCode, ...args: any[]) {
+  protected createDiagnosticForMissingToken(code: ErrorCode, ...args: any[]): SyntaxDiagnostic {
     return this.createDiagnostic(this.getOffsetForMissingToken(), 0, code, ...args);
   }
 
@@ -531,7 +531,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Creates a diagnostic for a trivia node containing a skipped token.
    */
-  protected createDiagnosticForSkippedToken(code: ErrorCode, ...args: any[]) {
+  protected createDiagnosticForSkippedToken(code: ErrorCode, ...args: any[]): SyntaxDiagnostic {
     return this.createDiagnostic(this.leadingTriviaWidth, this.currentToken.length, code, ...args);
   }
 
@@ -604,7 +604,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Adds a context flag to the parser's currently active contexts.
    */
-  protected addParseContext(context: ParseContext) {
+  protected addParseContext(context: ParseContext): void {
     this.currentContext |= context;
   }
 
@@ -958,7 +958,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Determines if the token starts a line within a flexible heredoc.
    */
-  protected isFlexdocTemplateLineStart(kind: TokenKind) {
+  protected isFlexdocTemplateLineStart(kind: TokenKind): boolean {
     return kind === TokenKind.StringIndent
       || kind === TokenKind.StringTemplateLiteral   // For error recovery.
       || this.isStringTemplateElementStart(kind);  // For error recovery.
@@ -6488,7 +6488,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @param {ExpressionType} type
    *   The expression type of the left operand.
    */
-  protected isBinaryOperatorExpected(operator: TokenKind, type: ExpressionType) {
+  protected isBinaryOperatorExpected(operator: TokenKind, type: ExpressionType): boolean {
     // Assignment operators require an explicit LHS, and may "override"
     // precedence rules to create a valid expression.
     if (type == ExpressionType.Explicit && this.isAssignmentOperator(operator)) {
@@ -6553,7 +6553,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document skipBadArgumentListTokens().
    */
-  protected skipBadArgumentListTokens() {
+  protected skipBadArgumentListTokens(): void {
     this.skipToken();  // @todo Invalid token '%s' in argument list
 
     while (this.currentToken.kind != TokenKind.EOF) {
@@ -6570,7 +6570,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document skipBadForExpressionListTokens().
    */
-  protected skipBadForExpressionListTokens(terminator: TokenKind) {
+  protected skipBadForExpressionListTokens(terminator: TokenKind): void {
     this.skipToken();  // @todo Invalid token '%s' in for expression
 
     let kind = this.currentToken.kind;
@@ -6589,7 +6589,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * A custom recovery strategy that matches opening and closing braces.
    */
-  protected skipBadMemberTokens() {
+  protected skipBadMemberTokens(): void {
     let braceCount = 0;
 
     // Always consume at least one token.
@@ -6619,7 +6619,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document skipBadParameterListTokens().
    */
-  protected skipBadParameterListTokens() {
+  protected skipBadParameterListTokens(): void {
     this.skipToken(); // @todo Invalid token '%s' in parameter list
 
     while (this.currentToken.kind != TokenKind.EOF) {
@@ -6636,7 +6636,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document skipBadStringTemplateTokens().
    */
-  protected skipBadStringTemplateTokens(terminator: TokenKind) {
+  protected skipBadStringTemplateTokens(terminator: TokenKind): void {
     this.skipToken();  // @todo Invalid token '%s' in string template
 
     while (this.currentToken.kind != TokenKind.EOF) {
@@ -6653,7 +6653,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document skipBadTraitUseTokens().
    */
-  protected skipBadTraitUseTokens() {
+  protected skipBadTraitUseTokens(): void {
     this.skipToken();  // @todo Invalid token '%s' in trait adaptation
 
     while (this.currentToken.kind != TokenKind.EOF) {

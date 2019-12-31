@@ -64,7 +64,7 @@ export class SourceTextSyntaxNode extends SyntaxNode implements ISourceTextSynta
     return 2;
   }
 
-  public accept(visitor: SyntaxVisitor) {
+  public accept(visitor: SyntaxVisitor): void {
     visitor.visitSourceText(this);
   }
 

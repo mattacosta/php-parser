@@ -115,7 +115,7 @@ export class TokenNode extends Node {
   /**
    * @inheritDoc
    */
-  public accept(visitor: NodeVisitor) {
+  public accept(visitor: NodeVisitor): void {
     visitor.visitToken(this);
   }
 
@@ -193,7 +193,7 @@ export class TokenNode extends Node {
   /**
    * @inheritDoc
    */
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     this._flags = this._flags | (flags & NodeFlags.InheritMask);
     this._fullWidth = this._fullWidth + fullWidth;
   }

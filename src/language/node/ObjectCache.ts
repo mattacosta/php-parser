@@ -98,7 +98,7 @@ export class ObjectCache<T extends IHashable<object>> {
    * NOTE: In order to prevent V8 from dereferencing the value, this method
    * takes the hash code as a parameter. This may be changed in the future.
    */
-  public set(value: T, hash: number) {
+  public set(value: T, hash: number): void {
     const index = hash & this.cacheMask;
     this.cache[index] = new ObjectCacheEntry(hash, value);
   }

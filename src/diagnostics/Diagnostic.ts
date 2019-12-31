@@ -118,14 +118,14 @@ export abstract class Diagnostic implements IDiagnostic {
   /**
    * Sets the original severity of the diagnostic.
    */
-  protected setOriginalSeverity(severity: DiagnosticSeverity) {
+  protected setOriginalSeverity(severity: DiagnosticSeverity): void {
     this.internalSeverity = (this.internalSeverity & Diagnostic.SeverityMask) | (severity << 3);
   }
 
   /**
    * Sets the current severity of the diagnostic.
    */
-  protected setSeverity(severity: DiagnosticSeverity) {
+  protected setSeverity(severity: DiagnosticSeverity): void {
     this.internalSeverity = (this.internalSeverity & (Diagnostic.SeverityMask << 3)) | severity;
   }
 

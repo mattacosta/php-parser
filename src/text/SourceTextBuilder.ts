@@ -103,7 +103,7 @@ export class SourceTextBuilder {
    * @param {number} length
    *   The number of segments to merge.
    */
-  protected static merge(segments: ISourceText[], start: number, length: number) {
+  protected static merge(segments: ISourceText[], start: number, length: number): void {
     if (start < 0 || start + length > segments.length) {
       throw new ArgumentOutOfRangeException();
     }
@@ -121,7 +121,7 @@ export class SourceTextBuilder {
    * @param {ISourceText} segment
    *   The text segment to append.
    */
-  public append(segment: ISourceText) {
+  public append(segment: ISourceText): void {
     if (SourceTextExtensions.isSourceTextContainer(segment)) {
       for (let i = 0; i < segment.sources.length; i++) {
         this.length += segment.sources[i].length;
@@ -142,7 +142,7 @@ export class SourceTextBuilder {
    * @param {ReadonlyArray<ISourceText>} segments
    *   A list of text segments to append.
    */
-  public appendRange(segments: ReadonlyArray<ISourceText>) {
+  public appendRange(segments: ReadonlyArray<ISourceText>): void {
     for (let i = 0; i < segments.length; i++) {
       this.append(segments[i]);
     }
@@ -177,7 +177,7 @@ export class SourceTextBuilder {
    * being built. Extending classes may override this method to change the
    * optimization strategy of custom `ISourceText` implementations.
    */
-  protected addSource(segment: ISourceText) {
+  protected addSource(segment: ISourceText): void {
     if (SourceTextExtensions.isSourceTextContainer(segment)) {
       this.uniqueSources.add(segment.sourceKey);
       if (this.uniqueSources.size > this.sourceCount) {
@@ -203,7 +203,7 @@ export class SourceTextBuilder {
    *
    * @todo Experimental.
    */
-  protected rebuildSegments(segmentLength: number) {
+  protected rebuildSegments(segmentLength: number): void {
     let segments = this.segments;
     this.reset();
 
@@ -283,7 +283,7 @@ export class SourceTextBuilder {
   /**
    * Resets the builder to its initial state.
    */
-  private reset() {
+  private reset(): void {
     this.length = 0;
     this.segments = [];
     this.sourceCount = 0;

@@ -56,7 +56,7 @@ function assertArrayDeconstruction(statements: ISyntaxNode[]): ArraySyntaxNode {
   return array;
 }
 
-function assertAssignmentAssociativity(statements: ISyntaxNode[]) {
+function assertAssignmentAssociativity(statements: ISyntaxNode[]): void {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let parentExpr = <AssignmentSyntaxNode>exprNode.expression;
@@ -78,7 +78,7 @@ function assertAssignmentNode(statements: ISyntaxNode[]): AssignmentSyntaxNode {
   return assignmentNode;
 }
 
-function assertBinaryAssociativity(statements: ISyntaxNode[], isRightAssociative = false) {
+function assertBinaryAssociativity(statements: ISyntaxNode[], isRightAssociative = false): void {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementNode');
   let parentExpr = <BinarySyntaxNode>exprNode.expression;

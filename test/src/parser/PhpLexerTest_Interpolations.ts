@@ -25,7 +25,7 @@ import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
 import { TokenKind, TokenKindInfo } from '../../../src/language/TokenKind';
 
-function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest) {
+function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest): void {
   for (let i = 0; i < tests.length; i++) {
     let test = tests[i];
 

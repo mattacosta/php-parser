@@ -36,7 +36,7 @@ import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
-function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQualified: boolean, type: string | null, alias: string | null) {
+function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQualified: boolean, type: string | null, alias: string | null): void {
   assert.equal(element instanceof UseElementSyntaxNode, true, 'UseElementSyntaxNode');
   if (type) {
     let kind = type == 'function' ? TokenKind.Function : TokenKind.Const;

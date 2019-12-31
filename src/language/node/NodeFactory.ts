@@ -124,7 +124,7 @@ export class NodeFactory {
   /**
    * Determines if the token is one of the reusable token kinds.
    */
-  protected static isWellKnownKind(kind: TokenKind) {
+  protected static isWellKnownKind(kind: TokenKind): boolean {
     return kind >= TokenKind.Abstract && kind < TokenKind.EOF;
   }
 

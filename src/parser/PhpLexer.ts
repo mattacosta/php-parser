@@ -309,7 +309,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Initializes the lexer with predetermined lexing regions found after
    * scanning a `FlexdocTemplate` token.
    */
-  public rescanInterpolatedFlexdoc(spans: TemplateSpan[]) {
+  public rescanInterpolatedFlexdoc(spans: TemplateSpan[]): void {
     if (spans.length < 1) {
       throw new ArgumentException('Flexdoc template must contain at least one span');
     }
@@ -342,7 +342,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Initializes the lexer with predetermined lexing regions found after
    * scanning a `HeredocTemplate` token.
    */
-  public rescanInterpolatedHeredoc(spans: TemplateSpan[]) {
+  public rescanInterpolatedHeredoc(spans: TemplateSpan[]): void {
     this.defaultState = PhpLexerState.InHeredoc;
     this.state = PhpLexerState.LookingForHeredocLabel;
     this.templateStack = spans;
@@ -359,7 +359,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Initializes the lexer with predetermined lexing regions found after
    * scanning a `ShellCommandTemplate` token.
    */
-  public rescanInterpolatedShellCommand(spans: TemplateSpan[]) {
+  public rescanInterpolatedShellCommand(spans: TemplateSpan[]): void {
     this.state = this.defaultState = PhpLexerState.InShellCommand;
     this.templateStack = spans;
 
@@ -377,7 +377,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    *
    * @see PhpLexer.templateSpans
    */
-  public rescanInterpolatedString(spans: TemplateSpan[]) {
+  public rescanInterpolatedString(spans: TemplateSpan[]): void {
     if (spans.length === 0) {
       throw new ArgumentException('String template must contain at least 1 span');
     }
@@ -401,7 +401,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    *   The maximum number of characters to tokenize. Defaults to the length
    *   of the text.
    */
-  public setText(text: ISourceText, start?: number, length?: number) {
+  public setText(text: ISourceText, start?: number, length?: number): void {
     this.text = text;
 
     start = start === void 0 ? 0 : start;
@@ -1310,7 +1310,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Scans the indentation of the end label in a flexdoc template.
    */
-  protected scanHeredocEndLabelIndent() {
+  protected scanHeredocEndLabelIndent(): number {
     const start = this.offset;
 
     let hasSpaces = false;

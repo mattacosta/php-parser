@@ -48,7 +48,7 @@ export class SyntaxWalker extends SyntaxVisitor {
   /**
    * Visits all children of a node.
    */
-  public defaultVisit(node: ISyntaxNode) {
+  public defaultVisit(node: ISyntaxNode): void {
     for (let child of node.getAllChildren()) {
       if (child.isToken && this.walkerDepth >= SyntaxWalkerDepth.NodesAndTokens) {
         this.visitToken(<ISyntaxToken>child);
@@ -62,7 +62,7 @@ export class SyntaxWalker extends SyntaxVisitor {
   /**
    * Visits a token in the syntax tree.
    */
-  public visitToken(token: ISyntaxToken) {
+  public visitToken(token: ISyntaxToken): void {
     if (this.walkerDepth >= SyntaxWalkerDepth.AllExceptStructuredTrivia) {
       if (!token.leadingTrivia) {
         return;
@@ -77,7 +77,7 @@ export class SyntaxWalker extends SyntaxVisitor {
   /**
    * Visits the trivia attached to a token.
    */
-  public visitTrivia(trivia: ISyntaxTrivia) {
+  public visitTrivia(trivia: ISyntaxTrivia): void {
     // if (this.depth == SyntaxWalkerDepth.All && trivia.containsStructuredTrivia) {
     //   this.visit(trivia.getStructure());
     // }

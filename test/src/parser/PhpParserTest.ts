@@ -59,7 +59,7 @@ class ModifierTestArgs {
 
 }
 
-function assertModifiers(args: ModifierTestArgs[]) {
+function assertModifiers(args: ModifierTestArgs[]): void {
   const lexer = new PhpLexer(SourceTextFactory.EmptyText);
   const parser = new TestPhpParser(lexer);
   for (let i = 0; i < args.length; i++) {
@@ -69,7 +69,7 @@ function assertModifiers(args: ModifierTestArgs[]) {
   }
 }
 
-function assertWithOptions(argList: ParserTestArgs[], options: PhpParserOptions) {
+function assertWithOptions(argList: ParserTestArgs[], options: PhpParserOptions): void {
   for (let i = 0; i < argList.length; i++) {
     const args = argList[i];
     const desc = args.description || args.text;

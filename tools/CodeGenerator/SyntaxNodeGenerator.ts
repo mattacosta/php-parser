@@ -100,7 +100,7 @@ export class SyntaxNodeGenerator {
       console.log(className + 'SyntaxNode: Missing visitorName property.');
     }
 
-    let text = '  public accept(visitor: SyntaxVisitor) {\n';
+    let text = '  public accept(visitor: SyntaxVisitor): void {\n';
     if (!visitorName) {
       text += '    throw new Error(\'Not implemented\');\n';
     }
@@ -140,7 +140,7 @@ export class SyntaxNodeGenerator {
     return text;
   }
 
-  protected addClass(info: NodeClass) {
+  protected addClass(info: NodeClass): void {
     let abstract = info.abstract ? ' abstract' : '';
     let baseClass = info.extends ? info.extends + 'SyntaxNode' : 'SyntaxNode';
 
@@ -257,7 +257,7 @@ export class SyntaxNodeGenerator {
     return text;
   }
 
-  protected addImports(classList: NodeClass[]) {
+  protected addImports(classList: NodeClass[]): void {
     this.text += 'import { InvalidOperationException } from \'@mattacosta/php-common\';\n';
     this.text += 'import {\n';
     for (let i = 0; i < classList.length; i++) {

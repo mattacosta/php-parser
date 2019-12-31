@@ -106,7 +106,7 @@ export class TriviaNode extends Node {
   /**
    * @inheritDoc
    */
-  public accept(visitor: NodeVisitor) {
+  public accept(visitor: NodeVisitor): void {
     visitor.visitTrivia(this);
   }
 
@@ -173,7 +173,7 @@ export class TriviaNode extends Node {
   /**
    * @inheritDoc
    */
-  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number) {
+  protected updateFlagsAndWidth(flags: NodeFlags, fullWidth: number): void {
     throw new InvalidOperationException('Unreachable');
   }
 
