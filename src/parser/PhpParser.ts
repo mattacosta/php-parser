@@ -411,8 +411,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *   The expected type of the token to parse.
    */
   protected eat(kind: TokenKind): TokenNode {
-    if (this.currentToken.kind == kind) {
-      let token = this.createToken(this.currentToken);
+    if (this.currentToken.kind === kind) {
+      const token = this.createToken(this.currentToken);
       this.nextToken();
       return token;
     }
@@ -433,7 +433,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected eatOptional(...kind: TokenKind[]): TokenNode | null {
     if (kind.indexOf(this.currentToken.kind) >= 0) {
-      let token = this.createToken(this.currentToken);
+      const token = this.createToken(this.currentToken);
       this.nextToken();
       return token;
     }
@@ -467,7 +467,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected scanToken() {
     this.currentToken = this.lexer.lex(this.lexerState);
-    if (this.lexerState != this.lexer.currentState) {
+    if (this.lexerState !== this.lexer.currentState) {
       // @todo May need to save the location of the state change.
       this.lexerState = this.lexer.currentState;
     }
@@ -729,14 +729,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token starts an argument in an invocation expression.
    */
   protected isArgumentStart(kind: TokenKind): boolean {
-    return this.isExpressionStart(kind) || kind == TokenKind.Ellipsis;
+    return this.isExpressionStart(kind) || kind === TokenKind.Ellipsis;
   }
 
   /**
    * Determines if a token starts an element within an array.
    */
   protected isArrayElementStart(kind: TokenKind): boolean {
-    return this.isExpressionStart(kind) || kind == TokenKind.Ampersand || kind == TokenKind.Ellipsis;
+    return this.isExpressionStart(kind) || kind === TokenKind.Ampersand || kind === TokenKind.Ellipsis;
   }
 
   /**
@@ -813,7 +813,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token is a valid identifier for a class member.
    */
   protected isClassMemberIdentifier(kind: TokenKind): boolean {
-    return kind == TokenKind.Identifier || TokenKindInfo.isSemiReservedKeyword(kind);
+    return kind === TokenKind.Identifier || TokenKindInfo.isSemiReservedKeyword(kind);
   }
 
   /**
@@ -821,10 +821,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected isClassMemberStart(kind: TokenKind): boolean {
     return this.isModifier(kind) ||
-      kind == TokenKind.Const ||
-      kind == TokenKind.Function ||
-      kind == TokenKind.Use ||
-      kind == TokenKind.Var;
+      kind === TokenKind.Const ||
+      kind === TokenKind.Function ||
+      kind === TokenKind.Use ||
+      kind === TokenKind.Var;
   }
 
   /**
@@ -833,9 +833,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected isClassNameReferenceStart(kind: TokenKind): boolean {
     return this.isNameStart(kind) ||
-      kind == TokenKind.Dollar ||
-      kind == TokenKind.Static ||
-      kind == TokenKind.Variable;
+      kind === TokenKind.Dollar ||
+      kind === TokenKind.Static ||
+      kind === TokenKind.Variable;
   }
 
   /**
@@ -843,10 +843,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * reference.
    */
   protected isClassNameReferenceExpressionStart(kind: TokenKind): boolean {
-    return kind == TokenKind.DoubleColon ||
-      kind == TokenKind.ObjectOperator ||
-      kind == TokenKind.OpenBrace ||
-      kind == TokenKind.OpenBracket;
+    return kind === TokenKind.DoubleColon ||
+      kind === TokenKind.ObjectOperator ||
+      kind === TokenKind.OpenBrace ||
+      kind === TokenKind.OpenBracket;
   }
 
   /**
@@ -855,11 +855,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @see PhpParser.isElementAccessStart()
    */
   protected isDereferenceStart(kind: TokenKind): boolean {
-    return kind == TokenKind.DoubleColon ||
-      kind == TokenKind.ObjectOperator ||
-      kind == TokenKind.OpenBrace ||
-      kind == TokenKind.OpenBracket ||
-      kind == TokenKind.OpenParen;
+    return kind === TokenKind.DoubleColon ||
+      kind === TokenKind.ObjectOperator ||
+      kind === TokenKind.OpenBrace ||
+      kind === TokenKind.OpenBracket ||
+      kind === TokenKind.OpenParen;
   }
 
   /**
@@ -868,7 +868,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * @see isDereferenceStart()
    */
   protected isElementAccessStart(kind: TokenKind): boolean {
-    return kind == TokenKind.OpenBracket || kind == TokenKind.OpenBrace;
+    return kind === TokenKind.OpenBracket || kind === TokenKind.OpenBrace;
   }
 
   /**
@@ -959,8 +959,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if the token starts a line within a flexible heredoc.
    */
   protected isFlexdocTemplateLineStart(kind: TokenKind) {
-    return kind == TokenKind.StringIndent
-      || kind == TokenKind.StringTemplateLiteral   // For error recovery.
+    return kind === TokenKind.StringIndent
+      || kind === TokenKind.StringTemplateLiteral   // For error recovery.
       || this.isStringTemplateElementStart(kind);  // For error recovery.
   }
 
@@ -968,7 +968,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token is a valid identifier for a function.
    */
   protected isFunctionIdentifier(kind: TokenKind): boolean {
-    if (kind == TokenKind.Identifier) {
+    if (kind === TokenKind.Identifier) {
       return true;
     }
     // Also allow functions with reserved names if the parser is being used to
@@ -984,7 +984,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected isListIntrinsicElementStart(kind: TokenKind): boolean {
     // The '&' token is also allowed for error recovery purposes.
-    return kind == TokenKind.Ampersand || kind == TokenKind.List || this.isExpressionStart(kind);
+    return kind === TokenKind.Ampersand || kind === TokenKind.List || this.isExpressionStart(kind);
   }
 
   /**
@@ -1063,7 +1063,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token starts a property declaration.
    */
   protected isPropertyStart(kind: TokenKind): boolean {
-    return kind == TokenKind.Dollar || kind == TokenKind.Variable || this.isTypeStart(kind);
+    return kind === TokenKind.Dollar || kind === TokenKind.Variable || this.isTypeStart(kind);
   }
 
   /**
@@ -1124,7 +1124,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token is a semicolon or close tag.
    */
   protected isStatementEnd(kind: TokenKind): boolean {
-    return kind == TokenKind.Semicolon || kind == TokenKind.CloseTag;
+    return kind === TokenKind.Semicolon || kind === TokenKind.CloseTag;
   }
 
   /**
@@ -1165,7 +1165,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token ends a string template.
    */
   protected isStringTemplateEnd(kind: TokenKind, terminator: TokenKind): boolean {
-    return kind == terminator || kind == TokenKind.EOF;
+    return kind === terminator || kind === TokenKind.EOF;
   }
 
   /**
@@ -1202,7 +1202,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token starts a branch within a switch statement.
    */
   protected isSwitchCaseStart(kind: TokenKind): boolean {
-    return kind == TokenKind.Case || kind == TokenKind.Default;
+    return kind === TokenKind.Case || kind === TokenKind.Default;
   }
 
   /**
@@ -4149,7 +4149,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // Add the mismatched expression type diagnostic, unless the expression
     // already contains an error; in which case, the parser should not make
     // any assumptions about the expression or its type.
-    if (!exprNode.containsDiagnostics && expectedType == ExpressionType.Explicit && expr.type == ExpressionType.Implicit) {
+    if (!exprNode.containsDiagnostics && expectedType === ExpressionType.Explicit && expr.type === ExpressionType.Implicit) {
       exprNode = this.addError(exprNode, ErrorCode.ERR_ExpressionNotAddressable);
     }
     return exprNode;
@@ -4161,7 +4161,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseExpressionOrTopStatement(): StatementNode {
     // A top-level expression has no expected type.
     let expr = this.parseExpressionTree(ExpressionType.Any, Precedence.None, true);
-    if (expr.type != ExpressionType.Any) {
+    if (expr.type !== ExpressionType.Any) {
       Debug.assert(expr.node instanceof ExpressionNode);
       let semicolon = this.parseStatementEnd();
       return new ExpressionStatementNode(<ExpressionNode>expr.node, semicolon);
@@ -4196,55 +4196,55 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       // The operand of a prefix-increment or prefix-decrement expression
       // requires an explicitly declared variable however.
-      if (kind == TokenKind.Decrement || kind == TokenKind.Increment) {
+      if (kind === TokenKind.Decrement || kind === TokenKind.Increment) {
         unaryType = ExpressionType.Explicit;
       }
 
-      let unaryPrecedence = kind == TokenKind.Exclamation ? Precedence.LogicalNot : Precedence.Unary;
+      let unaryPrecedence = kind === TokenKind.Exclamation ? Precedence.LogicalNot : Precedence.Unary;
 
       let operator = this.eat(kind);
       let operand = this.parseExpression(unaryType, unaryPrecedence);
 
       let unaryNode = new UnaryNode(operator, operand);
-      if (kind == TokenKind.RealCast) {
+      if (kind === TokenKind.RealCast) {
         // No version check; deprecation warnings are retroactive.
         unaryNode = this.addError(unaryNode, ErrorCode.WRN_RealCast);
       }
-      if (kind == TokenKind.UnsetCast) {
+      if (kind === TokenKind.UnsetCast) {
         // No version check; deprecation warnings are retroactive.
         unaryNode = this.addError(unaryNode, ErrorCode.WRN_UnsetCast);
       }
 
       expr = new Expression(unaryNode, ExpressionType.Implicit);
     }
-    else if (kind == TokenKind.Array || kind == TokenKind.OpenBracket) {
+    else if (kind === TokenKind.Array || kind === TokenKind.OpenBracket) {
       expr = this.parseArrayOrDeconstruction();
     }
-    else if (kind == TokenKind.Function) {
+    else if (kind === TokenKind.Function) {
       expr = this.parseFunctionDeclarationOrClosure(isStatementExpected);
-      if (expr.type == ExpressionType.Any) {
+      if (expr.type === ExpressionType.Any) {
         return expr;  // Found a function declaration statement.
       }
     }
-    else if (kind == TokenKind.Identifier) {
+    else if (kind === TokenKind.Identifier) {
       expr = this.parseLabelOrExpression(isStatementExpected);
-      if (expr.type == ExpressionType.Any) {
+      if (expr.type === ExpressionType.Any) {
         return expr;  // Found a label declaration statement.
       }
     }
-    else if (kind == TokenKind.Namespace) {
+    else if (kind === TokenKind.Namespace) {
       expr = this.parseNamespaceDeclarationOrExpression(isStatementExpected);
-      if (expr.type == ExpressionType.Any) {
+      if (expr.type === ExpressionType.Any) {
         return expr;  // Found a namespace declaration statement.
       }
     }
-    else if (kind == TokenKind.Static) {
+    else if (kind === TokenKind.Static) {
       expr = this.parseStaticDeclarationOrExpression(isStatementExpected);
-      if (expr.type == ExpressionType.Any) {
+      if (expr.type === ExpressionType.Any) {
         return expr;  // Found a static variable declaration statement.
       }
     }
-    else if (kind == TokenKind.List) {
+    else if (kind === TokenKind.List) {
       let lhs = this.parseListDestructure();
       let equal = this.eat(TokenKind.Equal);
       let rhs = this.parseExpression(ExpressionType.Any, Precedence.Assignment);
@@ -4255,12 +4255,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       expr = this.parsePrimaryExpression(expectedType);
     }
 
-    if (expr.type == ExpressionType.Explicit) {
+    if (expr.type === ExpressionType.Explicit) {
       expr = this.parsePostfixExpression(expr, expectedType);
     }
 
     // There are no binary expressions that result in an explicit expression.
-    return expectedType == ExpressionType.Explicit ? expr : this.parseBinaryExpression(expr, precedence);
+    return expectedType === ExpressionType.Explicit ? expr : this.parseBinaryExpression(expr, precedence);
   }
 
   /**
@@ -4287,24 +4287,24 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // be the same as the last operator that was parsed.
     let prevPrecedence = Precedence.None;
 
-    while (this.isBinaryOperator(this.currentToken.kind) || this.currentToken.kind == TokenKind.Question) {
+    while (this.isBinaryOperator(this.currentToken.kind) || this.currentToken.kind === TokenKind.Question) {
       // The LHS of an assignment expression must have an explicit variable.
-      if (leftType != ExpressionType.Explicit && this.isAssignmentOperator(this.currentToken.kind)) {
+      if (leftType !== ExpressionType.Explicit && this.isAssignmentOperator(this.currentToken.kind)) {
         break;
       }
 
       let nextPrecedence = this.getPrecedence(this.currentToken.kind);
 
       // All binary operators need a precedence.
-      Debug.assert(nextPrecedence != Precedence.None);
+      Debug.assert(nextPrecedence !== Precedence.None);
 
       if (nextPrecedence < precedence && !this.isBinaryOperatorExpected(this.currentToken.kind, leftType)) {
         break;
       }
-      if (nextPrecedence == precedence && !this.isRightAssociative(this.currentToken.kind)) {
+      if (nextPrecedence === precedence && !this.isRightAssociative(this.currentToken.kind)) {
         break;
       }
-      if (nextPrecedence == prevPrecedence && this.isNonAssociative(this.currentToken.kind)) {
+      if (nextPrecedence === prevPrecedence && this.isNonAssociative(this.currentToken.kind)) {
         break;
       }
 
@@ -4313,7 +4313,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
       if (this.isAssignmentOperator(operator.kind)) {
         let ampersand: TokenNode | null = null;
-        if (operator.kind == TokenKind.Equal && this.currentToken.kind == TokenKind.Ampersand) {
+        if (operator.kind === TokenKind.Equal && this.currentToken.kind === TokenKind.Ampersand) {
           ampersand = this.eat(this.currentToken.kind);
           rightExpr = this.parseExpression(ExpressionType.Explicit, nextPrecedence);
         }
@@ -4322,10 +4322,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         }
         leftExpr = new AssignmentNode(leftExpr, operator, ampersand, rightExpr);
       }
-      else if (operator.kind == TokenKind.InstanceOf) {
+      else if (operator.kind === TokenKind.InstanceOf) {
         leftExpr = this.parseInstanceOf(leftExpr, operator);
       }
-      else if (operator.kind == TokenKind.Question) {
+      else if (operator.kind === TokenKind.Question) {
         leftExpr = this.parseConditionalExpression(leftExpr, operator);
       }
       else {
@@ -4347,12 +4347,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // Statements should not be reaching this point.
     Debug.assert(term.node instanceof ExpressionNode);
     // The LHS of a postfix expression must have an explicit variable.
-    Debug.assert(term.type == ExpressionType.Explicit);
+    Debug.assert(term.type === ExpressionType.Explicit);
 
     let node = <ExpressionNode>term.node;
     let type = term.type;
 
-    while (type == ExpressionType.Explicit) {
+    while (type === ExpressionType.Explicit) {
       switch (this.currentToken.kind) {
         case TokenKind.Decrement:
         case TokenKind.Increment:
@@ -4365,7 +4365,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           //
           // The parser should not continue and generate an "unusable address"
           // diagnostic on the postfix expression.
-          if (expectedType == ExpressionType.Explicit) {
+          if (expectedType === ExpressionType.Explicit) {
             return new Expression(node, type);
           }
           node = new PostfixUnaryNode(node, this.eat(this.currentToken.kind));
