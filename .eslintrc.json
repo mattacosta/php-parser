@@ -16,6 +16,13 @@
         // @typescript-eslint
         "@typescript-eslint/consistent-type-assertions": "off",
         "@typescript-eslint/interface-name-prefix": "off",
+        "@typescript-eslint/no-empty-function": ["error", {
+            "allow": [
+                "arrowFunctions",
+                "private-constructors",
+                "protected-constructors"
+            ]
+        }],
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/no-this-alias": "off",
