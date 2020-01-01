@@ -57,7 +57,7 @@ glob('**/*.php', { cwd: dir }, (error, matches) => {
       console.log('%s: %s', i + 1, file);
     }
 
-    if ((i + 1) % 1000 == 0) {
+    if ((i + 1) % 1000 === 0) {
       console.log('Parsing file %s of %s...', i + 1, matches.length);
     }
 
@@ -85,7 +85,7 @@ glob('**/*.php', { cwd: dir }, (error, matches) => {
       for (let d of diagnostics) {
       //let severity = d.severity == DiagnosticSeverity.Error ? 'E' : 'W';
         let message = ErrorCodeInfo.formatMessage(d.code, d.messageArgs);
-        if (d.severity == DiagnosticSeverity.Error) {
+        if (d.severity === DiagnosticSeverity.Error) {
           console.error('[E] [PHP%s] [%s:%s] %s', d.code, d.offset, d.width, message);
           hasErrors = true;
         }

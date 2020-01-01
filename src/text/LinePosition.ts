@@ -64,14 +64,14 @@ export class LinePosition implements IComparable<LinePosition>, IHashable<LinePo
    */
   public compareTo(value: LinePosition): number {
     const diff = this.line - value.line;
-    return diff != 0 ? diff : this.character - value.character;
+    return diff !== 0 ? diff : this.character - value.character;
   }
 
   /**
    * @inheritDoc
    */
   public equals(value: LinePosition): boolean {
-    return this.line == value.line && this.character == value.character;
+    return this.line === value.line && this.character === value.character;
   }
 
   /**

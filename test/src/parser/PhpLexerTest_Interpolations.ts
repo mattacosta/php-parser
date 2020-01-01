@@ -29,7 +29,7 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, 
   for (let i = 0; i < tests.length; i++) {
     let test = tests[i];
 
-    if (test.expectedTokens.length == 0) {
+    if (test.expectedTokens.length === 0) {
       it(test.description || test.text);
       continue;
     }
@@ -54,16 +54,16 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, 
       // of the original source text to test the bounds of the template's span.
       let rescanText = SourceTextFactory.from(fullText.substring(token.offset, token.length));
       let rescanLexer = new PhpLexer(rescanText, Test.PhpVersion);
-      if (templateKind == TokenKind.StringTemplate) {
+      if (templateKind === TokenKind.StringTemplate) {
         rescanLexer.rescanInterpolatedString(lexer.templateSpans);
       }
-      else if (templateKind == TokenKind.ShellCommandTemplate) {
+      else if (templateKind === TokenKind.ShellCommandTemplate) {
         rescanLexer.rescanInterpolatedShellCommand(lexer.templateSpans);
       }
-      else if (templateKind == TokenKind.HeredocTemplate) {
+      else if (templateKind === TokenKind.HeredocTemplate) {
         rescanLexer.rescanInterpolatedHeredoc(lexer.templateSpans);
       }
-      else if (templateKind == TokenKind.FlexdocTemplate) {
+      else if (templateKind === TokenKind.FlexdocTemplate) {
         rescanLexer.rescanInterpolatedFlexdoc(lexer.templateSpans);
       }
       else {

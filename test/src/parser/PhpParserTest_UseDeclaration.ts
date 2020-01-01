@@ -39,7 +39,7 @@ import { TokenKind } from '../../../src/language/TokenKind';
 function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQualified: boolean, type: string | null, alias: string | null): void {
   assert.equal(element instanceof UseElementSyntaxNode, true, 'UseElementSyntaxNode');
   if (type) {
-    let kind = type == 'function' ? TokenKind.Function : TokenKind.Const;
+    let kind = type === 'function' ? TokenKind.Function : TokenKind.Const;
     Test.assertSyntaxToken(element.typeKeyword, text, kind, type);
   }
   else {

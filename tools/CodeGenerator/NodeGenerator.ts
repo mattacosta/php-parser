@@ -384,12 +384,12 @@ export class NodeGenerator {
   protected getNodeTypes(property: NodeProperty, className = ''): string {
     if (Array.isArray(property.type)) {
       let text = this.toNodeType(property.type[0]);
-      if (text == 'TokenNode') {
+      if (text === 'TokenNode') {
         console.warn(className + ': type lists cannot contain token nodes');
       }
       for (let i = 1; i < property.type.length; i++) {
         let type = this.toNodeType(property.type[i]);
-        if (type == 'TokenNode') {
+        if (type === 'TokenNode') {
           console.warn(className + ': type lists cannot contain token nodes');
         }
         text += ' | ' + type;
@@ -400,7 +400,7 @@ export class NodeGenerator {
   }
 
   protected toNodeType(type: string): string {
-    if (type == 'Node' || type == 'NodeList' || type == 'TokenNode') {
+    if (type === 'Node' || type === 'NodeList' || type === 'TokenNode') {
       return type;
     }
     return type + 'Node';

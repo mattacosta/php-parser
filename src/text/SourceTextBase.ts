@@ -66,14 +66,14 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
     }
 
     if (length >= 2) {
-      if (bytes[0] == 0xFE && bytes[1] == 0xFF) {
+      if (bytes[0] === 0xFE && bytes[1] === 0xFF) {
         return BomKind.UTF16BE;
       }
-      if (bytes[0] == 0xFF && bytes[1] == 0xFE) {
+      if (bytes[0] === 0xFF && bytes[1] === 0xFE) {
         return BomKind.UTF16LE;
       }
-      if (bytes[0] == 0xEF) {
-        if (length >= 3 && bytes[1] == 0xBB && bytes[2] == 0xBF) {
+      if (bytes[0] === 0xEF) {
+        if (length >= 3 && bytes[1] === 0xBB && bytes[2] === 0xBF) {
           return BomKind.UTF8;
         }
       }
@@ -94,11 +94,11 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
     if (value === this) {
       return true;
     }
-    if (this.length != value.length) {
+    if (this.length !== value.length) {
       return false;
     }
     for (let i = 0; i < this.length; i++) {
-      if (this.charCodeAt(i) != value.charCodeAt(i)) {
+      if (this.charCodeAt(i) !== value.charCodeAt(i)) {
         return false;
       }
     }
@@ -129,7 +129,7 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
       }
 
       // Skip "insert" and "delete" changes that do nothing.
-      if (change.span.length == 0 && change.text.length == 0) {
+      if (change.span.length === 0 && change.text.length === 0) {
         continue;
       }
       // Add text between the previous change and this change.
@@ -146,7 +146,7 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
     }
 
     // Nothing changed.
-    if (offset == 0 && !hasInsertedText) {
+    if (offset === 0 && !hasInsertedText) {
       return this;
     }
 

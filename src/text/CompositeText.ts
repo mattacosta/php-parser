@@ -95,10 +95,10 @@ export class CompositeText extends SourceTextBase {
    * @todo Document CompositeText.from().
    */
   public static from(sources: ReadonlyArray<ISourceText>, sourceLength: number): ISourceText {
-    if (sources.length == 0) {
+    if (sources.length === 0) {
       return SourceTextFactory.EmptyText;
     }
-    if (sources.length == 1) {
+    if (sources.length === 1) {
       return sources[0];
     }
     return new CompositeText(sources, sourceLength);

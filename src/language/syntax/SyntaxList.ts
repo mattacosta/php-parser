@@ -224,7 +224,7 @@ export class DelimitedSyntaxList extends ManyChildSyntaxList {
    * @inheritDoc
    */
   protected childAt(index: number): ISyntaxNode | null {
-    if ((index & 1) == 0) {
+    if ((index & 1) === 0) {
       return null;
     }
     return super.childAt(index);
@@ -234,7 +234,7 @@ export class DelimitedSyntaxList extends ManyChildSyntaxList {
    * @inheritDoc
    */
   protected defineChildAt(index: number): ISyntaxNode | null {
-    if ((index & 1) == 0) {
+    if ((index & 1) === 0) {
       return null;
     }
     return super.defineChildAt(index);

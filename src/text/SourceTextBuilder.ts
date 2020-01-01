@@ -155,7 +155,7 @@ export class SourceTextBuilder {
    *   A new source text object.
    */
   public toSourceText(): ISourceText {
-    if (this.length == 0) {
+    if (this.length === 0) {
       return SourceTextFactory.EmptyText;
     }
 

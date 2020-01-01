@@ -142,7 +142,7 @@ export class ErrorCodeInfoGenerator {
     let info: string[] = [];
     for (let i = 0; i < diagnostics.length; i++) {
       let diagnostic = diagnostics[i];
-      if (diagnostic.severity && diagnostic.severity == 1) {
+      if (diagnostic.severity && diagnostic.severity === 1) {
         info.push('      case ErrorCode.' + diagnostic.name + ':');
       }
     }
@@ -165,7 +165,7 @@ export class ErrorCodeInfoGenerator {
     let warnings: string[] = [];
     for (let i = 0; i < diagnostics.length; i++) {
       let diagnostic = diagnostics[i];
-      if (diagnostic.severity && diagnostic.severity == 2) {
+      if (diagnostic.severity && diagnostic.severity === 2) {
         warnings.push('      case ErrorCode.' + diagnostic.name + ':');
       }
     }

@@ -147,7 +147,7 @@ export class CharacterInfo {
    * Determines if a character is a binary digit (0-1).
    */
   public static isBinDigit(ch: number): boolean {
-    return ch == Character._0 || ch == Character._1;
+    return ch === Character._0 || ch === Character._1;
   }
 
   /**
@@ -163,15 +163,15 @@ export class CharacterInfo {
    * characters however.
    */
   public static isDoubleQuoteEscape(ch: number): boolean {
-    return ch == Character.Backslash ||
-      ch == Character.Dollar ||
-      ch == Character.DoubleQuote ||
-      ch == Character.e ||
-      ch == Character.f ||
-      ch == Character.n ||
-      ch == Character.r ||
-      ch == Character.t ||
-      ch == Character.v;
+    return ch === Character.Backslash ||
+      ch === Character.Dollar ||
+      ch === Character.DoubleQuote ||
+      ch === Character.e ||
+      ch === Character.f ||
+      ch === Character.n ||
+      ch === Character.r ||
+      ch === Character.t ||
+      ch === Character.v;
   }
 
   /**
@@ -194,7 +194,7 @@ export class CharacterInfo {
     return (ch >= Character.a && ch <= Character.z) ||
       (ch >= Character.A && ch <= Character.Z) ||
       (ch >= Character._0 && ch <= Character._9) ||
-      (ch == Character.Underscore) ||
+      (ch === Character.Underscore) ||
       (ch >= asciiMin && ch <= asciiMax);
   }
 
@@ -206,7 +206,7 @@ export class CharacterInfo {
     let asciiMax = 0xFF;
     return (ch >= Character.a && ch <= Character.z) ||
       (ch >= Character.A && ch <= Character.Z) ||
-      (ch == Character.Underscore) ||
+      (ch === Character.Underscore) ||
       (ch >= asciiMin && ch <= asciiMax);
   }
 
@@ -215,7 +215,7 @@ export class CharacterInfo {
    */
   public static isLineBreak(ch: number): boolean {
     // LineSeparator (U+2028), ParagraphSeparator (U+2029)
-    return ch == Character.CarriageReturn || ch == Character.LineFeed;
+    return ch === Character.CarriageReturn || ch === Character.LineFeed;
   }
 
   /**
@@ -230,7 +230,7 @@ export class CharacterInfo {
    * string.
    */
   public static isSingleQuoteEscape(ch: number): boolean {
-    return ch == Character.Backslash || ch == Character.SingleQuote;
+    return ch === Character.Backslash || ch === Character.SingleQuote;
   }
 
   /**
@@ -238,7 +238,7 @@ export class CharacterInfo {
    */
   public static isWhitespace(ch: number): boolean {
     // PHP does not recognize FormFeed or VerticalTab as whitespace.
-    return ch == Character.Space || ch == Character.Tab;
+    return ch === Character.Space || ch === Character.Tab;
   }
 
   /**

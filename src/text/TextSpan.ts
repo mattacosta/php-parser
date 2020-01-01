@@ -96,7 +96,7 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
    * Determines if the number of characters in the span is zero.
    */
   public get isEmpty(): boolean {
-    return this.length == 0;
+    return this.length === 0;
   }
 
   /**
@@ -104,7 +104,7 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
    */
   public compareTo(span: TextSpan): number {
     const diff = this.start - span.start;
-    return diff == 0 ? this.length - span.length : diff;
+    return diff === 0 ? this.length - span.length : diff;
   }
 
   /**
@@ -122,7 +122,7 @@ export class TextSpan implements IComparable<TextSpan>, IEquatable<TextSpan> {
    * @inheritDoc
    */
   public equals(span: TextSpan): boolean {
-    return this.start == span.start && this.length == span.length;
+    return this.start === span.start && this.length === span.length;
   }
 
   /**

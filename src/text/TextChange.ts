@@ -52,7 +52,7 @@ export class TextChange implements IEquatable<TextChange> {
    * @inheritDoc
    */
   public equals(change: TextChange): boolean {
-    return this.span.equals(change.span) && this.text == change.text;
+    return this.span.equals(change.span) && this.text === change.text;
   }
 
 }

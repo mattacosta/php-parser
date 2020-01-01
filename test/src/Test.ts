@@ -161,7 +161,7 @@ export class Test {
             assert.equal(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
           }
           tokenCount++;
-        } while (token.kind != TokenKind.EOF && tokenCount < args.expectedTokens.length);
+        } while (token.kind !== TokenKind.EOF && tokenCount < args.expectedTokens.length);
 
         assert.equal(tokenCount, args.expectedTokens.length, 'unexpected end of text');
       });
@@ -181,7 +181,7 @@ export class Test {
         do {
           token = lexer.lex(state);
           state = lexer.currentState;
-          if (token.kind == args.expectedToken) {
+          if (token.kind === args.expectedToken) {
             found = true;
             assert.equal(token.diagnostics.length > 0, true, 'diagnostic not found');
             assert.equal(ErrorCode[token.diagnostics[0].code], ErrorCode[args.expectedCode], 'diagnostic code');
@@ -190,7 +190,7 @@ export class Test {
             // }
             break;
           }
-        } while (token.kind != TokenKind.EOF);
+        } while (token.kind !== TokenKind.EOF);
 
         if (!found) {
           assert.fail('token not found');

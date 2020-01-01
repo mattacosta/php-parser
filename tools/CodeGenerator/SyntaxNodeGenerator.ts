@@ -126,7 +126,7 @@ export class SyntaxNodeGenerator {
     text += '    switch (index) {\n';
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];
-      if (prop.type != 'TokenNode') {
+      if (prop.type !== 'TokenNode') {
         text += '      case ' + i + ':\n';
         // NOTE: Since these properties are not initialized in the compiled JS,
         // a check is needed to avoid returning `undefined`.
@@ -183,12 +183,12 @@ export class SyntaxNodeGenerator {
     text += '    switch (index) {\n';
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];
-      if (prop.type != 'TokenNode') {
+      if (prop.type !== 'TokenNode') {
         let type = this.getSyntaxTypes(prop);
         text += '      case ' + i + ':\n';
         text += '        if (this._' + prop.name + ' === void 0) {\n';
         if (!prop.optional) {
-          text += i == 0
+          text += i === 0
             ? '          let node: ' + type + ' | null = this.createFirstChildNode();\n'
             : '          let node: ' + type + ' | null = this.createChildNode(' + i + ');\n';
           text += '          if (!node) {\n';
@@ -197,7 +197,7 @@ export class SyntaxNodeGenerator {
           text += '          this._' + prop.name + ' = node;\n';
         }
         else {
-          text += i == 0
+          text += i === 0
             ? '          this._' + prop.name + ' = this.createFirstChildNode<' + type + '>();\n'
             : '          this._' + prop.name + ' = this.createChildNode<' + type + '>(' + i + ');\n';
         }
@@ -216,12 +216,12 @@ export class SyntaxNodeGenerator {
     let text = '';
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];
-      if (prop.type != 'TokenNode') {
+      if (prop.type !== 'TokenNode') {
         let type = this.getSyntaxTypes(prop);
         text += '  public get ' + prop.name + '(): ' + type + (prop.optional ? ' | null' : '') + ' {\n';
         text += '    if (this._' + prop.name + ' === void 0) {\n';
         if (!prop.optional) {
-          text += i == 0
+          text += i === 0
             ? '      let node: ' + type + ' | null = this.createFirstChildNode();\n'
             : '      let node: ' + type + ' | null = this.createChildNode(' + i + ');\n';
           text += '      if (!node) {\n';
@@ -230,7 +230,7 @@ export class SyntaxNodeGenerator {
           text += '      this._' + prop.name + ' = node;\n';
         }
         else {
-          text += i == 0
+          text += i === 0
             ? '      this._' + prop.name + ' = this.createFirstChildNode<' + type + '>();\n'
             : '      this._' + prop.name + ' = this.createChildNode<' + type + '>(' + i + ');\n';
         }

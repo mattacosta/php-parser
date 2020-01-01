@@ -88,10 +88,10 @@ export class StringText extends SourceTextBase {
     if (!this.isSpanInText(position)) {
       throw new ArgumentOutOfRangeException();
     }
-    if (position.length == 0) {
+    if (position.length === 0) {
       return SourceTextFactory.EmptyText;
     }
-    if (position.start == 0 && position.length == this.text.length) {
+    if (position.start === 0 && position.length === this.text.length) {
       return new StringText(this.text);  // Always return a new instance.
     }
     return new SegmentedText(this, position);

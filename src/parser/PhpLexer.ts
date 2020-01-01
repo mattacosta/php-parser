@@ -313,7 +313,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     if (spans.length < 1) {
       throw new ArgumentException('Flexdoc template must contain at least one span');
     }
-    if (spans[spans.length - 1].state != PhpLexerState.LookingForHeredocLabel) {
+    if (spans[spans.length - 1].state !== PhpLexerState.LookingForHeredocLabel) {
       throw new ArgumentException('Flexdoc template must end with a label span');
     }
 
@@ -1032,8 +1032,8 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.tokenKind = TokenKind.CloseTag;
           return this.state = PhpLexerState.InHostLanguage;
         }
-        else if (next == Character.Question) {
-          if (this.peek(this.offset + 2) == Character.Equal && this.phpVersion >= PhpVersion.PHP7_4) {
+        else if (next === Character.Question) {
+          if (this.peek(this.offset + 2) === Character.Equal && this.phpVersion >= PhpVersion.PHP7_4) {
             this.offset = this.offset + 3;  // "??="
             this.tokenKind = TokenKind.CoalesceEqual;
           }
@@ -1278,7 +1278,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       }
 
       let ch = this.text.charCodeAt(this.offset);
-      if (ch != this.flexibleIndent.charCodeAt(i)) {
+      if (ch !== this.flexibleIndent.charCodeAt(i)) {
         if (CharacterInfo.isLineBreak(ch)) {
           // Found an empty line.
           break;
@@ -1946,7 +1946,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     let separatorCount = 0;
     if (this.offset - start > 0 && this.phpVersion >= PhpVersion.PHP7_4) {
-      while (this.peek(this.offset) == Character.Underscore && predicate(this.peek(this.offset + 1))) {
+      while (this.peek(this.offset) === Character.Underscore && predicate(this.peek(this.offset + 1))) {
         this.offset++;  // "_"
         separatorCount++;
         while (this.offset < this.end && predicate(this.text.charCodeAt(this.offset))) {
@@ -2099,7 +2099,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     // JSON-serialized strings are silently ignored since they may contain
     // unicode escape sequences that do not follow the PHP format.
-    if (ch != Character.OpenBrace) {
+    if (ch !== Character.OpenBrace) {
       return 0;
     }
 
@@ -2380,7 +2380,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
 
     // Closing quote.
     if (quoteCh) {
-      if (this.peek(this.offset) != quoteCh) {
+      if (this.peek(this.offset) !== quoteCh) {
         this.offset = start;
         return null;
       }

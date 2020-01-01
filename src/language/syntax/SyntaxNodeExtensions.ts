@@ -123,7 +123,7 @@ export class SyntaxNodeExtensions {
    *   A callback used to limit what tokens are returned.
    */
   public static tryGetNextToken(node: ISyntaxNode, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
-    while (node.parent != null) {
+    while (node.parent !== null) {
       let found = false;
       for (let child of node.parent.getAllChildren()) {
         if (found) {
@@ -161,7 +161,7 @@ export class SyntaxNodeExtensions {
    *   A callback used to limit what tokens are returned.
    */
   public static tryGetPreviousToken(node: ISyntaxNode, tokenFilter?: SyntaxTokenFilter): ISyntaxToken | null {
-    while (node.parent != null) {
+    while (node.parent !== null) {
       let found = false;
       for (let child of node.parent.getAllChildrenReversed()) {
         if (found) {

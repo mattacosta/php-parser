@@ -104,7 +104,7 @@ export class SegmentedText extends SourceTextBase {
     if (!this.isSpanInText(position)) {
       throw new ArgumentOutOfRangeException();
     }
-    if (position.length == 0) {
+    if (position.length === 0) {
       return SourceTextFactory.EmptyText;
     }
     let segmentSpan = this.createSegmentSpan(position.start, position.length);

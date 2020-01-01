@@ -90,15 +90,15 @@ export abstract class Diagnostic implements IDiagnostic {
    * Determines if the diagnostic severity can be changed.
    */
   public get isConfigurable(): boolean {
-    return this.originalSeverity != DiagnosticSeverity.Error;
+    return this.originalSeverity !== DiagnosticSeverity.Error;
   }
 
   /**
    * @inheritDoc
    */
   public get isElevatedWarning(): boolean {
-    return this.originalSeverity == DiagnosticSeverity.Warning &&
-      this.severity == DiagnosticSeverity.Error;
+    return this.originalSeverity === DiagnosticSeverity.Warning &&
+      this.severity === DiagnosticSeverity.Error;
   }
 
   /**
