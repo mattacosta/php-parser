@@ -30,7 +30,9 @@
                 "src/diagnostics/ErrorCode.Generated.ts"
             ],
             "rules": {
-                "@typescript-eslint/camelcase": "off"
+                "@typescript-eslint/camelcase": ["error", {
+                    "allow": ["^(?:ERR|WRN|INFO|HINT)_[a-zA-Z0-9]+$"]
+                }]
             }
         },
         {
@@ -48,7 +50,9 @@
                 "test/src/**/**.ts"
             ],
             "rules": {
-                "@typescript-eslint/camelcase": "off"
+                "@typescript-eslint/camelcase": ["error", {
+                    "allow": ["^[a-zA-Z]+\\d_\\d$"]
+                }]
             }
         }
     ]
