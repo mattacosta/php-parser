@@ -27,7 +27,7 @@ import { DiagnosticSeverity } from '../../diagnostics/DiagnosticSeverity';
 import { INode } from '../node/INode';
 import { ISyntaxNode } from './ISyntaxNode';
 import { ISyntaxNodeOrList } from './ISyntaxNode';
-import { ISyntaxToken, SyntaxTokenFilter } from './ISyntaxToken';
+import { ISyntaxToken } from './ISyntaxToken';
 import { ISyntaxTriviaList } from './ISyntaxTriviaList';
 import { NodeExtensions } from '../node/NodeExtensions';
 import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';

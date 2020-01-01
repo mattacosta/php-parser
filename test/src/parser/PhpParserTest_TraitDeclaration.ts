@@ -612,19 +612,19 @@ describe('PhpParser', function() {
 
     describe('trait-use-clause', function() {
       let syntaxTests = [
-        new ParserTestArgs('trait A { use B; }', 'should parse a trait use clause', (statements, text) => {
+        new ParserTestArgs('trait A { use B; }', 'should parse a trait use clause', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
           assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
-        new ParserTestArgs('trait A { use \\B; }', 'should parse a trait use clause with fully qualified name', (statements, text) => {
+        new ParserTestArgs('trait A { use \\B; }', 'should parse a trait use clause with fully qualified name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
           assert.equal(names[0] instanceof FullyQualifiedNameSyntaxNode, true);
         }),
-        new ParserTestArgs('trait A { use namespace\\B; }', 'should parse a trait use clause with relative name', (statements, text) => {
+        new ParserTestArgs('trait A { use namespace\\B; }', 'should parse a trait use clause with relative name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
           assert.equal(names.length, 1);
@@ -637,21 +637,21 @@ describe('PhpParser', function() {
           assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           assert.strictEqual(traitUseGroup.adaptations, null);
         }),
-        new ParserTestArgs('trait A { use B, C; }', 'should parse a trait use clause list', (statements, text) => {
+        new ParserTestArgs('trait A { use B, C; }', 'should parse a trait use clause list', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
           assert.equal(names.length, 2);
           assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           assert.equal(names[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
-        new ParserTestArgs('trait A { use B, \\C; }', 'should parse a trait use clause list with fully qualified name', (statements, text) => {
+        new ParserTestArgs('trait A { use B, \\C; }', 'should parse a trait use clause list with fully qualified name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
           assert.equal(names.length, 2);
           assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           assert.equal(names[1] instanceof FullyQualifiedNameSyntaxNode, true);
         }),
-        new ParserTestArgs('trait A { use B, namespace\\C; }', 'should parse a trait use clause list with relative name', (statements, text) => {
+        new ParserTestArgs('trait A { use B, namespace\\C; }', 'should parse a trait use clause list with relative name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
           assert.equal(names.length, 2);

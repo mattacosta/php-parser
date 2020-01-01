@@ -128,17 +128,16 @@ describe('PhpParser', function() {
       // Negation is equivalent to subtraction (0 - x) or multiplication
       // (-1 * x). In both cases, the operators should have a lower precedence
       // than exponentiation, so the result of -3^2 should be -(3^2) = -9.
-      new ParserTestArgs('-$a ** $b;', 'unary < pow', (statements, text) => {
+      new ParserTestArgs('-$a ** $b;', 'unary < pow', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let unaryNode = <UnarySyntaxNode>exprNode.expression;
         assert.equal(unaryNode instanceof UnarySyntaxNode, true, 'UnarySyntaxNode');
         let binaryNode = <BinarySyntaxNode>unaryNode.operand;
         assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
-        Test.assertSyntaxToken(binaryNode.operator, text, TokenKind.Pow, '**');
       }),
       // Expected: ((object) $a) instanceof $b
-      new ParserTestArgs('(object) $a instanceof $b;', 'instanceof < unary', (statements, text) => {
+      new ParserTestArgs('(object) $a instanceof $b;', 'instanceof < unary', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let parentNode = <InstanceOfSyntaxNode>exprNode.expression;
@@ -147,7 +146,7 @@ describe('PhpParser', function() {
         assert.equal(parentNode.classNameOrReference instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
       }),
       // Expected: !($a instanceof $b)
-      new ParserTestArgs('!$a instanceof $b;', 'logical not < instanceof', (statements, text) => {
+      new ParserTestArgs('!$a instanceof $b;', 'logical not < instanceof', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let unaryNode = <UnarySyntaxNode>exprNode.expression;
@@ -155,7 +154,7 @@ describe('PhpParser', function() {
         assert.equal(unaryNode.operand instanceof InstanceOfSyntaxNode, true, 'InstanceOfSyntaxNode');
       }),
       // Expected: (!$a) * $b
-      new ParserTestArgs('!$a * $b;', 'multiply < logical not', (statements, text) => {
+      new ParserTestArgs('!$a * $b;', 'multiply < logical not', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let binaryNode = <BinarySyntaxNode>exprNode.expression;
@@ -194,7 +193,7 @@ describe('PhpParser', function() {
         assertPrecedence(statements, text, TokenKind.Coalesce, '??', TokenKind.BooleanOr, '||');
       }),
       // Expected: $a ? $b : ($c ?? $d)
-      new ParserTestArgs('$a ? $b : $c ?? $d;', 'ternary < coalesce', (statements, text) => {
+      new ParserTestArgs('$a ? $b : $c ?? $d;', 'ternary < coalesce', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let parentNode = <ConditionalSyntaxNode>exprNode.expression;
@@ -203,10 +202,9 @@ describe('PhpParser', function() {
         assert.equal(parentNode.trueExpr instanceof LocalVariableSyntaxNode, true);
         let binaryNode = <BinarySyntaxNode>parentNode.falseExpr;
         assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
-        Test.assertSyntaxToken(binaryNode.operator, text, TokenKind.Coalesce, '??');
       }),
       // Expected: $a = ($b ? $c : $d)
-      new ParserTestArgs('$a = $b ? $c : $d;', 'assignment < ternary', (statements, text) => {
+      new ParserTestArgs('$a = $b ? $c : $d;', 'assignment < ternary', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let parentNode = <AssignmentSyntaxNode>exprNode.expression;
@@ -215,15 +213,13 @@ describe('PhpParser', function() {
         assert.equal(rhs instanceof ConditionalSyntaxNode, true, 'ConditionalSyntaxNode');
       }),
       // Expected: $a and ($b = $c)
-      new ParserTestArgs('$a and $b = $c;', 'logical and < assignment', (statements, text) => {
+      new ParserTestArgs('$a and $b = $c;', 'logical and < assignment', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let binaryNode = <BinarySyntaxNode>exprNode.expression;
         assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
-        Test.assertSyntaxToken(binaryNode.operator, text, TokenKind.LogicalAnd, 'and');
         let rhs = <AssignmentSyntaxNode>binaryNode.rightOperand;
         assert.equal(rhs instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-        Test.assertSyntaxToken(rhs.operator, text, TokenKind.Equal, '=');
       }),
       new ParserTestArgs('$a xor $b and $c;', 'logical xor < logical and', (statements, text) => {
         assertPrecedence(statements, text, TokenKind.LogicalXor, 'xor', TokenKind.LogicalAnd, 'and');
@@ -438,7 +434,7 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(syntaxTests);
 
       let syntaxTests7_3 = [
-        new ParserTestArgs('isset($a,);', 'should parse an isset expression with trailing comma', (statements, text) => {
+        new ParserTestArgs('isset($a,);', 'should parse an isset expression with trailing comma', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let isSetNode = <IsSetIntrinsicSyntaxNode>exprNode.expression;
@@ -447,7 +443,7 @@ describe('PhpParser', function() {
           assert.equal(expressions.length, 1);
           assert.equal(expressions[0] instanceof LocalVariableSyntaxNode, true);
         }),
-        new ParserTestArgs('isset($a, $b,);', 'should parse an isset expression with trailing comma after expression list', (statements, text) => {
+        new ParserTestArgs('isset($a, $b,);', 'should parse an isset expression with trailing comma after expression list', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let isSetNode = <IsSetIntrinsicSyntaxNode>exprNode.expression;

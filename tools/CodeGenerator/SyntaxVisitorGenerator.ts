@@ -18,7 +18,7 @@
 
 import * as os from 'os';
 
-import { NodeClass, NodeProperty } from './NodeConfig';
+import { NodeClass } from './NodeConfig';
 
 export class SyntaxVisitorGenerator {
 

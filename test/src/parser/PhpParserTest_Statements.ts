@@ -196,7 +196,7 @@ describe('PhpParser', function() {
         assert.strictEqual(tryNode.finallyClause, null);
       }),
       // Finally clause.
-      new ParserTestArgs('try {} finally {}', 'should parse a finally clause', (statements, text) => {
+      new ParserTestArgs('try {} finally {}', 'should parse a finally clause', (statements) => {
         let tryNode = <TrySyntaxNode>statements[0];
         assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         assert.strictEqual(tryNode.catchClauses, null);
