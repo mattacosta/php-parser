@@ -20,6 +20,13 @@ import * as assert from 'assert';
 
 import { TextSpan } from '../../../src/text/TextSpan';
 
+function assertNotNull<T>(value: T | null): T {
+  if (value === null) {
+    assert.fail('Value is null');
+  }
+  return value;
+}
+
 describe('TextSpan', function() {
 
   const large  = new TextSpan(2, 6);  // 0 1 { 2 3 4 5 6 7 } 8 9
@@ -111,26 +118,26 @@ describe('TextSpan', function() {
 
   describe('#intersection()', function() {
     it('should intersect with an equivalent span', () => {
-      assert.equal(medium.intersection(medium)!.equals(medium), true);
+      assert.equal(assertNotNull(medium.intersection(medium)).equals(medium), true);
     });
     it('should intersect with a larger span', () => {
-      assert.equal(medium.intersection(large)!.equals(medium), true);
+      assert.equal(assertNotNull(medium.intersection(large)).equals(medium), true);
     });
     it('should intersect with a smaller span', () => {
-      assert.equal(medium.intersection(small)!.equals(small), true);
+      assert.equal(assertNotNull(medium.intersection(small)).equals(small), true);
     });
 
     it('should intersect with span before start', () => {
-      assert.equal(medium.intersection(new TextSpan(2, 4))!.equals(new TextSpan(3, 3)), true);
+      assert.equal(assertNotNull(medium.intersection(new TextSpan(2, 4))).equals(new TextSpan(3, 3)), true);
     });
     it('should intersect with span after end', () => {
-      assert.equal(medium.intersection(new TextSpan(4, 4))!.equals(new TextSpan(4, 3)), true);
+      assert.equal(assertNotNull(medium.intersection(new TextSpan(4, 4))).equals(new TextSpan(4, 3)), true);
     });
     it('should intersect with span ending at start', () => {
-      assert.equal(medium.intersection(new TextSpan(1, 2))!.equals(new TextSpan(3, 0)), true);
+      assert.equal(assertNotNull(medium.intersection(new TextSpan(1, 2))).equals(new TextSpan(3, 0)), true);
     });
     it('should intersect with span starting at end', () => {
-      assert.equal(medium.intersection(new TextSpan(7, 2))!.equals(new TextSpan(7, 0)), true);
+      assert.equal(assertNotNull(medium.intersection(new TextSpan(7, 2))).equals(new TextSpan(7, 0)), true);
     });
     it('should not intersect with span ending before start', () => {
       assert.strictEqual(medium.intersection(new TextSpan(0, 2)), null);
@@ -181,20 +188,20 @@ describe('TextSpan', function() {
 
   describe('#overlap()', function() {
     it('should overlap with an equivalent span', () => {
-      assert.equal(medium.overlap(medium)!.equals(medium), true);
+      assert.equal(assertNotNull(medium.overlap(medium)).equals(medium), true);
     });
     it('should overlap with a larger span', () => {
-      assert.equal(medium.overlap(large)!.equals(medium), true);
+      assert.equal(assertNotNull(medium.overlap(large)).equals(medium), true);
     });
     it('should overlap with a smaller span', () => {
-      assert.equal(medium.overlap(small)!.equals(small), true);
+      assert.equal(assertNotNull(medium.overlap(small)).equals(small), true);
     });
 
     it('should overlap with span before start', () => {
-      assert.equal(medium.overlap(new TextSpan(2, 4))!.equals(new TextSpan(3, 3)), true);
+      assert.equal(assertNotNull(medium.overlap(new TextSpan(2, 4))).equals(new TextSpan(3, 3)), true);
     });
     it('should overlap with span after end', () => {
-      assert.equal(medium.overlap(new TextSpan(4, 4))!.equals(new TextSpan(4, 3)), true);
+      assert.equal(assertNotNull(medium.overlap(new TextSpan(4, 4))).equals(new TextSpan(4, 3)), true);
     });
     it('should not overlap with span ending at start', () => {
       assert.strictEqual(medium.overlap(new TextSpan(1, 2)), null);

@@ -102,7 +102,7 @@ function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenK
   }
   if (operator !== null) {
     assert.notStrictEqual(element.valueOperator, null);
-    assert.strictEqual(element.valueOperator!.kind, operator);
+    assert.strictEqual(element.valueOperator ? element.valueOperator.kind : false, operator);
   }
   else {
     assert.strictEqual(element.valueOperator, null);

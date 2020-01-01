@@ -288,7 +288,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type!.question, null);
+          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -302,7 +302,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
           assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type!.question, null);
+          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -316,7 +316,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type!.question, null);
+          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -330,7 +330,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type!.question, null);
+          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -344,7 +344,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type!.question, null);
+          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
@@ -358,7 +358,7 @@ describe('PhpParser', function() {
           assert.equal(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
-          assert.notStrictEqual(declNode.type!.question, null);
+          assert.notStrictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
           assert.equal(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
