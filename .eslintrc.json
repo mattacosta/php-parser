@@ -10,7 +10,7 @@
     ],
     "rules": {
         // eslint
-        "eqeqeq": ["error", "always"],
+        "eqeqeq": "warn",
         "no-case-declarations": "off",
         "no-fallthrough": "off",
         "prefer-const": "off",
@@ -32,15 +32,6 @@
         }]
     },
     "overrides": [
-        {
-            // @todo Use strict comparison in parser (~250 instances).
-            "files": [
-                "src/parser/PhpParser.ts"
-            ],
-            "rules": {
-                "eqeqeq": "off"
-            }
-        },
         {
             // Exempt severity prefixes.
             "files": [
