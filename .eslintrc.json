@@ -43,6 +43,17 @@
             }
         },
         {
+            // @todo False positive?
+            "files": [
+                "src/language/node/TokenNode.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/no-use-before-define": ["error", {
+                    "classes": false
+                }]
+            }
+        },
+        {
             // Exempt generated imports.
             "files": [
                 "src/**/**.Generated.ts"
