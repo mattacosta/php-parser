@@ -56,6 +56,11 @@ export class NodeFactory {
   protected static readonly SingleWhitespace = new TriviaNode(TokenKind.Whitespace, 1);
 
   /**
+   * A list node containing a single whitespace character, used for leading trivia.
+   */
+  protected static readonly SingleLeadingSpace = new SingleChildListNode(NodeFactory.SingleWhitespace);
+
+  /**
    * A list of reusable tokens without leading trivia.
    */
   protected static readonly TokensWithNoTrivia: TokenNode[] = new Array(TokenKind.EOF);
@@ -98,25 +103,13 @@ export class NodeFactory {
    */
   constructor() {
     if (NodeFactory.TokensWithNoTrivia[TokenKind.Abstract] === void 0) {
-      NodeFactory.NodeCache.set(NodeFactory.CRLF, NodeFactory.CRLF.hashCode());
-      NodeFactory.NodeCache.set(NodeFactory.LF, NodeFactory.LF.hashCode());
-      NodeFactory.NodeCache.set(NodeFactory.SingleWhitespace, NodeFactory.SingleWhitespace.hashCode());
-
-      // This will also automatically cache the list.
-      let trivia = this.createList([NodeFactory.SingleWhitespace]);
-
       // Create reusable "well known" tokens.
       for (let kind = TokenKind.Abstract; kind < TokenKind.EOF; kind++) {
         let width = TokenKindInfo.getText(kind).length;
         let token = new TokenNode(kind, width);
-        let tokenWithTrivia = new TokenWithTriviaNode(kind, width, trivia);
-
+        let tokenWithTrivia = new TokenWithTriviaNode(kind, width, NodeFactory.SingleLeadingSpace);
         NodeFactory.TokensWithNoTrivia[kind] = token;
         NodeFactory.TokensWithSingleLeadingSpace[kind] = tokenWithTrivia;
-
-        // Bypass the usual checks and just cache the tokens manually.
-        NodeFactory.NodeCache.set(token, token.hashCode());
-        NodeFactory.NodeCache.set(tokenWithTrivia, tokenWithTrivia.hashCode());
       }
     }
   }
@@ -133,6 +126,9 @@ export class NodeFactory {
    */
   public createList(nodes: Node[], diagnostics?: SyntaxDiagnostic[]): NodeList {
     if (nodes.length === 1) {
+      if (nodes[0] === NodeFactory.SingleWhitespace && diagnostics === void 0) {
+        return NodeFactory.SingleLeadingSpace;
+      }
       let list = new SingleChildListNode(nodes[0], diagnostics);
       return this.getCachedList(list, list.hashCode());
     }
@@ -195,6 +191,9 @@ export class NodeFactory {
   public createTokenWithTrivia(kind: TokenKind, tokenWidth: number, leadingTrivia: NodeList, diagnostics?: SyntaxDiagnostic[]): TokenNode {
     if (diagnostics !== void 0 && diagnostics.length > 0) {
       return new TokenWithTriviaNode(kind, tokenWidth, leadingTrivia, diagnostics);
+    }
+    if (NodeFactory.isWellKnownKind(kind) && leadingTrivia === NodeFactory.SingleLeadingSpace) {
+      return NodeFactory.TokensWithSingleLeadingSpace[kind];
     }
     let token = new TokenWithTriviaNode(kind, tokenWidth, leadingTrivia);
     return this.getCachedNode(token, token.hashCode());
