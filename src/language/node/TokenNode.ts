@@ -109,7 +109,7 @@ export class TokenNode extends Node {
    */
   public get leadingTriviaWidth(): number {
     const trivia = this.leadingTrivia;
-    return trivia ? trivia.fullWidth : 0;
+    return trivia !== null ? trivia.fullWidth : 0;
   }
 
   /**
@@ -249,18 +249,12 @@ export class TokenWithTriviaNode extends TokenNode {
     if (this === value) {
       return true;
     }
-
-    let thisTrivia = this._leadingTrivia !== null;
-    let valueTrivia = value._leadingTrivia !== null;
-
-    if (thisTrivia !== valueTrivia) {
+    if ((this._leadingTrivia !== null) !== (value._leadingTrivia !== null)) {
       return false;
     }
-    // Suppress TS2345: Transitive property prevents value(s) from being `null`.
-    if (thisTrivia && !(<NodeList>this._leadingTrivia).equals(<NodeList>value._leadingTrivia)) {
+    if (value._leadingTrivia !== null && !this.triviaEquals(value._leadingTrivia)) {
       return false;
     }
-
     // Do not use `super`. Call the parent method directly.
     return TokenNode.prototype.equals.call(this, value);
   }
@@ -298,6 +292,13 @@ export class TokenWithTriviaNode extends TokenNode {
     hash = Hash.combine(this.kind, hash);
     hash = this._leadingTrivia !== null ? Hash.combine(this._leadingTrivia.hashCode(), hash) : hash;
     return hash;
+  }
+
+  /**
+   * Isolates the leading trivia `equals()` call for V8 optimization.
+   */
+  protected triviaEquals(leadingTrivia: NodeList): boolean {
+    return this._leadingTrivia !== null && this._leadingTrivia.equals(leadingTrivia);
   }
 
 }
