@@ -21,27 +21,11 @@ import { INodeVisitorAccess } from './INodeVisitorAccess';
 import { NodeBase } from './NodeBase';
 import { NodeTransform } from './NodeTransform.Generated';
 import { NodeVisitor } from './NodeVisitor.Generated';
-import { SyntaxDiagnostic } from '../../diagnostics/SyntaxDiagnostic';
 
 /**
  * Provides a base class for all non-terminal nodes in a tree.
  */
 export abstract class Node extends NodeBase implements INodeVisitorAccess {
-
-  /**
-   * Constructs a `Node` object.
-   *
-   * @param {ReadonlyArray<SyntaxDiagnostic>} diagnostics
-   *   A list of diagnostics associated with the token or token collection.
-   */
-  constructor(diagnostics: ReadonlyArray<SyntaxDiagnostic>) {
-    // IMPORTANT: This is a performance critical method.
-
-    // Even though this method is essentially empty, internally it allows for
-    // various optimizations, which add up to the single largest parse time
-    // improvement (~2.61 ms) for an issue caused by the JS engine.
-    super(diagnostics);
-  }
 
   /**
    * @inheritDoc
