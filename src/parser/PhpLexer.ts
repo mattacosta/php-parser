@@ -1068,9 +1068,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.scanIdentifierOrKeyword();
           return this.state;
         }
-
         this.addError(0, 1, ErrorCode.ERR_UnexpectedCharacter, '0x' + ch.toString(16).toUpperCase(), this.text.substring(this.offset, 1));
-
         this.offset++;
         this.tokenKind = TokenKind.Error;
         return this.state;
@@ -1373,10 +1371,28 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected scanIdentifierOrKeyword(): number {
     const start = this.offset;
 
+    let hasUnderscore = this.text.charCodeAt(this.offset) === Character.Underscore;
     this.offset++;
-    this.scanIdentifierPart();
 
-    this.tokenKind = this.textToIdentifierToken();
+    // Equivalent to scanIdentifierPart() but keeps track of underscores.
+    while (this.offset < this.end) {
+      const ch = this.text.charCodeAt(this.offset);
+      if (!CharacterInfo.isIdentifierPart(ch, this.phpVersion)) {
+        break;
+      }
+      if (ch === Character.Underscore) {
+        hasUnderscore = true;
+      }
+      this.offset++;
+    }
+
+    // If the identifier is too long, then it's not a keyword.
+    if ((!hasUnderscore && this.offset - start > 10) || (hasUnderscore && this.offset - start > 15)) {
+      this.tokenKind = TokenKind.Identifier;
+    }
+    else {
+      this.tokenKind = this.textToIdentifierToken();
+    }
 
     // Ideally "yield from" would only be valid with a single space, but
     // someone decided to make it a special snowflake...
@@ -2165,14 +2181,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Returns a keyword or identifier token for the scanned text.
    */
   protected textToIdentifierToken(): TokenKind {
-    let tokenText = this.text.substring(this.tokenStart, this.offset - this.tokenStart).toLowerCase();
-    if (PhpLexer.KeywordTokens.has(tokenText)) {
+    const tokenText = this.text.substring(this.tokenStart, this.offset - this.tokenStart).toLowerCase();
+    const keyword = PhpLexer.KeywordTokens.get(tokenText);
+    if (keyword !== undefined) {
       // Backward compatibility: Am I a joke to you?
       if (tokenText === 'fn' && this.phpVersion < PhpVersion.PHP7_4) {
         return TokenKind.Identifier;
       }
-      // Suppress TS2322: Result cannot be undefined due to if-condition.
-      return <TokenKind>PhpLexer.KeywordTokens.get(tokenText);
+      return keyword;
     }
     return TokenKind.Identifier;
   }
