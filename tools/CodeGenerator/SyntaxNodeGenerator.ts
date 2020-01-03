@@ -151,6 +151,8 @@ export class SyntaxNodeGenerator {
       if (properties.length > 0) {
         this.text += properties + '\n';
       }
+      this.text += this.addConstructor();
+      this.text += '\n';
       if (!info.abstract) {
         let getters = this.addGetters(info.properties, info.name);
         if (getters.length > 0) {
@@ -167,6 +169,14 @@ export class SyntaxNodeGenerator {
       }
     }
     this.text += '}\n';
+  }
+
+  protected addConstructor(): string {
+    let text = '';
+    text += '  constructor(node: INode, parent: ISyntaxNode | null, offset: number) {\n';
+    text += '    super(node, parent, offset);\n';
+    text += '  }\n';
+    return text;
   }
 
   protected addCountGetter(count: number): string {
@@ -266,6 +276,8 @@ export class SyntaxNodeGenerator {
       }
     }
     this.text += '} from \'../node/Node.Generated\';\n';
+    this.text += 'import { INode } from \'../node/INode\';\n';
+    this.text += 'import { ISyntaxNode } from \'./ISyntaxNode\';\n';
     this.text += 'import { SyntaxList } from \'./SyntaxList\';\n';
     this.text += 'import { SyntaxNode } from \'./SyntaxNode\';\n';
     this.text += 'import { SyntaxNodeBase } from \'./SyntaxNodeBase\';\n';
