@@ -70,17 +70,17 @@ export class NodeFactory {
   /**
    * A list node containing a single whitespace character, used for leading trivia.
    */
-  protected static readonly SingleLeadingSpace = new SingleChildListNode(NodeFactory.SingleWhitespace);
+  protected static readonly SingleLeadingSpace: NodeList = new SingleChildListNode(NodeFactory.SingleWhitespace);
 
   /**
    * A list node containing two whitespace characters, used for leading trivia.
    */
-  protected static readonly TwoLeadingSpaces = new SingleChildListNode(NodeFactory.DoubleWhitespace);
+  protected static readonly TwoLeadingSpaces: NodeList = new SingleChildListNode(NodeFactory.DoubleWhitespace);
 
   /**
    * A list node containing four whitespace characters, used for leading trivia.
    */
-  protected static readonly FourLeadingSpaces = new SingleChildListNode(NodeFactory.QuadrupleWhitespace);
+  protected static readonly FourLeadingSpaces: NodeList = new SingleChildListNode(NodeFactory.QuadrupleWhitespace);
 
   // #endregion
 
