@@ -50,8 +50,10 @@ export class SyntaxWalker extends SyntaxVisitor {
    */
   public defaultVisit(node: ISyntaxNode): void {
     for (let child of node.getAllChildren()) {
-      if (child.isToken && this.walkerDepth >= SyntaxWalkerDepth.NodesAndTokens) {
-        this.visitToken(<ISyntaxToken>child);
+      if (child.isToken) {
+        if (this.walkerDepth >= SyntaxWalkerDepth.NodesAndTokens) {
+          this.visitToken(<ISyntaxToken>child);
+        }
       }
       else {
         this.visit(<ISyntaxNode>child);
