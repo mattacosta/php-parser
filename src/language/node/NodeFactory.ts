@@ -50,10 +50,22 @@ export class NodeFactory {
    */
   protected static readonly LF = new TriviaNode(TokenKind.LineBreak, 1);
 
+  // #region Whitespace
+
   /**
    * A trivia node representing a single whitespace character.
    */
   protected static readonly SingleWhitespace = new TriviaNode(TokenKind.Whitespace, 1);
+
+  /**
+   * A trivia node representing two whitespace characters.
+   */
+  protected static readonly DoubleWhitespace = new TriviaNode(TokenKind.Whitespace, 2);
+
+  /**
+   * A trivia node representing four whitespace characters.
+   */
+  protected static readonly QuadrupleWhitespace = new TriviaNode(TokenKind.Whitespace, 4);
 
   /**
    * A list node containing a single whitespace character, used for leading trivia.
@@ -61,14 +73,18 @@ export class NodeFactory {
   protected static readonly SingleLeadingSpace = new SingleChildListNode(NodeFactory.SingleWhitespace);
 
   /**
-   * A list of reusable tokens without leading trivia.
+   * A list node containing two whitespace characters, used for leading trivia.
    */
-  protected static readonly TokensWithNoTrivia: TokenNode[] = new Array(TokenKind.EOF);
+  protected static readonly TwoLeadingSpaces = new SingleChildListNode(NodeFactory.DoubleWhitespace);
 
   /**
-   * A list of reusable tokens with a single leading space.
+   * A list node containing four whitespace characters, used for leading trivia.
    */
-  protected static readonly TokensWithSingleLeadingSpace: TokenNode[] = new Array(TokenKind.EOF);
+  protected static readonly FourLeadingSpaces = new SingleChildListNode(NodeFactory.QuadrupleWhitespace);
+
+  // #endregion
+
+  // #region Caching
 
   /**
    * A cache for lists of tokens or trivia.
@@ -85,6 +101,16 @@ export class NodeFactory {
   protected static readonly NodeCache = new ObjectCache<INode>(15);
 
   /**
+   * A list of reusable tokens without leading trivia.
+   */
+  protected static readonly TokensWithNoTrivia: TokenNode[] = new Array(TokenKind.EOF);
+
+  /**
+   * A list of reusable tokens with a single leading space.
+   */
+  protected static readonly TokensWithSingleLeadingSpace: TokenNode[] = new Array(TokenKind.EOF);
+
+  /**
    * The maximum number of children a node may have before being uncachable.
    */
   private static readonly ChildLimit = 3;
@@ -97,6 +123,8 @@ export class NodeFactory {
    * @todo Determine the ideal limit.
    */
   private static readonly ShortListLimit = 8;
+
+  // #endregion
 
   /**
    * Creates a `NodeFactory` object.
@@ -126,8 +154,16 @@ export class NodeFactory {
    */
   public createList(nodes: Node[], diagnostics?: SyntaxDiagnostic[]): NodeList {
     if (nodes.length === 1) {
-      if (nodes[0] === NodeFactory.SingleWhitespace && diagnostics === void 0) {
-        return NodeFactory.SingleLeadingSpace;
+      if (diagnostics === void 0) {
+        if (nodes[0] === NodeFactory.SingleWhitespace) {
+          return NodeFactory.SingleLeadingSpace;
+        }
+        if (nodes[0] === NodeFactory.DoubleWhitespace) {
+          return NodeFactory.TwoLeadingSpaces;
+        }
+        if (nodes[0] === NodeFactory.QuadrupleWhitespace) {
+          return NodeFactory.FourLeadingSpaces;
+        }
       }
       let list = new SingleChildListNode(nodes[0], diagnostics);
       return this.getCachedList(list, list.hashCode());
@@ -218,6 +254,12 @@ export class NodeFactory {
     else if (kind === TokenKind.Whitespace) {
       if (fullWidth === 1) {
         return NodeFactory.SingleWhitespace;
+      }
+      if (fullWidth === 2) {
+        return NodeFactory.DoubleWhitespace;
+      }
+      if (fullWidth === 4) {
+        return NodeFactory.QuadrupleWhitespace;
       }
     }
     let trivia = new TriviaNode(kind, fullWidth);
