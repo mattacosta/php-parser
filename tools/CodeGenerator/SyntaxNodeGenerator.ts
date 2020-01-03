@@ -282,7 +282,7 @@ export class SyntaxNodeGenerator {
       let type = this.getSyntaxTypes(prop);
       if (!isAbstract) {
         if (prop.type !== 'TokenNode') {
-          text += '  protected _' + prop.name + '?: ' + type + (prop.optional ? ' | null' : '') + ';\n';
+          text += '  protected _' + prop.name + '?: ' + type + (prop.optional ? ' | null' : '') + ' = undefined;\n';
         }
       }
       else {
