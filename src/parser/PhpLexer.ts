@@ -630,13 +630,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    */
   protected lexScript(): PhpLexerState {
     let ch = this.text.charCodeAt(this.offset);
-    let next = this.peek(this.offset + 1);
 
     switch (ch) {
       // Line breaks
       case Character.CarriageReturn:
       case Character.LineFeed:
-        if (ch === Character.CarriageReturn && next === Character.LineFeed) {
+        if (ch === Character.CarriageReturn && this.peek(this.offset + 1) === Character.LineFeed) {
           this.offset = this.offset + 2;
         }
         else {
@@ -652,6 +651,28 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         this.offset++;
         this.scanWhitespace();
         this.tokenKind = TokenKind.Whitespace;
+        return this.state;
+    }
+
+    // Express checkout for keywords and common identifiers.
+    if ((ch >= Character.a && ch <= Character.z) || (ch >= Character.A && ch <= Character.Z)) {
+      this.scanIdentifierOrKeyword();
+      return this.state;
+    }
+
+    let next = this.peek(this.offset + 1);
+    switch (ch) {
+      // Variables
+      case Character.Dollar:
+        if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
+          this.offset = this.offset + 2;
+          this.scanIdentifierPart();
+          this.tokenKind = TokenKind.Variable;
+        }
+        else {
+          this.offset++;
+          this.tokenKind = TokenKind.Dollar;
+        }
         return this.state;
 
       // Strings
@@ -747,22 +768,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
           this.offset++;
           this.tokenKind = TokenKind.Slash;
         }
-        return this.state;
-
-      // Numbers
-      case Character._0:
-        this.scanNumberWithPrefix();
-        return this.state;
-      case Character._1:
-      case Character._2:
-      case Character._3:
-      case Character._4:
-      case Character._5:
-      case Character._6:
-      case Character._7:
-      case Character._8:
-      case Character._9:
-        this.scanNumber();
         return this.state;
 
       // Punctuation
@@ -861,17 +866,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         else {
           this.offset++;
           this.tokenKind = TokenKind.Colon;
-        }
-        return this.state;
-      case Character.Dollar:
-        if (CharacterInfo.isIdentifierStart(next, this.phpVersion)) {
-          this.offset = this.offset + 2;
-          this.scanIdentifierPart();
-          this.tokenKind = TokenKind.Variable;
-        }
-        else {
-          this.offset++;
-          this.tokenKind = TokenKind.Dollar;
         }
         return this.state;
       case Character.Equal:
@@ -1062,7 +1056,23 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
         }
         return this.state;
 
-      // Keywords and identifiers.
+      // Numbers
+      case Character._0:
+        this.scanNumberWithPrefix();
+        return this.state;
+      case Character._1:
+      case Character._2:
+      case Character._3:
+      case Character._4:
+      case Character._5:
+      case Character._6:
+      case Character._7:
+      case Character._8:
+      case Character._9:
+        this.scanNumber();
+        return this.state;
+
+      // Identifiers starting with extended characters.
       default:
         if (CharacterInfo.isIdentifierStart(ch, this.phpVersion)) {
           this.scanIdentifierOrKeyword();
