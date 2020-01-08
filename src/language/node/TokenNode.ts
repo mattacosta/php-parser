@@ -187,7 +187,7 @@ export class TokenNode extends Node {
    * @inheritDoc
    */
   protected computeHashCode(): number {
-    return Hash.combine(this.kind, Hash.combine(this._flags ^ this._fullWidth, 1));
+    return Hash.combine(this._fullWidth, this._flags ^ (this.kind + 8192));
   }
 
   /**
@@ -288,8 +288,7 @@ export class TokenWithTriviaNode extends TokenNode {
    * @inheritDoc
    */
   protected computeHashCode(): number {
-    let hash = Hash.combine(this._flags ^ this._fullWidth, 1);
-    hash = Hash.combine(this.kind, hash);
+    let hash = Hash.combine(this._fullWidth, this._flags ^ (this.kind + 8192));
     hash = this._leadingTrivia !== null ? Hash.combine(this._leadingTrivia.hashCode(), hash) : hash;
     return hash;
   }

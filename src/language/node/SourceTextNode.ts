@@ -112,7 +112,7 @@ export class SourceTextNode extends Node {
   }
 
   protected computeHashCode(): number {
-    let hash = Hash.combine(this._flags ^ this._fullWidth, 4);
+    let hash = Hash.combine(this._fullWidth, this._flags ^ (4 + 8192 + 512));
     hash = this.statements !== null ? Hash.combine(this.statements.hashCode(), hash) : hash;
     hash = Hash.combine(this.eof.hashCode(), hash);
     return hash;

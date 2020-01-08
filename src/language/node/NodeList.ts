@@ -187,7 +187,7 @@ export class SingleChildListNode extends NodeList {
    * @inheritDoc
    */
   protected computeHashCode(): number {
-    let hash = Hash.combine(this._flags ^ this._fullWidth, 3);
+    let hash = Hash.combine(this._fullWidth, this._flags ^ (3 + 8192));
     hash = Hash.combine(this.getChildHashCode(), hash);
     return hash;
   }
@@ -319,7 +319,7 @@ export class TwoChildListNode extends NodeList {
    * @inheritDoc
    */
   protected computeHashCode(): number {
-    let hash = Hash.combine(this._flags ^ this._fullWidth, 3);
+    let hash = Hash.combine(this._fullWidth, this._flags ^ (3 + 8192));
     hash = Hash.combine(this.getFirstChildHashCode(), hash);
     hash = Hash.combine(this.getSecondChildHashCode(), hash);
     return hash;
@@ -429,7 +429,7 @@ abstract class ManyChildListNode extends NodeList {
    * @inheritDoc
    */
   protected computeHashCode(): number {
-    let hash = Hash.combine(this._fullWidth ^ this._flags, 3);
+    let hash = Hash.combine(this._fullWidth, this._flags ^ (3 + 8192));
     const length = this.count;
     for (let i = 0; i < length; i++) {
       const child = this.childAt(i);

@@ -188,7 +188,10 @@ export class NodeGenerator {
 
     let text = '';
     text += '  protected computeHashCode(): number {\n';
-    text += '    let hash = Hash.combine(this._flags ^ this._fullWidth, ' + index + ');\n';
+
+    // Add 8192 to move out of flag range, which should prevent XOR from ever
+    // returning 0. Add 512 to make values unique with respect to token nodes.
+    text += '    let hash = Hash.combine(this._fullWidth, this._flags ^ ' + (index + 8192 + 512) + ');\n';
 
     for (let i = 0; i < properties.length; i++) {
       let prop = properties[i];

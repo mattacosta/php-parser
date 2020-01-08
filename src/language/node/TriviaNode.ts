@@ -167,7 +167,7 @@ export class TriviaNode extends Node {
    * @inheritDoc
    */
   protected computeHashCode(): number {
-    return Hash.combine(this.kind, Hash.combine(this._flags ^ this._fullWidth, 2));
+    return Hash.combine(this._fullWidth, this._flags ^ (this.kind + 8192));
   }
 
   /**
