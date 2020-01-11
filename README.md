@@ -17,15 +17,25 @@ code analysis and transformation features.
 
 ## Installation
 
-### Using npm:
+### Using a package manager:
+
 `npm install @mattacosta/php-parser`
 
-### From source code:
+### Building from source code:
+
+Run the following commands to get the latest files, install any dependencies,
+and build the project.
+
 `git clone https://github.com/mattacosta/php-parser.git`
+
+`npm install`
+
+`npx gulp compile`
 
 ## Getting started
 
 Parsing a file and getting diagnostics:
+
 ```ts
 let tree = PhpSyntaxTree.fromText('<?php var_dump($a);');
 
@@ -34,6 +44,10 @@ for (let diagnostic of tree.getDiagnostics()) {
   console.log(message);
 }
 ```
+
+Syntax nodes also contain additional properties and methods to traverse the
+syntax tree. If visiting multiple nodes in a tree, consider extending the
+`SyntaxVisitor` or `SyntaxTransform` classes.
 
 ## Documentation
 - [Design overview][Wiki_DesignOverview]
