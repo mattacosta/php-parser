@@ -1,3 +1,6 @@
 lib/
 out/
 typings/
+
+# Do not run typescript-eslint rules on JS files.
+**/*.js
