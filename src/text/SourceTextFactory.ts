@@ -16,6 +16,9 @@
 
 'use strict';
 
+import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
+
+import { BomKind } from './BomKind';
 import { CompositeText } from './CompositeText';
 import { ISourceText } from './ISourceText';
 import { StringText } from './StringText';
@@ -65,6 +68,36 @@ export class SourceTextFactory {
     //   return LargeText.decode(text, encoding);
     // }
     return new StringText(text);
+  }
+
+  /**
+   * Attempts to determine if a byte order mark is present in the source text.
+   *
+   * @param {Uint8Array} buffer
+   *   A byte-array containing the encoded source text.
+   * @param {number} length
+   *   The number of valid bytes in the buffer.
+   */
+  public static tryReadByteOrderMark(buffer: Uint8Array, length: number): BomKind {
+    if (length > buffer.length) {
+      throw new ArgumentOutOfRangeException();
+    }
+
+    if (length >= 2) {
+      if (buffer[0] === 0xFE && buffer[1] === 0xFF) {
+        return BomKind.UTF16BE;
+      }
+      if (buffer[0] === 0xFF && buffer[1] === 0xFE) {
+        return BomKind.UTF16LE;
+      }
+      if (buffer[0] === 0xEF) {
+        if (length >= 3 && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+          return BomKind.UTF8;
+        }
+      }
+    }
+
+    return BomKind.Unknown;
   }
 
 }
