@@ -18,6 +18,7 @@
 
 import * as assert from 'assert';
 
+import { Encoding } from '../../../src/text/Encoding';
 import { SegmentedText } from '../../../src/text/SegmentedText';
 import { StringText } from '../../../src/text/StringText';
 import { TextSpan } from '../../../src/text/TextSpan';
@@ -26,15 +27,15 @@ describe('SegmentedText', function() {
 
   describe('#constructor()', function() {
     it('should throw if span is not in text', () => {
-      let text = new StringText('abcde');
-      assert.throws(() => new SegmentedText(text, new TextSpan(6, 1)));
-      assert.throws(() => new SegmentedText(text, new TextSpan(3, 3)));
+      let text = new StringText('abcde', Encoding.Latin1);
+      assert.throws(() => new SegmentedText(text, new TextSpan(6, 1), Encoding.Latin1));
+      assert.throws(() => new SegmentedText(text, new TextSpan(3, 3), Encoding.Latin1));
     });
   });
 
   describe('#charCodeAt()', function() {
-    let text = new StringText('abcde');
-    let segment = new SegmentedText(text, new TextSpan(0, 3));
+    let text = new StringText('abcde', Encoding.Latin1);
+    let segment = new SegmentedText(text, new TextSpan(0, 3), Encoding.Latin1);
     it('should get character at first offset', () => {
       assert.equal(segment.charCodeAt(0), 'a'.charCodeAt(0));
     });
@@ -51,8 +52,8 @@ describe('SegmentedText', function() {
   });
 
   describe('#slice()', function() {
-    let text = new StringText('abcde');
-    let segment = new SegmentedText(text, new TextSpan(1, 3));
+    let text = new StringText('abcde', Encoding.Latin1);
+    let segment = new SegmentedText(text, new TextSpan(1, 3), Encoding.Latin1);
     it('should get slice if starting position is equal to text start', () => {
       assert.equal(segment.slice(new TextSpan(0, 3)).substring(0), 'bcd');
       assert.equal(segment.slice(0).substring(0), 'bcd');
@@ -75,8 +76,8 @@ describe('SegmentedText', function() {
   });
 
   describe('#substring()', function() {
-    let text = new StringText('abcde');
-    let segment = new SegmentedText(text, new TextSpan(2, 3));
+    let text = new StringText('abcde', Encoding.Latin1);
+    let segment = new SegmentedText(text, new TextSpan(2, 3), Encoding.Latin1);
     it('should get substring if starting position is equal to text start', () => {
       assert.equal(segment.substring(0, 1), 'c');
       assert.equal(segment.substring(-3, 1), 'c');

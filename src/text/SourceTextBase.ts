@@ -18,6 +18,7 @@
 
 import { ArgumentException } from '@mattacosta/php-common';
 
+import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { ISourceTextContainer } from './ISourceTextContainer';
 import { SourceTextBuilder } from './SourceTextBuilder';
@@ -29,6 +30,11 @@ import { TextSpan } from './TextSpan';
  * Provides a base class for objects that contain source code.
  */
 export abstract class SourceTextBase implements ISourceText, ISourceTextContainer {
+
+  /**
+   * @inheritDoc
+   */
+  public abstract readonly encoding: Encoding;
 
   /**
    * @inheritDoc
@@ -89,7 +95,7 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
   public withChanges(changes: Iterable<TextChange>): ISourceText {
     let offset = 0;
     let hasInsertedText = false;
-    let builder = new SourceTextBuilder();
+    let builder = new SourceTextBuilder(this.encoding);
 
     for (let change of changes) {
       if (change.span.start < offset) {

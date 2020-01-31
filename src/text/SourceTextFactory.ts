@@ -20,6 +20,7 @@ import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
 import { BomKind } from './BomKind';
 import { CompositeText } from './CompositeText';
+import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { StringText } from './StringText';
 
@@ -31,7 +32,7 @@ export class SourceTextFactory {
   /**
    * An empty source text container.
    */
-  public static readonly EmptyText: ISourceText = new StringText('');
+  public static readonly EmptyText: ISourceText = new StringText('', Encoding.Latin1);
 
   /**
    * The maximum length of a string before a more efficient source text
@@ -50,11 +51,13 @@ export class SourceTextFactory {
    * @param {number} sourceLength
    *   The total length of the stored text. This may be greater than the length
    *   of the text.
+   * @param {Encoding} encoding
+   *   The original encoding of the source text.
    *
    * @internal
    */
-  public static createContainer(sources: ReadonlyArray<ISourceText>, sourceLength: number): ISourceText {
-    return CompositeText.from(sources, sourceLength);
+  public static createContainer(sources: ReadonlyArray<ISourceText>, sourceLength: number, encoding: Encoding): ISourceText {
+    return CompositeText.from(sources, sourceLength, encoding);
   }
 
   /**
@@ -62,12 +65,14 @@ export class SourceTextFactory {
    *
    * @param {string} text
    *   A string containing source code.
+   * @param {Encoding=} encoding
+   *   The original encoding of the source text. Defaults to `Encoding.Latin1`.
    */
-  public static from(text: string /* , encoding: any */): ISourceText {
+  public static from(text: string, encoding = Encoding.Latin1): ISourceText {
     // if (text.length > SourceText.LargeTextLimit) {
     //   return LargeText.decode(text, encoding);
     // }
-    return new StringText(text);
+    return new StringText(text, encoding);
   }
 
   /**

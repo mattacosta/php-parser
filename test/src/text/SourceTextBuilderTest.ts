@@ -19,6 +19,7 @@
 import * as assert from 'assert';
 
 import { CompositeText } from '../../../src/text/CompositeText';
+import { Encoding } from '../../../src/text/Encoding';
 import { ISourceText } from '../../../src/text/ISourceText';
 import { SegmentedText } from '../../../src/text/SegmentedText';
 import { SourceTextBuilder } from '../../../src/text/SourceTextBuilder';
@@ -29,11 +30,14 @@ import { TextSpan } from '../../../src/text/TextSpan';
 class TestSourceTextBuilder extends SourceTextBuilder {
 
   constructor(segments?: ReadonlyArray<ISourceText>) {
-    super(segments);
+    super(Encoding.Latin1);
     SourceTextBuilder.MinSegmentLength = 4;
     SourceTextBuilder.MaxSegmentLength = 8;
     SourceTextBuilder.SegmentLimit = 4;
     SourceTextBuilder.SegmentRebuildLimit = 2;
+    if (segments !== undefined) {
+      this.appendRange(segments);
+    }
   }
 
 }
@@ -73,7 +77,7 @@ describe('SourceTextBuilder', function() {
     });
     it('should update source length', () => {
       const source = SourceTextFactory.from('12345');
-      const segment = new SegmentedText(source, new TextSpan(0, 3));
+      const segment = new SegmentedText(source, new TextSpan(0, 3), Encoding.Latin1);
       // Length is 5 + 3, source length is 5 + 5.
       let builder = new TestSourceTextBuilder(characters.slice(0, 5).concat(segment));
       let text = <CompositeText>builder.toSourceText();
@@ -95,7 +99,7 @@ describe('SourceTextBuilder', function() {
     });
     it('should remove deleted text', () => {
       const source = SourceTextFactory.from('1234567890');
-      let builder = new TestSourceTextBuilder([new SegmentedText(source, new TextSpan(0, 3))]);
+      let builder = new TestSourceTextBuilder([new SegmentedText(source, new TextSpan(0, 3), Encoding.Latin1)]);
       let text = <StringText>builder.toSourceText();
       // Always return the first merged segment.
       assert.equal(text instanceof StringText, true);

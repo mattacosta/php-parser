@@ -23,6 +23,7 @@ import { SegmentedText } from './SegmentedText';
 import { SourceTextBase } from './SourceTextBase';
 import { SourceTextFactory } from './SourceTextFactory';
 import { TextSpan } from './TextSpan';
+import { Encoding } from './Encoding';
 
 /**
  * A source code container based on a string.
@@ -30,6 +31,11 @@ import { TextSpan } from './TextSpan';
  * @internal
  */
 export class StringText extends SourceTextBase {
+
+  /**
+   * @inheritDoc
+   */
+  public readonly encoding: Encoding;
 
   /**
    * @inheritDoc
@@ -61,9 +67,12 @@ export class StringText extends SourceTextBase {
    *
    * @param {string} text
    *   A string containing the source code.
+   * @param {Encoding} encoding
+   *   The original encoding of the source text.
    */
-  constructor(text: string /* , encoding? = 'utf8' */) {
+  constructor(text: string, encoding: Encoding) {
     super();
+    this.encoding = encoding;
     this.length = text.length;
     this.sourceKey = this;
     this.sourceLength = text.length;
@@ -92,9 +101,9 @@ export class StringText extends SourceTextBase {
       return SourceTextFactory.EmptyText;
     }
     if (position.start === 0 && position.length === this.text.length) {
-      return new StringText(this.text);  // Always return a new instance.
+      return new StringText(this.text, this.encoding);  // Always return a new instance.
     }
-    return new SegmentedText(this, position);
+    return new SegmentedText(this, position, this.encoding);
   }
 
   /**

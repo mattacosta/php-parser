@@ -18,13 +18,14 @@
 
 import * as assert from 'assert';
 
+import { Encoding } from '../../../src/text/Encoding';
 import { StringText } from '../../../src/text/StringText';
 import { TextSpan } from '../../../src/text/TextSpan';
 
 describe('StringText', function() {
 
   describe('#charCodeAt()', function() {
-    let text = new StringText('abc');
+    let text = new StringText('abc', Encoding.Latin1);
     it('should get character at first offset', () => {
       assert.equal(text.charCodeAt(0), 'a'.charCodeAt(0));
     });
@@ -41,7 +42,7 @@ describe('StringText', function() {
   });
 
   describe('#slice()', function() {
-    let text = new StringText('abc');
+    let text = new StringText('abc', Encoding.Latin1);
     it('should get slice if starting position is equal to text start', () => {
       assert.equal(text.slice(new TextSpan(0, 3)).substring(0), 'abc');
       assert.equal(text.slice(0).substring(0), 'abc');
@@ -64,7 +65,7 @@ describe('StringText', function() {
   });
 
   describe('#substring()', function() {
-    let text = new StringText('abc');
+    let text = new StringText('abc', Encoding.Latin1);
     it('should get substring if starting position is equal to text start', () => {
       assert.equal(text.substring(0, 1), 'a');
       assert.equal(text.substring(-3, 1), 'a');

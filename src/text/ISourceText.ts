@@ -18,6 +18,7 @@
 
 import { IEquatable } from '@mattacosta/php-common';
 
+import { Encoding } from './Encoding';
 import { TextChange } from './TextChange';
 import { TextSpan } from './TextSpan';
 
@@ -27,6 +28,11 @@ import { TextSpan } from './TextSpan';
  * @todo Add a `lines` property?
  */
 export interface ISourceText extends IEquatable<ISourceText> {
+
+  /**
+   * The original encoding of the source text.
+   */
+  readonly encoding: Encoding;
 
   /**
    * The length of the text.

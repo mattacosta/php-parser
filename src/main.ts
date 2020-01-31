@@ -63,6 +63,7 @@ export * from './parser/TemplateSpan';
 export * from './parser/Token';
 
 export * from './text/BomKind';
+export * from './text/Encoding';
 export * from './text/ISourceText';
 export * from './text/ISourceTextContainer';
 export * from './text/LinePosition';

@@ -18,6 +18,7 @@
 
 import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
+import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { SourceTextBase } from './SourceTextBase';
 import { SourceTextFactory } from './SourceTextFactory';
@@ -29,6 +30,11 @@ import { TextSpan } from './TextSpan';
  * @internal
  */
 export class SegmentedText extends SourceTextBase {
+
+  /**
+   * @inheritDoc
+   */
+  public readonly encoding: Encoding;
 
   /**
    * @inheritDoc
@@ -67,15 +73,18 @@ export class SegmentedText extends SourceTextBase {
    *   The source text that contains the segment.
    * @param {TextSpan} span
    *   The starting position and length of the segment.
+   * @param {Encoding} encoding
+   *   The original encoding of the source text.
    *
    * @throws {ArgumentOutOfRangeException}
    *   The span did not specify a region within the source text.
    */
-  constructor(text: ISourceText, span: TextSpan) {
+  constructor(text: ISourceText, span: TextSpan, encoding: Encoding) {
     super();
     if (span.start < 0 || span.start >= text.length || span.end < 0 || span.end > text.length) {
       throw new ArgumentOutOfRangeException();
     }
+    this.encoding = encoding;
     this.length = span.length;
     this.sourceKey = text;
     this.sourceLength = text.length;
@@ -108,7 +117,7 @@ export class SegmentedText extends SourceTextBase {
       return SourceTextFactory.EmptyText;
     }
     let segmentSpan = this.createSegmentSpan(position.start, position.length);
-    return new SegmentedText(this.text, segmentSpan);
+    return new SegmentedText(this.text, segmentSpan, this.encoding);
   }
 
   /**

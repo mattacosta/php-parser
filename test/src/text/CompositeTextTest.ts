@@ -19,6 +19,7 @@
 import * as assert from 'assert';
 
 import { CompositeText } from '../../../src/text/CompositeText';
+import { Encoding } from '../../../src/text/Encoding';
 import { SourceTextFactory } from '../../../src/text/SourceTextFactory';
 import { TextSpan } from '../../../src/text/TextSpan';
 
@@ -30,7 +31,7 @@ describe('CompositeText', function() {
   const de = SourceTextFactory.from('de');
 
   describe('#charCodeAt()', function() {
-    let text = CompositeText.from([ab, de], 5);
+    let text = CompositeText.from([ab, de], 5, Encoding.Latin1);
     it('should get character at first offset', () => {
       assert.equal(text.charCodeAt(0), 'a'.charCodeAt(0));
     });
@@ -47,7 +48,7 @@ describe('CompositeText', function() {
   });
 
   describe('#slice()', function() {
-    let text = CompositeText.from([bc, de], 5);
+    let text = CompositeText.from([bc, de], 5, Encoding.Latin1);
     it('should get slice if starting position is equal to text start', () => {
       assert.equal(text.slice(new TextSpan(0, 4)).substring(0), 'bcde');
       assert.equal(text.slice(0).substring(0), 'bcde');
@@ -70,7 +71,7 @@ describe('CompositeText', function() {
   });
 
   describe('#substring()', function() {
-    let text = CompositeText.from([abc, de], 5);
+    let text = CompositeText.from([abc, de], 5, Encoding.Latin1);
     it('should get substring if starting position is equal to text start', () => {
       assert.equal(text.substring(0, 1), 'a');
       assert.equal(text.substring(-5, 1), 'a');

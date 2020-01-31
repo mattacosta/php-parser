@@ -18,6 +18,7 @@
 
 import { ArgumentOutOfRangeException, List } from '@mattacosta/php-common';
 
+import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { SourceTextBase } from './SourceTextBase';
 import { SourceTextBuilder } from './SourceTextBuilder';
@@ -39,6 +40,11 @@ export class CompositePosition {
  * @internal
  */
 export class CompositeText extends SourceTextBase {
+
+  /**
+   * @inheritDoc
+   */
+  public readonly encoding: Encoding;
 
   /**
    * @inheritDoc
@@ -73,8 +79,10 @@ export class CompositeText extends SourceTextBase {
    * @param {number} sourceLength
    *   The total length of the stored text. This may be greater than the length
    *   of the text.
+   * @param {Encoding} encoding
+   *   The original encoding of the source text.
    */
-  protected constructor(sources: ReadonlyArray<ISourceText>, sourceLength: number) {
+  protected constructor(sources: ReadonlyArray<ISourceText>, sourceLength: number, encoding: Encoding) {
     super();
 
     let length = 0;
@@ -84,6 +92,7 @@ export class CompositeText extends SourceTextBase {
       length += sources[i].length;
     }
 
+    this.encoding = encoding;
     this.length = length;
     this.sourceKey = this;
     this.sourceLength = sourceLength;
@@ -94,14 +103,14 @@ export class CompositeText extends SourceTextBase {
   /**
    * @todo Document CompositeText.from().
    */
-  public static from(sources: ReadonlyArray<ISourceText>, sourceLength: number): ISourceText {
+  public static from(sources: ReadonlyArray<ISourceText>, sourceLength: number, encoding: Encoding): ISourceText {
     if (sources.length === 0) {
       return SourceTextFactory.EmptyText;
     }
     if (sources.length === 1) {
       return sources[0];
     }
-    return new CompositeText(sources, sourceLength);
+    return new CompositeText(sources, sourceLength, encoding);
   }
 
   /**
@@ -135,7 +144,7 @@ export class CompositeText extends SourceTextBase {
     }
 
     let segmentPosition = this.positionAt(position.start);
-    let builder = new SourceTextBuilder();
+    let builder = new SourceTextBuilder(this.encoding);
 
     let index = segmentPosition.index;
     let offset = segmentPosition.offset;

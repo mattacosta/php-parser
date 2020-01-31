@@ -18,6 +18,7 @@
 
 import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
+import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { SourceTextExtensions } from './SourceTextExtensions';
 import { SourceTextFactory } from './SourceTextFactory';
@@ -57,6 +58,11 @@ export class SourceTextBuilder {
   protected static SegmentRebuildLimit = 16;
 
   /**
+   * The original encoding of the source text.
+   */
+  protected readonly encoding: Encoding;
+
+  /**
    * The current length of the source text.
    */
   protected length = 0;
@@ -84,15 +90,13 @@ export class SourceTextBuilder {
   /**
    * Constructs a `SourceTextBuilder` object.
    *
-   * @param {ReadonlyArray<ISourceText>} segments
-   *   A list of text segments to append.
+   * @param {Encoding} encoding
+   *   The original encoding of the source text.
    */
-  public constructor(segments?: ReadonlyArray<ISourceText>) {
+  public constructor(encoding: Encoding) {
+    this.encoding = encoding;
     this.segments = [];
     this.uniqueSources = new Set();
-    if (segments !== void 0) {
-      this.appendRange(segments);
-    }
   }
 
   /**
@@ -169,7 +173,7 @@ export class SourceTextBuilder {
       this.rebuildSegments(this.calculateRebuildSegmentLength());
     }
 
-    return SourceTextFactory.createContainer(this.segments, this.sourceLength);
+    return SourceTextFactory.createContainer(this.segments, this.sourceLength, this.encoding);
   }
 
   /**
