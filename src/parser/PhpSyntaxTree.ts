@@ -16,6 +16,7 @@
 
 'use strict';
 
+import { Encoding } from '../text/Encoding';
 import { PhpLexer } from './PhpLexer';
 import { PhpParser } from './PhpParser';
 import { PhpParserOptions } from './PhpParserOptions';
@@ -62,14 +63,25 @@ export class PhpSyntaxTree extends SyntaxTreeBase<SourceTextSyntaxNode> {
   }
 
   /**
-   * @todo Document fromText().
+   * Parses a string into a syntax tree.
+   *
+   * @param {string} text
+   *   A string containing source code.
+   * @param {string=} path
+   *   The location of the source file.
+   * @param {PhpParserOptions=} options
+   *   Parser configuration options.
+   * @param {Encoding=} encoding
+   *   The original encoding of the source text. Defaults to `Encoding.Utf8`.
    */
-  public static fromText(text: string, path = '', options?: PhpParserOptions /*, cancellationToken */): PhpSyntaxTree {
-    if (!options) {
-      options = PhpParserOptions.Default;
-    }
-
-    let sourceText = SourceTextFactory.from(text);
+  public static fromText(
+    text: string,
+    path = '',
+    options = PhpParserOptions.Default,
+    encoding = Encoding.Utf8,
+  //cancellationToken
+  ): PhpSyntaxTree {
+    let sourceText = SourceTextFactory.from(text, encoding);
     let lexer = new PhpLexer(sourceText, options.version, options.is64Bit, options.allowUtf16);
     let parser = new PhpParser(lexer, options);
 
