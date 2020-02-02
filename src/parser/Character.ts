@@ -189,21 +189,38 @@ export class CharacterInfo {
    * This is similar to `isIdentifierStart()` but allows for digits.
    */
   public static isIdentifierPart(ch: number, languageVersion = PhpVersion.Latest): boolean {
-    let asciiMin = languageVersion < PhpVersion.PHP7_1 ? 0x7F : 0x80;
-    return (ch >= Character.a && ch <= Character.z) ||
-      (ch >= Character.A && ch <= Character.Z) ||
-      (ch >= Character._0 && ch <= Character._9) ||
-      ch === Character.Underscore || ch >= asciiMin;
+    if (ch < Character.a) {
+      if (ch < Character.A) {
+        return ch >= Character._0 && ch <= Character._9;
+      }
+      return ch <= Character.Z || ch === Character.Underscore;
+    }
+    if (ch <= Character.z) {
+      return true;
+    }
+    if (ch <= Character.Delete) {
+      return languageVersion === PhpVersion.PHP7_0 && ch === Character.Delete;
+    }
+    return true;
   }
 
   /**
    * Determines if a character may start an identifier.
    */
   public static isIdentifierStart(ch: number, languageVersion = PhpVersion.Latest): boolean {
-    let asciiMin = languageVersion < PhpVersion.PHP7_1 ? 0x7F : 0x80;
-    return (ch >= Character.a && ch <= Character.z) ||
-      (ch >= Character.A && ch <= Character.Z) ||
-      ch === Character.Underscore || ch >= asciiMin;
+    if (ch < Character.a) {
+      if (ch < Character.A) {
+        return false;
+      }
+      return ch <= Character.Z || ch === Character.Underscore;
+    }
+    if (ch <= Character.z) {
+      return true;
+    }
+    if (ch <= Character.Delete) {
+      return languageVersion === PhpVersion.PHP7_0 && ch === Character.Delete;
+    }
+    return true;
   }
 
   /**
