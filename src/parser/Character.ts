@@ -190,12 +190,10 @@ export class CharacterInfo {
    */
   public static isIdentifierPart(ch: number, languageVersion = PhpVersion.Latest): boolean {
     let asciiMin = languageVersion < PhpVersion.PHP7_1 ? 0x7F : 0x80;
-    let asciiMax = 0xFF;
     return (ch >= Character.a && ch <= Character.z) ||
       (ch >= Character.A && ch <= Character.Z) ||
       (ch >= Character._0 && ch <= Character._9) ||
-      (ch === Character.Underscore) ||
-      (ch >= asciiMin && ch <= asciiMax);
+      ch === Character.Underscore || ch >= asciiMin;
   }
 
   /**
@@ -203,11 +201,9 @@ export class CharacterInfo {
    */
   public static isIdentifierStart(ch: number, languageVersion = PhpVersion.Latest): boolean {
     let asciiMin = languageVersion < PhpVersion.PHP7_1 ? 0x7F : 0x80;
-    let asciiMax = 0xFF;
     return (ch >= Character.a && ch <= Character.z) ||
       (ch >= Character.A && ch <= Character.Z) ||
-      (ch === Character.Underscore) ||
-      (ch >= asciiMin && ch <= asciiMax);
+      ch === Character.Underscore || ch >= asciiMin;
   }
 
   /**

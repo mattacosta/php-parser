@@ -19,6 +19,7 @@
 import { ArgumentException, Exception } from '@mattacosta/php-common';
 
 import { Character, CharacterInfo } from './Character';
+import { Encoding } from '../text/Encoding';
 import { ErrorCode } from '../diagnostics/ErrorCode.Generated';
 import { ISourceText } from '../text/ISourceText';
 import { LexerBase } from './Lexer';
@@ -151,6 +152,12 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   protected allowShortOpen: boolean = false;
 
   /**
+   * Determines if the lexer should scan text as if PHP were aware of UTF-16
+   * encoded characters. Defaults to `false`.
+   */
+  protected allowUtf16: boolean = false;
+
+  /**
    * The default scanning mode when starting to scan text, or when not in a
    * pre-defined region.
    *
@@ -196,13 +203,22 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   /**
    * Constructs a `PhpLexer` object.
    *
-   * @param {ISourceText=} text
+   * @param {ISourceText} text
    *   The source text to tokenize.
+   * @param {PhpVersion=} phpVersion
+   *   The version of PHP to parse tokens as. Defaults to `PhpVersion.Latest`.
+   * @param {boolean=} is64Bit
+   *   Determines if the lexer should scan numbers as if PHP were compiled with
+   *   64-bit support. Defaults to `true`.
+   * @param {boolean=} allowUtf16
+   *   Determines if the lexer should scan text as if PHP were aware of UTF-16
+   *   encoded characters. Defaults to `false`.
    *
-   * @todo Support `start` and `length` parameters?
+   * @todo Add `start` and `length` parameters?
    */
-  constructor(text: ISourceText, phpVersion = PhpVersion.Latest, is64Bit = true) {
+  constructor(text: ISourceText, phpVersion = PhpVersion.Latest, is64Bit = true, allowUtf16 = false) {
     super(text, PhpLexerState.InHostLanguage);
+    this.allowUtf16 = allowUtf16;
     this.phpVersion = phpVersion;
     this.ptrSize = is64Bit ? 8 : 4;
   }
@@ -507,6 +523,14 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
    * Tokenizes inline text until a PHP open tag is encountered.
    */
   protected lexInlineText(): PhpLexerState {
+    if (this.text.encoding === Encoding.Utf16le && !this.allowUtf16) {
+      // All code points are encoded using at least two bytes, which prevents
+      // PHP from finding an open tag (null bytes are between each character).
+      this.offset = this.end;
+      this.tokenKind = TokenKind.InlineText;
+      return this.state;
+    }
+
     // Only return an opening tag if there is no inline text in the way.
     let length = this.tryScanOpenTag();
     if (length) {

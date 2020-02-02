@@ -36,12 +36,19 @@ export class PhpParserOptions /* implements IEquatable<PhpParserOptions> */ {
   public readonly allowReservedNames: boolean;
 
   /**
+   * Determines if the lexer should scan text as if PHP were aware of UTF-16
+   * encoded characters. Defaults to `false`.
+   */
+  public readonly allowUtf16: boolean;
+
+  /**
    * Determines how the parser should handle documentation comments.
    */
   public readonly documentationMode: DocumentationMode;
 
   /**
-   * Determines if the parser should scan the text in 64-bit mode.
+   * Determines if the lexer should scan numbers as if PHP were compiled with
+   * 64-bit support.
    */
   public readonly is64Bit: boolean;
 
@@ -60,22 +67,27 @@ export class PhpParserOptions /* implements IEquatable<PhpParserOptions> */ {
    *   Determines how the parser should handle documentation comments. Defaults
    *   to `DocumentationMode.None`.
    * @param {boolean=} is64Bit
-   *   Determines if the parser should scan the text in 64-bit mode. Defaults
-   *   to `true`.
+   *   Determines if the lexer should scan numbers as if PHP was compiled with
+   *   64-bit support. Defaults to `true`.
    * @param {boolean=} allowReservedNames
    *   Determines if a diagnostic should be generated when parsing a function
    *   with a reserved name. Defaults to `false`.
+   * @param {boolean=} allowUtf16
+   *   Determines if the lexer should scan text as if PHP were aware of UTF-16
+   *   encoded characters. Defaults to `false`.
    */
   constructor(
     version = PhpVersion.Latest,
     documentationMode = DocumentationMode.None,
     is64Bit = true,
-    allowReservedNames = false
+    allowReservedNames = false,
+    allowUtf16 = false
   ) {
     this.version = version;
     this.documentationMode = documentationMode;
     this.is64Bit = is64Bit;
     this.allowReservedNames = allowReservedNames;
+    this.allowUtf16 = allowUtf16;
   }
 
 }
