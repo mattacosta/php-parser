@@ -90,4 +90,31 @@ export class PhpParserOptions /* implements IEquatable<PhpParserOptions> */ {
     this.allowUtf16 = allowUtf16;
   }
 
+  /**
+   * Creates a set of parsing options from an object with similar properties.
+   */
+  public static from(obj: PhpParserOptionsLike): PhpParserOptions {
+    return new PhpParserOptions(
+      obj.version,
+      obj.documentationMode,
+      obj.is64Bit,
+      obj.allowReservedNames,
+      obj.allowUtf16,
+    );
+  }
+
+}
+
+export type PhpParserOptionsLike = {
+
+  allowReservedNames?: boolean;
+
+  allowUtf16?: boolean;
+
+  documentationMode?: DocumentationMode;
+
+  is64Bit?: boolean;
+
+  version?: PhpVersion;
+
 }
