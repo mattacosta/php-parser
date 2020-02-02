@@ -32,7 +32,7 @@ export class SourceTextFactory {
   /**
    * An empty source text container.
    */
-  public static readonly EmptyText: ISourceText = new StringText('', Encoding.Latin1);
+  public static readonly EmptyText: ISourceText = new StringText('', Encoding.Utf8);
 
   /**
    * The maximum length of a string before a more efficient source text
@@ -66,9 +66,9 @@ export class SourceTextFactory {
    * @param {string} text
    *   A string containing source code.
    * @param {Encoding=} encoding
-   *   The original encoding of the source text. Defaults to `Encoding.Latin1`.
+   *   The original encoding of the source text. Defaults to `Encoding.Utf8`.
    */
-  public static from(text: string, encoding = Encoding.Latin1): ISourceText {
+  public static from(text: string, encoding = Encoding.Utf8): ISourceText {
     // if (text.length > SourceText.LargeTextLimit) {
     //   return LargeText.decode(text, encoding);
     // }
