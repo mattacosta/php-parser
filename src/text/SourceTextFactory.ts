@@ -47,7 +47,7 @@ export class SourceTextFactory {
    * Creates a source text container from other source texts.
    *
    * @param {ReadonlyArray<ISourceText>} sources
-   *   A list of text segments.
+   *   A list of ordered text segments.
    * @param {number} sourceLength
    *   The total length of the stored text. This may be greater than the length
    *   of the text.
@@ -69,9 +69,6 @@ export class SourceTextFactory {
    *   The original encoding of the source text. Defaults to `Encoding.Utf8`.
    */
   public static from(text: string, encoding = Encoding.Utf8): ISourceText {
-    // if (text.length > SourceText.LargeTextLimit) {
-    //   return LargeText.decode(text, encoding);
-    // }
     return new StringText(text, encoding);
   }
 
