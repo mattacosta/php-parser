@@ -29,18 +29,18 @@ import { SourceTextFactory } from './SourceTextFactory';
 export class SourceTextBuilder {
 
   /**
-   * The minimum length of a rebuilt segment. Defaults to 1024.
+   * The minimum length of a rebuilt segment. Defaults to 4KB.
    *
    * @todo Experimental.
    */
-  protected static MinSegmentLength = 1024;  // 1KB
+  protected static MinSegmentLength = 1024 * 4;
 
   /**
-   * The maximum length of a rebuilt segment. Defaults to 1 << 24.
+   * The maximum length of a rebuilt segment. Defaults to 16MB.
    *
    * @todo Experimental.
    */
-  protected static MaxSegmentLength = 1 << 24;  // 16MB, 1<<27 = 128MB
+  protected static MaxSegmentLength = 1024 * 1024 * 16;
 
   /**
    * The maximum number of segments before the text is considered to be too
