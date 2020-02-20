@@ -72,6 +72,11 @@ export class CompositeText extends SourceTextBase {
   protected segmentOffsets: ReadonlyArray<number>;
 
   /**
+   * The index of a segment that was previously searched for.
+   */
+  private previousIndex: number = 0;
+
+  /**
    * Constructs a `CompositeText` object.
    *
    * @param {ReadonlyArray<ISourceText>} sources
@@ -128,7 +133,15 @@ export class CompositeText extends SourceTextBase {
     if (offset < 0 || offset >= this.length) {
       return NaN;
     }
-    let segmentPosition = this.positionAt(offset);
+    // The offset is typically just incremented by one on each call, so there
+    // is a good chance that it's in a previously found segment.
+    const segmentStart = this.segmentOffsets[this.previousIndex];
+    if (offset >= segmentStart && (offset - segmentStart) < this.sources[this.previousIndex].length) {
+      return this.sources[this.previousIndex].charCodeAt(offset - segmentStart);
+    }
+    // The offset is in a different segment.
+    const segmentPosition = this.positionAt(offset);
+    this.previousIndex = segmentPosition.index;
     return this.sources[segmentPosition.index].charCodeAt(segmentPosition.offset);
   }
 
@@ -205,6 +218,8 @@ export class CompositeText extends SourceTextBase {
    * @inheritDoc
    */
   public withEncoding(encoding: Encoding): ISourceText {
+    // @todo This incurs a slight performance penalty because it recomputes
+    //   offsets and overall length. Those could be made lazy in the future.
     return new CompositeText(this.sources, this.sourceLength, encoding);
   }
 
