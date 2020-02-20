@@ -144,6 +144,13 @@ export class SegmentedText extends SourceTextBase {
   }
 
   /**
+   * @inheritDoc
+   */
+  public withEncoding(encoding: Encoding): ISourceText {
+    return new SegmentedText(this.text, this.span, encoding);
+  }
+
+  /**
    * Creates a span relative to the source text that contains this segment.
    *
    * @param {number} start

@@ -128,4 +128,11 @@ export class StringText extends SourceTextBase {
     return this.text.substr(start, length);
   }
 
+  /**
+   * @inheritDoc
+   */
+  public withEncoding(encoding: Encoding): ISourceText {
+    return new StringText(this.text, encoding);
+  }
+
 }

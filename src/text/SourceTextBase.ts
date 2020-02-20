@@ -133,6 +133,11 @@ export abstract class SourceTextBase implements ISourceText, ISourceTextContaine
   }
 
   /**
+   * @inheritDoc
+   */
+  public abstract withEncoding(encoding: Encoding): ISourceText;
+
+  /**
    * Determines if the given span is within the source text.
    *
    * @param {TextSpan} span

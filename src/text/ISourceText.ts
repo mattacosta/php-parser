@@ -86,4 +86,12 @@ export interface ISourceText extends IEquatable<ISourceText> {
    */
   withChanges(changes: Iterable<TextChange>): ISourceText;
 
+  /**
+   * Creates a new source text object with the given encoding.
+   *
+   * @param {Encoding} encoding
+   *   The original encoding of the source text.
+   */
+  withEncoding(encoding: Encoding): ISourceText;
+
 }

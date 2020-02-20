@@ -202,6 +202,13 @@ export class CompositeText extends SourceTextBase {
   }
 
   /**
+   * @inheritDoc
+   */
+  public withEncoding(encoding: Encoding): ISourceText {
+    return new CompositeText(this.sources, this.sourceLength, encoding);
+  }
+
+  /**
    * Determines which segment contains the specified offset.
    *
    * @param {number} offset
