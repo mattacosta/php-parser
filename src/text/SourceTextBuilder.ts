@@ -16,8 +16,6 @@
 
 'use strict';
 
-import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
-
 import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { SourceTextExtensions } from './SourceTextExtensions';
@@ -100,26 +98,6 @@ export class SourceTextBuilder {
   }
 
   /**
-   * Merges the specified number of segments into the starting segment.
-   *
-   * @param {number} start
-   *   The first segment to merge.
-   * @param {number} length
-   *   The number of segments to merge.
-   */
-  protected static merge(segments: ISourceText[], start: number, length: number): void {
-    if (start < 0 || start + length > segments.length) {
-      throw new ArgumentOutOfRangeException();
-    }
-
-    let text = '';
-    for (let i = start; i < start + length; i++) {
-      text += segments[i].substring(0);
-    }
-    segments.splice(start, length, SourceTextFactory.from(text));
-  }
-
-  /**
    * Appends a text segment to the source text.
    *
    * @param {ISourceText} segment
@@ -165,8 +143,7 @@ export class SourceTextBuilder {
     // On the one hand, it would be nice to reclaim memory sooner, but on the
     // other hand that would temporarily allocate more than 1.5x the memory.
     if (this.length < this.sourceLength / 2) {
-      SourceTextBuilder.merge(this.segments, 0, this.segments.length);
-      return this.segments[0];
+      this.trimSegments();
     }
     if (this.segments.length > SourceTextBuilder.SegmentLimit) {
       this.reduceSegments(this.computeReducedSegmentLength());
@@ -235,6 +212,25 @@ export class SourceTextBuilder {
 
       this.append(text.length === 0 ? segments[i] : SourceTextFactory.from(text, this.encoding));
       i += mergedSegments;
+    }
+  }
+
+  /**
+   * Removes deleted text from each segment.
+   */
+  protected trimSegments(): void {
+    let segments = this.segments;
+    this.clear();
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      if (segment.length > 0) {
+        if (SourceTextExtensions.isSourceTextContainer(segment) && segment.length < segment.sourceLength) {
+          this.append(SourceTextFactory.from(segment.substring(0), this.encoding));
+        }
+        else {
+          this.append(segment);
+        }
+      }
     }
   }
 
