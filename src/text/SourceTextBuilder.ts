@@ -91,7 +91,7 @@ export class SourceTextBuilder {
    * @param {Encoding} encoding
    *   The original encoding of the source text.
    */
-  public constructor(encoding: Encoding) {
+  constructor(encoding: Encoding) {
     this.encoding = encoding;
     this.segments = [];
     this.uniqueSources = new Set();

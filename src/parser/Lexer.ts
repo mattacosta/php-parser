@@ -100,7 +100,7 @@ export abstract class LexerBase<T, TState> implements ILexer<T, TState> {
    * @param {TState} defaultState
    *   The default scanning mode when starting to scan text.
    */
-  public constructor(text: ISourceText, defaultState: TState) {
+  constructor(text: ISourceText, defaultState: TState) {
     this.setText(text);
     this.state = defaultState;
   }
