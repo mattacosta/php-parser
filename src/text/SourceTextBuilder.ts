@@ -43,19 +43,19 @@ export class SourceTextBuilder {
   protected static MaxSegmentLength = 1024 * 1024 * 16;
 
   /**
+   * The number of segments for an optimized rebuild. Defaults to 16.
+   *
+   * @todo Experimental.
+   */
+  protected static ReducedSegmentTarget = 16;
+
+  /**
    * The maximum number of segments before the text is considered to be too
    * fragmented. Defaults to 64.
    *
    * @todo Experimental.
    */
   protected static SegmentLimit = 64;
-
-  /**
-   * The number of segments for an optimized rebuild. Defaults to 16.
-   *
-   * @todo Experimental.
-   */
-  protected static SegmentRebuildLimit = 16;
 
   /**
    * The original encoding of the source text.
@@ -141,15 +141,14 @@ export class SourceTextBuilder {
   }
 
   /**
-   * Appends a series of text segments to the source text.
-   *
-   * @param {ReadonlyArray<ISourceText>} segments
-   *   A list of text segments to append.
+   * Removes all segments from the builder.
    */
-  public appendRange(segments: ReadonlyArray<ISourceText>): void {
-    for (let i = 0; i < segments.length; i++) {
-      this.append(segments[i]);
-    }
+  public clear(): void {
+    this.length = 0;
+    this.segments = [];
+    this.sourceCount = 0;
+    this.sourceLength = 0;
+    this.uniqueSources.clear();
   }
 
   /**
@@ -170,7 +169,7 @@ export class SourceTextBuilder {
       return this.segments[0];
     }
     if (this.segments.length > SourceTextBuilder.SegmentLimit) {
-      this.rebuildSegments(this.calculateRebuildSegmentLength());
+      this.reduceSegments(this.computeReducedSegmentLength());
     }
 
     return SourceTextFactory.createContainer(this.segments, this.sourceLength, this.encoding);
@@ -200,20 +199,17 @@ export class SourceTextBuilder {
   }
 
   /**
-   * Reduces the number of segments used by the new source text.
+   * Reduces the number of segments used by the source text being created.
    *
-   * @param {number} segmentLength
-   *   The length of each new segment.
-   *
-   * @todo Experimental.
+   * @param {number} targetLength
+   *   The ideal length of each new segment.
    */
-  protected rebuildSegments(segmentLength: number): void {
+  protected reduceSegments(targetLength: number): void {
     let segments = this.segments;
-    this.reset();
+    this.clear();
 
     for (let i = 0; i < segments.length; i++) {
-      // The current segment is already larger than the proposed length.
-      if (segments[i].length > segmentLength) {
+      if (segments[i].length > targetLength) {
         this.append(segments[i]);
         continue;
       }
@@ -221,7 +217,7 @@ export class SourceTextBuilder {
       let mergedLength = segments[i].length;
       let mergedSegments = 0;
       for (let n = i + 1; n < segments.length; n++) {
-        if (mergedLength + segments[n].length <= segmentLength) {
+        if (mergedLength + segments[n].length <= targetLength) {
           mergedLength += segments[n].length;
           mergedSegments++;
         }
@@ -238,28 +234,12 @@ export class SourceTextBuilder {
   }
 
   /**
-   * Calculates the smallest segment length that also reduces the number of
-   * builder segments below a threshold.
-   */
-  private calculateRebuildSegmentLength(): number {
-    let length = SourceTextBuilder.MinSegmentLength;
-    while (length <= SourceTextBuilder.MaxSegmentLength) {
-      if (this.getRebuildSegmentCount(length) <= SourceTextBuilder.SegmentRebuildLimit) {
-        return length;
-      }
-      length = length * 2;
-    }
-    return SourceTextBuilder.MaxSegmentLength;
-  }
-
-  /**
-   * Determines how many segments will be in a rebuilt text that uses the
+   * Determines how many segments will be required to store text using the
    * given segment length.
    */
-  private getRebuildSegmentCount(segmentLength: number): number {
+  private computeReducedSegmentCount(segmentLength: number): number {
     let removedSegments = 0;
     for (let i = 0; i < this.segments.length; i++) {
-      // The current segment is already larger than the proposed length.
       if (this.segments[i].length > segmentLength) {
         continue;
       }
@@ -285,14 +265,18 @@ export class SourceTextBuilder {
   }
 
   /**
-   * Resets the builder to its initial state.
+   * Determines the segment length needed to bring the overall number of
+   * segments below a target count.
    */
-  private reset(): void {
-    this.length = 0;
-    this.segments = [];
-    this.sourceCount = 0;
-    this.sourceLength = 0;
-    this.uniqueSources.clear();
+  private computeReducedSegmentLength(): number {
+    let length = SourceTextBuilder.MinSegmentLength;
+    while (length <= SourceTextBuilder.MaxSegmentLength) {
+      if (this.computeReducedSegmentCount(length) <= SourceTextBuilder.ReducedSegmentTarget) {
+        return length;
+      }
+      length = length * 2;
+    }
+    return SourceTextBuilder.MaxSegmentLength;
   }
 
 }
