@@ -16,7 +16,7 @@
 
 'use strict';
 
-import { ArgumentOutOfRangeException, List } from '@mattacosta/php-common';
+import { ArgumentOutOfRangeException, Debug, List } from '@mattacosta/php-common';
 
 import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
@@ -113,6 +113,7 @@ export class CompositeText extends SourceTextBase {
       return SourceTextFactory.EmptyText;
     }
     if (sources.length === 1) {
+      Debug.assert(sources[0].encoding === encoding);
       return sources[0];
     }
     return new CompositeText(sources, sourceLength, encoding);
