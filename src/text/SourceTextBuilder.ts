@@ -216,20 +216,25 @@ export class SourceTextBuilder {
 
       let mergedLength = segments[i].length;
       let mergedSegments = 0;
+      let text = '';
+
       for (let n = i + 1; n < segments.length; n++) {
-        if (mergedLength + segments[n].length <= targetLength) {
-          mergedLength += segments[n].length;
-          mergedSegments++;
-        }
-        else {
+        if (mergedLength + segments[n].length > targetLength) {
           break;
         }
+
+        // Now that the segment is known to be merged, extract its text.
+        if (text.length === 0) {
+          text += segments[i].substring(0);
+        }
+
+        text += segments[n].substring(0);
+        mergedLength += segments[n].length;
+        mergedSegments++;
       }
 
-      if (mergedSegments > 0) {
-        SourceTextBuilder.merge(segments, i, mergedSegments + 1);
-      }
-      this.append(segments[i]);
+      this.append(text.length === 0 ? segments[i] : SourceTextFactory.from(text, this.encoding));
+      i += mergedSegments;
     }
   }
 
