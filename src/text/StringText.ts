@@ -18,12 +18,12 @@
 
 import { ArgumentOutOfRangeException } from '@mattacosta/php-common';
 
+import { Encoding } from './Encoding';
 import { ISourceText } from './ISourceText';
 import { SegmentedText } from './SegmentedText';
 import { SourceTextBase } from './SourceTextBase';
 import { SourceTextFactory } from './SourceTextFactory';
 import { TextSpan } from './TextSpan';
-import { Encoding } from './Encoding';
 
 /**
  * A source code container based on a string.
