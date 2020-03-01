@@ -64,12 +64,12 @@ export class CompositeText extends SourceTextBase {
   /**
    * @inheritDoc
    */
-  public sources: ReadonlyArray<ISourceText>;
+  public readonly sources: ReadonlyArray<ISourceText>;
 
   /**
    * A list containing the offset of each segment.
    */
-  protected segmentOffsets: ReadonlyArray<number>;
+  protected readonly segmentOffsets: ReadonlyArray<number>;
 
   /**
    * The index of a segment that was previously searched for.
