@@ -129,7 +129,9 @@ nodes:
     type: TokenNode
     optional: true
   - name: returnType
-    type: Type
+    type:
+    - NamedType
+    - PredefinedType
     optional: true
   - name: statements
     type: StatementBlock
@@ -179,7 +181,9 @@ nodes:
     type: TokenNode
     optional: true
   - name: returnType
-    type: Type
+    type:
+    - NamedType
+    - PredefinedType
     optional: true
   - name: doubleArrow
     type: TokenNode
@@ -1089,7 +1093,9 @@ nodes:
     type: TokenNode
     optional: true
   - name: returnType
-    type: Type
+    type:
+    - NamedType
+    - PredefinedType
     optional: true
   - name: statements
     type: StatementBlock
@@ -1236,7 +1242,9 @@ nodes:
     type: TokenNode
     optional: true
   - name: returnType
-    type: Type
+    type:
+    - NamedType
+    - PredefinedType
     optional: true
   - name: statements
     type: StatementBlock
@@ -1278,7 +1286,9 @@ nodes:
   - name: modifiers
     type: NodeList
   - name: type
-    type: Type
+    type:
+    - NamedType
+    - PredefinedType
     optional: true
   - name: properties
     type: NodeList
@@ -1781,8 +1791,8 @@ nodes:
   properties:
   - name: type
     type:
+    - NamedType
     - PredefinedType
-    - Type
     optional: true
   - name: ampersand
     type: TokenNode

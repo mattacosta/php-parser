@@ -137,7 +137,6 @@ import {
   TryCatchNode,
   TryFinallyNode,
   TryNode,
-  TypeNode,
   UnaryNode,
   UnsetNode,
   UseDeclarationNode,
@@ -2872,7 +2871,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `type & ELLIPSIS VARIABLE = expr`
    */
   protected parseParameter(): ParameterNode {
-    let type: TypeNode | null = null;
+    let type: NamedTypeNode | PredefinedTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
       type = this.parseType();
     }
@@ -3048,7 +3047,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     // Even though 'callable' is semantically invalid, it is not a parse error.
-    let type: TypeNode | null = null;
+    let type: NamedTypeNode | PredefinedTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
       type = this.parseType();
       if (!this.isSupportedVersion(PhpVersion.PHP7_4)) {
@@ -3868,7 +3867,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *
    * Syntax: `? type`
    */
-  protected parseType(/* isNullable = true */): TypeNode {
+  protected parseType(/* isNullable = true */): NamedTypeNode | PredefinedTypeNode {
     let question = this.eatOptional(TokenKind.Question);
     if (question !== null && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
       question = this.addError(question, ErrorCode.ERR_FeatureNullableTypes);
