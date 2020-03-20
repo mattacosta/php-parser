@@ -1,6 +1,6 @@
 # php-parser
 
-[![Build Status](https://travis-ci.org/mattacosta/php-parser.svg?branch=master)](https://travis-ci.org/mattacosta/php-parser)
+[![Build Status](https://travis-ci.com/mattacosta/php-parser.svg?branch=master)](https://travis-ci.com/mattacosta/php-parser)
 
 A cross-platform, error-tolerant PHP parser that provides a complete
 representation of your source code.
