@@ -424,6 +424,15 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
         }),
+        new ParserTestArgs('trait A { final function b() {} }', 'should parse a final method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.equal(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Final, 'final');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
         new ParserTestArgs('trait A { private function b() {} }', 'should parse a private method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
@@ -502,12 +511,12 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
         }),
-        new ParserTestArgs('trait A { static public function b() {} }', 'should parse a static and public method declaration', (statements, text) => {
+        new ParserTestArgs('trait A { static private function b() {} }', 'should parse a static and private method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Private, 'private');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
@@ -522,12 +531,12 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
         }),
-        new ParserTestArgs('trait A { static private function b() {} }', 'should parse a static and private method declaration', (statements, text) => {
+        new ParserTestArgs('trait A { static public function b() {} }', 'should parse a static and public method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
           assert.equal(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Private, 'private');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
