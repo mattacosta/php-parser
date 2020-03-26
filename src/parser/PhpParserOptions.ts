@@ -93,7 +93,7 @@ export class PhpParserOptions /* implements IEquatable<PhpParserOptions> */ {
   /**
    * Creates a set of parsing options from an object with similar properties.
    */
-  public static from(obj: PhpParserOptionsLike): PhpParserOptions {
+  public static from(obj: Partial<PhpParserOptions>): PhpParserOptions {
     return new PhpParserOptions(
       obj.version,
       obj.documentationMode,
@@ -102,19 +102,5 @@ export class PhpParserOptions /* implements IEquatable<PhpParserOptions> */ {
       obj.allowUtf16,
     );
   }
-
-}
-
-export type PhpParserOptionsLike = {
-
-  allowReservedNames?: boolean;
-
-  allowUtf16?: boolean;
-
-  documentationMode?: DocumentationMode;
-
-  is64Bit?: boolean;
-
-  version?: PhpVersion;
 
 }
