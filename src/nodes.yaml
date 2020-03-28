@@ -501,8 +501,7 @@ nodes:
   - name: closeBrace
     type: TokenNode
     optional: true
-  visitorName: visitVariable
-  visitorType: Variable
+  visitorName: visitIndirectVariable
 - name: InstanceOf
   extends: Expression
   properties:
@@ -547,8 +546,7 @@ nodes:
   properties:
   - name: variable
     type: TokenNode
-  visitorName: visitVariable
-  visitorType: Variable
+  visitorName: visitLocalVariable
 - name: NamedMemberAccess
   extends: MemberAccess
   properties:
