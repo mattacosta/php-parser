@@ -47,6 +47,8 @@ jobs:
         env:
           CI: true
           PHP_PARSER_VERSION: ${{ matrix.php-version }}
+      - name: Generate lcov report
+        run: npm run test:nyc:report
       - name: Report coverage
         uses: coverallsapp/github-action@master
         with:
