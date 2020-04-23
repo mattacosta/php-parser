@@ -47,32 +47,29 @@ jobs:
         env:
           CI: true
           PHP_PARSER_VERSION: ${{ matrix.php-version }}
+      - name: Report coverage
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: test (${{ matrix.node-version }}, ${{ matrix.php-version }})
+          parallel: true
 
-#  @todo Coverage reports are not aggregated across parallel builds.
-#  https://github.com/coverallsapp/github-action/issues/13
+  coveralls:
 
-#       - name: Report coverage
-#         uses: coverallsapp/github-action@master
-#         with:
-#           github-token: ${{ secrets.GITHUB_TOKEN }}
-#           parallel: true
+    needs: test
+    runs-on: ubuntu-latest
 
-#   coveralls:
-
-#     needs: test
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Finalize coverage
-#         uses: coverallsapp/github-action@master
-#         with:
-#           github-token: ${{ secrets.GITHUB_TOKEN }}
-#           parallel-finished: true
+    steps:
+      - name: Finalize coverage
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
 
   eslint:
-    
+
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
