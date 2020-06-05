@@ -1,6 +1,6 @@
 # php-parser
 
-![GitHub CI](https://github.com/mattacosta/php-parser/workflows/GitHub%20CI/badge.svg)
+[![GitHub CI](https://github.com/mattacosta/php-parser/workflows/GitHub%20CI/badge.svg)](https://github.com/mattacosta/php-parser/actions)
 
 A cross-platform, error-tolerant PHP parser that provides a complete
 representation of your source code.
