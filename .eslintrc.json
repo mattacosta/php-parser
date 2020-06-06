@@ -5,7 +5,6 @@
     ],
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended"
     ],
     "rules": {
@@ -15,8 +14,16 @@
         "no-fallthrough": "off",
         "prefer-const": "off",
         // @typescript-eslint
+        "@typescript-eslint/ban-types": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
-        "@typescript-eslint/interface-name-prefix": "off",
+        "@typescript-eslint/explicit-module-boundary-types": ["warn", {
+            "allowArgumentsExplicitlyTypedAsAny": true
+        }],
+        "@typescript-eslint/member-delimiter-style": "error",
+        "@typescript-eslint/naming-convention": ["error", {
+            "selector": "enumMember",
+            "format": ["PascalCase"]
+        }],
         "@typescript-eslint/no-empty-function": ["error", {
             "allow": [
                 "arrowFunctions",
@@ -29,7 +36,8 @@
         "@typescript-eslint/no-this-alias": "off",
         "@typescript-eslint/no-unused-vars": ["warn", {
             "args": "none"
-        }]
+        }],
+        "@typescript-eslint/type-annotation-spacing": "error"
     },
     "overrides": [
         {
@@ -38,19 +46,40 @@
                 "src/diagnostics/ErrorCode.Generated.ts"
             ],
             "rules": {
-                "@typescript-eslint/camelcase": ["error", {
-                    "allow": ["^(?:ERR|WRN|INFO|HINT)_[a-zA-Z0-9]+$"]
+                "@typescript-eslint/naming-convention": ["error", {
+                    // "allow": ["^(?:ERR|WRN|INFO|HINT)_[a-zA-Z0-9]+$"]
+                    "selector": "enumMember",
+                    "format": ["PascalCase"],
+                    "prefix": ["ERR_", "WRN_", "INFO_", "HINT_"],
+                    "filter": {
+                        "regex": "^Unknown|Void$",
+                        "match": false
+                    }
                 }]
             }
         },
         {
-            // @todo False positive?
+            // Exempt names that would cause syntax errors otherwise.
             "files": [
-                "src/language/node/TokenNode.ts"
+                "src/parser/Character.ts"
             ],
             "rules": {
-                "@typescript-eslint/no-use-before-define": ["error", {
-                    "classes": false
+                "@typescript-eslint/naming-convention": "off"
+            }
+        },
+        {
+            // Exempt version numbers separated by underscores.
+            "files": [
+                "src/parser/PhpVersion.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/naming-convention": ["error", {
+                    "selector": "enumMember",
+                    "format": ["PascalCase"],
+                    "filter": {
+                        "regex": "^PHP\\d_\\d$",
+                        "match": false
+                    }
                 }]
             }
         },
@@ -69,9 +98,25 @@
                 "test/src/**/**.ts"
             ],
             "rules": {
-                "@typescript-eslint/camelcase": ["error", {
-                    "allow": ["^[a-zA-Z]+\\d_\\d$"]
+                "@typescript-eslint/naming-convention": ["error", {
+                    // "allow": ["^[a-zA-Z]+\\d_\\d$"]
+                    "selector": "variable",
+                    "format": ["camelCase"],
+                    "filter": {
+                        "regex": "^[a-zA-Z]+\\d_\\d$",
+                        "match": false
+                    }
                 }]
+            }
+        },
+        {
+            // Exempt using `require()` on pre-built files.
+            // @todo Remove after switching to TS 3.0 project references.
+            "files": [
+                "tools/Validator/Program.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/no-var-requires": "off"
             }
         }
     ]
