@@ -252,6 +252,95 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticsTests);
     });
 
+    describe('element-access-expression (alternate syntax)', function() {
+      let syntaxTests = [
+        // Variables.
+        new ParserTestArgs('$a{0};', 'element access of a variable', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a{0};', 'element access of a variable with variable name', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}{0};', 'element access of a variable with expression name', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        // Arrays and strings (dereferenceable-scalar).
+        // NOTE: An index expression is required.
+        new ParserTestArgs('array("a","b"){0};', 'element access of an array literal', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+        }),
+        new ParserTestArgs('["a","b"]{0};', 'element access of an array literal (short syntax)', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+        }),
+        new ParserTestArgs('"ab"{0};', 'element access of a string literal', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof LiteralSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a){0};', 'element access of an expression group', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a(){0};', 'element access of a function invocation', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b(){0};', 'element access of a static method invocation', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b(){0};', 'element access of a static method invocation with class name reference', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b(){0};', 'element access of a method invocation', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Name.
+        // - Alternate syntax cannot be used with names (constants).
+        // Object access.
+        new ParserTestArgs('$a->b{0};', 'element access of a property', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+        // Scoped access.
+        new ParserTestArgs('A::$b{0};', 'element access of a static property', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof StaticPropertySyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('$a{0}{0};', 'element access of an element access expression', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.equal(accessNode.dereferencable instanceof ElementAccessSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+
+      let diagnosticsTests = [
+        new DiagnosticTestArgs('A{0};', 'should not parse element access of a constant', [ErrorCode.ERR_SemicolonExpected], [1]),
+        new DiagnosticTestArgs('\\A{0};', 'should not parse element access of a constant (fully qualified)', [ErrorCode.ERR_SemicolonExpected], [2]),
+        new DiagnosticTestArgs('namespace\\A{0};', 'should not parse element access of a constant (relative)', [ErrorCode.ERR_SemicolonExpected], [11]),
+        new DiagnosticTestArgs('A::B{0};', 'should not parse element access of a class constant', [ErrorCode.ERR_SemicolonExpected], [4]),
+
+        new DiagnosticTestArgs('<<<LABEL\nLABEL\n{0};', 'should not parse element access of heredoc template', [ErrorCode.ERR_SemicolonExpected], [14]),
+        new DiagnosticTestArgs('`$a`{0};', 'should not parse element access of shell command template', [ErrorCode.ERR_SemicolonExpected], [4]),
+        new DiagnosticTestArgs('"$a"{0};', 'should not parse element access of string template', [ErrorCode.ERR_SemicolonExpected], [4]),
+      ];
+      Test.assertDiagnostics(diagnosticsTests);
+
+      let deprecatedBraceSyntax = [
+        new DiagnosticTestArgs('$a{0};', 'should warn if brace syntax is used for element access', [ErrorCode.WRN_ElementAccessBraceSyntax], [2]),
+      ];
+      Test.assertDiagnostics(deprecatedBraceSyntax, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    });
+
     describe('element-access-expression (without index)', function() {
       let syntaxTests = [
         // Variables.

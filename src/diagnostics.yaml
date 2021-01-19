@@ -338,6 +338,9 @@ diagnostics:
   text: "A variadic parameter must be the last parameter of a function or method signature"
 
 # --- Warnings ----------------------------------------------------------------
+- name: WRN_ElementAccessBraceSyntax
+  text: "Use of brace syntax for element access is deprecated"
+  severity: 2
 - name: WRN_EmptySwitchBlock
   text: "Empty switch block"
   severity: 2

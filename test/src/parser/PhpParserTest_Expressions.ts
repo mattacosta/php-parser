@@ -852,6 +852,11 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('new class ()', 'missing extends, implements, or open brace', [ErrorCode.ERR_IncompleteClassDeclaration], [12]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let deprecatedBraceSyntax = [
+      new DiagnosticTestArgs('new $a{0};', 'should warn if brace syntax is used for class name reference', [ErrorCode.WRN_ElementAccessBraceSyntax], [6]),
+    ];
+    Test.assertDiagnostics(deprecatedBraceSyntax, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
 
   describe('array-creation-expression', function() {

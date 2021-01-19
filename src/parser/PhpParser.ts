@@ -4984,7 +4984,19 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           let closeBraceOrBracket = openKind === TokenKind.OpenBrace
             ? this.eat(TokenKind.CloseBrace)
             : this.eat(TokenKind.CloseBracket);
-          reference = new ElementAccessNode(reference, openBraceOrBracket, index, closeBraceOrBracket);
+
+          if (openKind === TokenKind.OpenBrace) {
+            // No version check; deprecation warnings are retroactive.
+            let diagnostic = this.createDiagnostic(
+              reference.fullWidth + openBraceOrBracket.leadingTriviaWidth,
+              openBraceOrBracket.width + index.fullWidth + closeBraceOrBracket.fullWidth,
+              ErrorCode.WRN_ElementAccessBraceSyntax
+            );
+            reference = new ElementAccessNode(reference, openBraceOrBracket, index, closeBraceOrBracket, [diagnostic]);
+          }
+          else {
+            reference = new ElementAccessNode(reference, openBraceOrBracket, index, closeBraceOrBracket);
+          }
           break;
         default:
           throw new ParserException('Unexpected token in class name reference expression');
@@ -5127,12 +5139,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `dereferenceable { expr }`
    */
   protected parseElementAccess(dereferenceable: ExpressionNode): ElementAccessNode {
-    // @todo Add (warning) diagnostic for deprecated syntax.
     if (this.currentToken.kind === TokenKind.OpenBrace) {
       let openBrace = this.eat(TokenKind.OpenBrace);
       let index = this.parseExpression();
       let closeBrace = this.eat(TokenKind.CloseBrace);
-      return new ElementAccessNode(dereferenceable, openBrace, index, closeBrace);
+      // No version check; deprecation warnings are retroactive.
+      let diagnostic = this.createDiagnostic(
+        dereferenceable.fullWidth + openBrace.leadingTriviaWidth,
+        openBrace.width + index.fullWidth + closeBrace.fullWidth,
+        ErrorCode.WRN_ElementAccessBraceSyntax
+      );
+      return new ElementAccessNode(dereferenceable, openBrace, index, closeBrace, [diagnostic]);
     }
 
     let openBracket = this.eat(TokenKind.OpenBracket);
