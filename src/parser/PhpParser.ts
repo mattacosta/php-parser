@@ -6464,11 +6464,12 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.IsLessThanOrEqual:
       case TokenKind.LessThan:
         return Precedence.Relational;
+      case TokenKind.Period:
+        return this.isSupportedVersion(PhpVersion.PHP8_0) ? Precedence.Concatenate : Precedence.Add;
       case TokenKind.ShiftLeft:
       case TokenKind.ShiftRight:
         return Precedence.Shift;
       case TokenKind.Minus:
-      case TokenKind.Period:
       case TokenKind.Plus:
         return Precedence.Add;
       case TokenKind.Asterisk:

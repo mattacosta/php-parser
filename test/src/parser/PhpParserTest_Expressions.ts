@@ -229,6 +229,23 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests8_0 = [
+      new ParserTestArgs('$a < $b . $c;', 'relational < concatenate', (statements, text) => {
+        assertPrecedence(statements, text, TokenKind.LessThan, '<', TokenKind.Period, '.');
+      }),
+      new ParserTestArgs('$a . $b << $c;', 'concatenate < shift', (statements, text) => {
+        assertPrecedence(statements, text, TokenKind.Period, '.', TokenKind.ShiftLeft, '<<');
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
+    let deprecatedConcatPrecedence = [
+      new ParserTestArgs('$a << $b . $c;', 'shift < add (concatenate)', (statements, text) => {
+        assertPrecedence(statements, text, TokenKind.ShiftLeft, '<<', TokenKind.Period, '.');
+      }),
+    ];
+    Test.assertSyntaxNodes(deprecatedConcatPrecedence, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
 
   describe('literal', function() {
