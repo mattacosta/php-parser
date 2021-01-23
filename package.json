@@ -1,7 +1,7 @@
 {
     "name": "@mattacosta/php-parser",
     "description": "A cross-platform, error-tolerant PHP parser that provides a complete representation of your source code.",
-    "version": "1.0.0-beta.7",
+    "version": "1.0.0",
     "author": "Matt Acosta",
     "license": "Apache-2.0",
     "repository": {
@@ -19,7 +19,7 @@
     "main": "./lib/main.js",
     "typings": "./typings/main.d.ts",
     "dependencies": {
-        "@mattacosta/php-common": "^1.0.0-beta.4"
+        "@mattacosta/php-common": "^1.0.0"
     },
     "devDependencies": {
         "@types/glob": "^7.1.3",
