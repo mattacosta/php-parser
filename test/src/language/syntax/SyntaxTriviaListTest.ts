@@ -33,29 +33,29 @@ describe('SyntaxTriviaList', function() {
   describe('#fullSpan', function() {
     it('should include all trivia', () => {
       let leadingTrivia = <ISyntaxTriviaList>tree.root.leadingTrivia;
-      assert.equal(leadingTrivia.fullSpan.equals(new TextSpan(0, 21)), true);
+      assert.strictEqual(leadingTrivia.fullSpan.equals(new TextSpan(0, 21)), true);
     });
     it('should be empty if there is no trivia', () => {
       let leadingTrivia = <ISyntaxTriviaList>tree.root.eof.leadingTrivia;
-      assert.equal(leadingTrivia.fullSpan.equals(new TextSpan(22, 0)), true);
+      assert.strictEqual(leadingTrivia.fullSpan.equals(new TextSpan(22, 0)), true);
     });
   });
 
   describe('#span', function() {
     it('should include all trivia', () => {
       let leadingTrivia = <ISyntaxTriviaList>tree.root.leadingTrivia;
-      assert.equal(leadingTrivia.span.equals(new TextSpan(0, 21)), true);
+      assert.strictEqual(leadingTrivia.span.equals(new TextSpan(0, 21)), true);
     });
     it('should be empty if there is no trivia', () => {
       let leadingTrivia = <ISyntaxTriviaList>tree.root.eof.leadingTrivia;
-      assert.equal(leadingTrivia.span.equals(new TextSpan(22, 0)), true);
+      assert.strictEqual(leadingTrivia.span.equals(new TextSpan(22, 0)), true);
     });
   });
 
   describe('#equals()', function() {
     it('should equal itself', () => {
       let leadingTrivia = <ISyntaxTriviaList>tree.root.leadingTrivia;
-      assert.equal(leadingTrivia.equals(leadingTrivia), true);
+      assert.strictEqual(leadingTrivia.equals(leadingTrivia), true);
     });
   });
 

@@ -44,10 +44,10 @@ import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 
 function assertForEach(statements: ISyntaxNode[], hasKey: boolean, hasAmpersand: boolean): ForEachSyntaxNode {
   let forEachNode = <ForEachSyntaxNode>statements[0];
-  assert.equal(forEachNode instanceof ForEachSyntaxNode, true, 'is a ForEachSyntaxNode');
-  assert.equal(forEachNode.source instanceof LocalVariableSyntaxNode, true);
+  assert.strictEqual(forEachNode instanceof ForEachSyntaxNode, true, 'is a ForEachSyntaxNode');
+  assert.strictEqual(forEachNode.source instanceof LocalVariableSyntaxNode, true);
   if (hasKey) {
-    assert.equal(forEachNode.key instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+    assert.strictEqual(forEachNode.key instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
   }
   else {
     assert.strictEqual(forEachNode.key, null);
@@ -58,7 +58,7 @@ function assertForEach(statements: ISyntaxNode[], hasKey: boolean, hasAmpersand:
   else {
     assert.strictEqual(forEachNode.ampersand, null);
   }
-  assert.equal(forEachNode.statement instanceof ExpressionStatementSyntaxNode, true);
+  assert.strictEqual(forEachNode.statement instanceof ExpressionStatementSyntaxNode, true);
   return forEachNode;
 }
 
@@ -70,21 +70,21 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('while ($a) 1;', 'should parse a while statement', (statements) => {
           let whileNode = <WhileSyntaxNode>statements[0];
-          assert.equal(whileNode instanceof WhileSyntaxNode, true, 'is a WhileSyntaxNode');
-          assert.equal(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(whileNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(whileNode instanceof WhileSyntaxNode, true, 'is a WhileSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('while ($a): endwhile;', 'should parse a while statement (alternate syntax)', (statements) => {
           let whileNode = <WhileBlockSyntaxNode>statements[0];
-          assert.equal(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
-          assert.equal(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(whileNode.statements, null);
         }),
         new ParserTestArgs('while ($a): 1; endwhile;', 'should parse a while statement (alternate syntax; with child statement)', (statements) => {
           let whileNode = <WhileBlockSyntaxNode>statements[0];
-          assert.equal(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
-          assert.equal(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(whileNode.statements instanceof SyntaxList, true);
+          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -106,9 +106,9 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('do ; while ($a);', 'should parse a do-while statement', (statements) => {
           let doWhileNode = <DoWhileSyntaxNode>statements[0];
-          assert.equal(doWhileNode instanceof DoWhileSyntaxNode, true, 'is a DoWhileSyntaxNode');
-          assert.equal(doWhileNode.statement instanceof ExpressionStatementSyntaxNode, true);
-          assert.equal(doWhileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(doWhileNode instanceof DoWhileSyntaxNode, true, 'is a DoWhileSyntaxNode');
+          assert.strictEqual(doWhileNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(doWhileNode.condition instanceof LocalVariableSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -128,78 +128,78 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('for (;;) 1;', 'should parse a for statement', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for ($i;;) 1;', 'should parse a for statement with single initializer expression', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           let initializers = forNode.initializers ? forNode.initializers.childNodes() : [];
-          assert.equal(initializers.length, 1);
-          assert.equal(initializers[0] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(initializers.length, 1);
+          assert.strictEqual(initializers[0] instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for ($i,$j;;) 1;', 'should parse a for statement with multiple initializer expressions', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           let initializers = forNode.initializers ? forNode.initializers.childNodes() : [];
-          assert.equal(initializers.length, 2);
-          assert.equal(initializers[0] instanceof LocalVariableSyntaxNode, true);
-          assert.equal(initializers[1] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(initializers.length, 2);
+          assert.strictEqual(initializers[0] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(initializers[1] instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for (;$i;) 1;', 'should parse a for statement with single condition expression', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           let conditions = forNode.conditions ? forNode.conditions.childNodes() : [];
-          assert.equal(conditions.length, 1);
-          assert.equal(conditions[0] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(conditions.length, 1);
+          assert.strictEqual(conditions[0] instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forNode.incrementors, null);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for (;$i,$j;) 1;', 'should parse a for statement with multiple condition expressions', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           let conditions = forNode.conditions ? forNode.conditions.childNodes() : [];
-          assert.equal(conditions.length, 2);
-          assert.equal(conditions[0] instanceof LocalVariableSyntaxNode, true);
-          assert.equal(conditions[1] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(conditions.length, 2);
+          assert.strictEqual(conditions[0] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(conditions[1] instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forNode.incrementors, null);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for (;;$i) 1;', 'should parse a for statement with single iteration expression', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           let incrementors = forNode.incrementors ? forNode.incrementors.childNodes() : [];
-          assert.equal(incrementors.length, 1);
-          assert.equal(incrementors[0] instanceof LocalVariableSyntaxNode, true);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(incrementors.length, 1);
+          assert.strictEqual(incrementors[0] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for (;;$i,$j) 1;', 'should parse a for statement with multiple iteration expressions', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           let incrementors = forNode.incrementors ? forNode.incrementors.childNodes() : [];
-          assert.equal(incrementors.length, 2);
-          assert.equal(incrementors[0] instanceof LocalVariableSyntaxNode, true);
-          assert.equal(incrementors[1] instanceof LocalVariableSyntaxNode, true);
-          assert.equal(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(incrementors.length, 2);
+          assert.strictEqual(incrementors[0] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(incrementors[1] instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('for (;;): endfor;', 'should parse a for statement (alternate syntax)', (statements) => {
           let forNode = <ForBlockSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForBlockSyntaxNode, true, 'is a ForBlockSyntaxNode');
+          assert.strictEqual(forNode instanceof ForBlockSyntaxNode, true, 'is a ForBlockSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
@@ -207,11 +207,11 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;;): ; endfor;', 'should parse a for statement (alternate syntax; with child statement)', (statements) => {
           let forNode = <ForBlockSyntaxNode>statements[0];
-          assert.equal(forNode instanceof ForBlockSyntaxNode, true, 'is a ForBlockSyntaxNode');
+          assert.strictEqual(forNode instanceof ForBlockSyntaxNode, true, 'is a ForBlockSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
-          assert.equal(forNode.statements instanceof SyntaxList, true);
+          assert.strictEqual(forNode.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -240,53 +240,53 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('foreach ($a as $v) 1;', 'should parse a foreach statement', (statements) => {
           let forEachNode = assertForEach(statements, false, false);
-          assert.equal(forEachNode.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as &$v) 1;', 'should parse a foreach statement with byref value', (statements) => {
           let forEachNode = assertForEach(statements, false, true);
-          assert.equal(forEachNode.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as list($v)) 1;', 'should parse a foreach statement with list value', (statements) => {
           let forEachNode = assertForEach(statements, false, false);
-          assert.equal(forEachNode.value instanceof ListDestructureSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof ListDestructureSyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as [$v]) 1;', 'should parse a foreach statement with list value (short syntax)', (statements) => {
           let forEachNode = assertForEach(statements, false, false);
-          assert.equal(forEachNode.value instanceof ArraySyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as $k => $v) 1;', 'should parse a foreach statement with key and value', (statements) => {
           let forEachNode = assertForEach(statements, true, false);
-          assert.equal(forEachNode.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as $k => &$v) 1;', 'should parse a foreach statement with key and byref value', (statements) => {
           let forEachNode = assertForEach(statements, true, true);
-          assert.equal(forEachNode.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as $k => list($v)) 1;', 'should parse a foreach statement with key and list value', (statements) => {
           let forEachNode = assertForEach(statements, true, false);
-          assert.equal(forEachNode.value instanceof ListDestructureSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof ListDestructureSyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as $k => [$v]) 1;', 'should parse a foreach statement with key and list value (short syntax)', (statements) => {
           let forEachNode = assertForEach(statements, true, false);
-          assert.equal(forEachNode.value instanceof ArraySyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('foreach ($a as $v): endforeach;', 'should parse a foreach statement (alternate syntax)', (statements) => {
           let forEachNode = <ForEachBlockSyntaxNode>statements[0];
-          assert.equal(forEachNode instanceof ForEachBlockSyntaxNode, true, 'is a ForEachBlockSyntaxNode');
-          assert.equal(forEachNode.source instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode instanceof ForEachBlockSyntaxNode, true, 'is a ForEachBlockSyntaxNode');
+          assert.strictEqual(forEachNode.source instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forEachNode.key, null);
           assert.strictEqual(forEachNode.ampersand, null);
-          assert.equal(forEachNode.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode.value instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forEachNode.statements, null);
         }),
         new ParserTestArgs('foreach ($a as $v): ; endforeach;', 'should parse a foreach statement (alternate syntax; with child statement)', (statements) => {
           let forEachNode = <ForEachBlockSyntaxNode>statements[0];
-          assert.equal(forEachNode instanceof ForEachBlockSyntaxNode, true, 'is a ForEachBlockSyntaxNode');
-          assert.equal(forEachNode.source instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode instanceof ForEachBlockSyntaxNode, true, 'is a ForEachBlockSyntaxNode');
+          assert.strictEqual(forEachNode.source instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forEachNode.key, null);
           assert.strictEqual(forEachNode.ampersand, null);
-          assert.equal(forEachNode.value instanceof LocalVariableSyntaxNode, true);
-          assert.equal(forEachNode.statements instanceof SyntaxList, true);
+          assert.strictEqual(forEachNode.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(forEachNode.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);

@@ -24,7 +24,7 @@ describe('PhpVersionInfo', function() {
 
   describe('#getText()', function() {
     it('should return text for all versions', () => {
-      assert.equal(PhpVersionInfo.getText(PhpVersion.Any), '');
+      assert.strictEqual(PhpVersionInfo.getText(PhpVersion.Any), '');
       for (let version = PhpVersion.PHP7_0; version <= PhpVersion.Latest; version++) {
         assert.notStrictEqual(PhpVersionInfo.getText(version), '');
       }

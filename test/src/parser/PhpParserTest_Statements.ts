@@ -63,15 +63,15 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('{}', 'should parse a compound statement', (statements) => {
         let statementBlock = <StatementBlockSyntaxNode>statements[0];
-        assert.equal(statementBlock instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
+        assert.strictEqual(statementBlock instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
         assert.strictEqual(statementBlock.statements, null);
       }),
       new ParserTestArgs('{;}', 'should parse a compound statement with child statement', (statements) => {
         let statementBlock = <StatementBlockSyntaxNode>statements[0];
-        assert.equal(statementBlock instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
+        assert.strictEqual(statementBlock instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
         let children = statementBlock.childNodes();
-        assert.equal(children.length, 1);
-        assert.equal(children[0] instanceof ExpressionStatementSyntaxNode, true);
+        assert.strictEqual(children.length, 1);
+        assert.strictEqual(children[0] instanceof ExpressionStatementSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -88,7 +88,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('label:', 'should parse a label statement', (statements, text) => {
         let labelNode = <LabelSyntaxNode>statements[0];
-        assert.equal(labelNode instanceof LabelSyntaxNode, true, 'LabelSyntaxNode');
+        assert.strictEqual(labelNode instanceof LabelSyntaxNode, true, 'LabelSyntaxNode');
         Test.assertSyntaxToken(labelNode.label, text, TokenKind.Identifier, 'label');
       }),
     ];
@@ -101,17 +101,17 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('1;', 'should parse an expression statement', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        assert.equal(exprNode.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode.expression instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs(';', 'should parse an expression statement with no expression', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         assert.strictEqual(exprNode.expression, null);
       }),
       new ParserTestArgs('?>', 'should parse an expression statement with no expression (close tag)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         assert.strictEqual(exprNode.expression, null);
       }),
     ];
@@ -131,66 +131,66 @@ describe('PhpParser', function() {
       // Catch clause.
       new ParserTestArgs('try {} catch (A $e) {}', 'should parse a catch clause', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 1);
+        assert.strictEqual(catchClauses.length, 1);
 
         let catchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(catchNode instanceof TryCatchSyntaxNode, true);
         let names = catchNode.typeNames ? catchNode.typeNames.childNodes() : [];
-        assert.equal(names.length, 1);
-        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
 
         assert.strictEqual(tryNode.finallyClause, null);
       }),
       new ParserTestArgs('try {} catch (\\A $e) {}', 'should parse a catch clause with fully qualified name', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 1);
+        assert.strictEqual(catchClauses.length, 1);
 
         let catchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(catchNode instanceof TryCatchSyntaxNode, true);
         let names = catchNode.typeNames ? catchNode.typeNames.childNodes() : [];
-        assert.equal(names.length, 1);
-        assert.equal(names[0] instanceof FullyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof FullyQualifiedNameSyntaxNode, true);
         Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
 
         assert.strictEqual(tryNode.finallyClause, null);
       }),
       new ParserTestArgs('try {} catch (namespace\\A $e) {}', 'should parse a catch clause with relative name', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 1);
+        assert.strictEqual(catchClauses.length, 1);
 
         let catchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(catchNode instanceof TryCatchSyntaxNode, true);
         let names = catchNode.typeNames ? catchNode.typeNames.childNodes() : [];
-        assert.equal(names.length, 1);
-        assert.equal(names[0] instanceof RelativeNameSyntaxNode, true);
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof RelativeNameSyntaxNode, true);
         Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
 
         assert.strictEqual(tryNode.finallyClause, null);
       }),
       new ParserTestArgs('try {} catch (A $e) {} catch (B $e) {}', 'should parse multiple catch clauses', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 2);
+        assert.strictEqual(catchClauses.length, 2);
 
         let firstCatchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(firstCatchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(firstCatchNode instanceof TryCatchSyntaxNode, true);
         let names = firstCatchNode.typeNames ? firstCatchNode.typeNames.childNodes() : [];
-        assert.equal(names.length, 1);
-        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
 
         let secondCatchNode = <TryCatchSyntaxNode>catchClauses[1];
-        assert.equal(secondCatchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(secondCatchNode instanceof TryCatchSyntaxNode, true);
         names = secondCatchNode.typeNames ? secondCatchNode.typeNames.childNodes() : [];
-        assert.equal(names.length, 1);
-        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         Test.assertSyntaxToken(secondCatchNode.variable, text, TokenKind.Variable, '$e');
 
         assert.strictEqual(tryNode.finallyClause, null);
@@ -198,24 +198,24 @@ describe('PhpParser', function() {
       // Finally clause.
       new ParserTestArgs('try {} finally {}', 'should parse a finally clause', (statements) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         assert.strictEqual(tryNode.catchClauses, null);
-        assert.equal(tryNode.finallyClause instanceof TryFinallySyntaxNode, true);
+        assert.strictEqual(tryNode.finallyClause instanceof TryFinallySyntaxNode, true);
       }),
       new ParserTestArgs('try {} catch (A $e) {} finally {}', 'should parse a finally clause after a catch clause', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 1);
+        assert.strictEqual(catchClauses.length, 1);
 
         let catchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(catchNode instanceof TryCatchSyntaxNode, true);
         let names = catchNode.typeNames ? catchNode.typeNames.childNodes() : [];
-        assert.equal(names.length, 1);
-        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
 
-        assert.equal(tryNode.finallyClause instanceof TryFinallySyntaxNode, true);
+        assert.strictEqual(tryNode.finallyClause instanceof TryFinallySyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -223,17 +223,17 @@ describe('PhpParser', function() {
     let syntaxTests7_1 = [
       new ParserTestArgs('try {} catch (A | B $e) {}', 'should parse a catch clause with type union', (statements, text) => {
         let tryNode = <TrySyntaxNode>statements[0];
-        assert.equal(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
         let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
-        assert.equal(catchClauses.length, 1);
+        assert.strictEqual(catchClauses.length, 1);
 
         let catchNode = <TryCatchSyntaxNode>catchClauses[0];
-        assert.equal(catchNode instanceof TryCatchSyntaxNode, true);
+        assert.strictEqual(catchNode instanceof TryCatchSyntaxNode, true);
         let names = catchNode.typeNames ? catchNode.typeNames.allChildren() : [];
-        assert.equal(names.length, 3);
-        assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names.length, 3);
+        assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         Test.assertSyntaxToken(<any>names[1], text, TokenKind.VerticalBar, '|');
-        assert.equal(names[2] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(names[2] instanceof PartiallyQualifiedNameSyntaxNode, true);
         Test.assertSyntaxToken(catchNode.variable, text, TokenKind.Variable, '$e');
 
         assert.strictEqual(tryNode.finallyClause, null);
@@ -280,43 +280,43 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('declare(a=1);', 'should parse a declare statement', (statements) => {
         let declareNode = <DeclareSyntaxNode>statements[0];
-        assert.equal(declareNode instanceof DeclareSyntaxNode, true, 'DeclareSyntaxNode');
+        assert.strictEqual(declareNode instanceof DeclareSyntaxNode, true, 'DeclareSyntaxNode');
         let directives = declareNode.directives;
-        assert.equal(declareNode.directives instanceof SyntaxList, true);
+        assert.strictEqual(declareNode.directives instanceof SyntaxList, true);
         let constants = directives ? directives.childNodes() : [];
-        assert.equal(constants.length, 1);
-        assert.equal(constants[0] instanceof ConstantElementSyntaxNode, true);
-        assert.equal(declareNode.statement instanceof ExpressionStatementSyntaxNode, true);
+        assert.strictEqual(constants.length, 1);
+        assert.strictEqual(constants[0] instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(declareNode.statement instanceof ExpressionStatementSyntaxNode, true);
       }),
       new ParserTestArgs('declare(a=1, b=2);', 'should parse a declare statement with multiple directives', (statements) => {
         let declareNode = <DeclareSyntaxNode>statements[0];
-        assert.equal(declareNode instanceof DeclareSyntaxNode, true, 'DeclareSyntaxNode');
+        assert.strictEqual(declareNode instanceof DeclareSyntaxNode, true, 'DeclareSyntaxNode');
         let directives = declareNode.directives;
-        assert.equal(declareNode.directives instanceof SyntaxList, true);
+        assert.strictEqual(declareNode.directives instanceof SyntaxList, true);
         let constants = directives ? directives.childNodes() : [];
-        assert.equal(constants.length, 2);
-        assert.equal(constants[0] instanceof ConstantElementSyntaxNode, true);
-        assert.equal(constants[1] instanceof ConstantElementSyntaxNode, true);
-        assert.equal(declareNode.statement instanceof ExpressionStatementSyntaxNode, true);
+        assert.strictEqual(constants.length, 2);
+        assert.strictEqual(constants[0] instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(constants[1] instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(declareNode.statement instanceof ExpressionStatementSyntaxNode, true);
       }),
       new ParserTestArgs('declare(a=1): enddeclare;', 'should parse a declare statement (alternate syntax)', (statements) => {
         let declareNode = <DeclareBlockSyntaxNode>statements[0];
-        assert.equal(declareNode instanceof DeclareBlockSyntaxNode, true, 'DeclareBlockSyntaxNode');
+        assert.strictEqual(declareNode instanceof DeclareBlockSyntaxNode, true, 'DeclareBlockSyntaxNode');
         let directives = declareNode.directives;
-        assert.equal(declareNode.directives instanceof SyntaxList, true);
+        assert.strictEqual(declareNode.directives instanceof SyntaxList, true);
         let constants = directives ? directives.childNodes() : [];
-        assert.equal(constants.length, 1);
-        assert.equal(constants[0] instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(constants.length, 1);
+        assert.strictEqual(constants[0] instanceof ConstantElementSyntaxNode, true);
         assert.strictEqual(declareNode.statements, null);
       }),
       new ParserTestArgs('declare(a=1): 1; 2; enddeclare;', 'should parse a declare statement with child statements (alternate syntax)', (statements) => {
         let declareNode = <DeclareBlockSyntaxNode>statements[0];
-        assert.equal(declareNode instanceof DeclareBlockSyntaxNode, true, 'DeclareBlockSyntaxNode');
+        assert.strictEqual(declareNode instanceof DeclareBlockSyntaxNode, true, 'DeclareBlockSyntaxNode');
         let directives = declareNode.directives;
-        assert.equal(declareNode.directives instanceof SyntaxList, true);
+        assert.strictEqual(declareNode.directives instanceof SyntaxList, true);
         let constants = directives ? directives.childNodes() : [];
-        assert.equal(constants.length, 1);
-        assert.equal(constants[0] instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(constants.length, 1);
+        assert.strictEqual(constants[0] instanceof ConstantElementSyntaxNode, true);
         assert.notStrictEqual(declareNode.statements, null);
       }),
     ];
@@ -338,18 +338,18 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('echo 1;', 'should parse an echo statement', (statements) => {
         let echoNode = <EchoSyntaxNode>statements[0];
-        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        assert.strictEqual(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
         let expressions = echoNode.expressionList.childNodes();
-        assert.equal(expressions.length, 1);
-        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(expressions.length, 1);
+        assert.strictEqual(expressions[0] instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('echo 1, $a;', 'should parse an echo statement with multiple expressions', (statements) => {
         let echoNode = <EchoSyntaxNode>statements[0];
-        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        assert.strictEqual(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
         let expressions = echoNode.expressionList.childNodes();
-        assert.equal(expressions.length, 2);
-        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
-        assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(expressions.length, 2);
+        assert.strictEqual(expressions[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(expressions[1] instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -366,20 +366,20 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('1;', 'should parse an echo statement', (statements, text) => {
         let echoNode = <EchoSyntaxNode>statements[0];
-        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        assert.strictEqual(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
         Test.assertSyntaxToken(echoNode.echoKeyword, text, TokenKind.OpenTagWithEcho, '<?=');
         let expressions = echoNode.expressionList.childNodes();
-        assert.equal(expressions.length, 1);
-        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(expressions.length, 1);
+        assert.strictEqual(expressions[0] instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('1, $a;', 'should parse an echo statement with multiple expressions', (statements, text) => {
         let echoNode = <EchoSyntaxNode>statements[0];
-        assert.equal(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
+        assert.strictEqual(echoNode instanceof EchoSyntaxNode, true, 'EchoSyntaxNode');
         Test.assertSyntaxToken(echoNode.echoKeyword, text, TokenKind.OpenTagWithEcho, '<?=');
         let expressions = echoNode.expressionList.childNodes();
-        assert.equal(expressions.length, 2);
-        assert.equal(expressions[0] instanceof LiteralSyntaxNode, true);
-        assert.equal(expressions[1] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(expressions.length, 2);
+        assert.strictEqual(expressions[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(expressions[1] instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodesWithShortOpen(syntaxTests);
@@ -399,23 +399,23 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('unset($a);', 'should parse an unset statement', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
-        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        assert.strictEqual(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
         let expressions = unsetNode.expressionList.childNodes();
-        assert.equal(expressions.length, 1);
+        assert.strictEqual(expressions.length, 1);
         let variable = <LocalVariableSyntaxNode>expressions[0];
-        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
       }),
       new ParserTestArgs('unset($a, $b);', 'should parse an unset statement with expression list', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
-        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        assert.strictEqual(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
         let expressions = unsetNode.expressionList.childNodes();
-        assert.equal(expressions.length, 2);
+        assert.strictEqual(expressions.length, 2);
         let firstVariable = <LocalVariableSyntaxNode>expressions[0];
-        assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(firstVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
         let secondVariable = <LocalVariableSyntaxNode>expressions[0];
-        assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(secondVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
     ];
@@ -424,23 +424,23 @@ describe('PhpParser', function() {
     let syntaxTests7_3 = [
       new ParserTestArgs('unset($a,);', 'should parse an unset statement with trailing comma', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
-        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        assert.strictEqual(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
         let expressions = unsetNode.expressionList.childNodes();
-        assert.equal(expressions.length, 1);
+        assert.strictEqual(expressions.length, 1);
         let variable = <LocalVariableSyntaxNode>expressions[0];
-        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
       }),
       new ParserTestArgs('unset($a, $b,);', 'should parse an unset statement with trailing comma after expression list', (statements, text) => {
         let unsetNode = <UnsetSyntaxNode>statements[0];
-        assert.equal(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
+        assert.strictEqual(unsetNode instanceof UnsetSyntaxNode, true, 'UnsetSyntaxNode');
         let expressions = unsetNode.expressionList.childNodes();
-        assert.equal(expressions.length, 2);
+        assert.strictEqual(expressions.length, 2);
         let firstVariable = <LocalVariableSyntaxNode>expressions[0];
-        assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(firstVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
         let secondVariable = <LocalVariableSyntaxNode>expressions[0];
-        assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(secondVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$a');
       }),
     ];
@@ -472,27 +472,27 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('const A=1;', 'should parse a constant declaration', (statements, text) => {
         let constDecl = <ConstantDeclarationSyntaxNode>statements[0];
-        assert.equal(constDecl instanceof ConstantDeclarationSyntaxNode, true, 'ConstantDeclarationSyntaxNode');
+        assert.strictEqual(constDecl instanceof ConstantDeclarationSyntaxNode, true, 'ConstantDeclarationSyntaxNode');
         let elements = constDecl.elements ? constDecl.elements.childNodes() : [];
-        assert.equal(elements.length, 1);
+        assert.strictEqual(elements.length, 1);
         let constNode = <ConstantElementSyntaxNode>elements[0];
-        assert.equal(constNode instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(constNode instanceof ConstantElementSyntaxNode, true);
         Test.assertSyntaxToken(constNode.identifier, text, TokenKind.Identifier, 'A');
-        assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(constNode.expression instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('const A=1, B=2;', 'should parse multiple constant declarations', (statements, text) => {
         let constDecl = <ConstantDeclarationSyntaxNode>statements[0];
-        assert.equal(constDecl instanceof ConstantDeclarationSyntaxNode, true, 'ConstantDeclarationSyntaxNode');
+        assert.strictEqual(constDecl instanceof ConstantDeclarationSyntaxNode, true, 'ConstantDeclarationSyntaxNode');
         let elements = constDecl.elements ? constDecl.elements.childNodes() : [];
-        assert.equal(elements.length, 2);
+        assert.strictEqual(elements.length, 2);
         let firstConst = <ConstantElementSyntaxNode>elements[0];
-        assert.equal(firstConst instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(firstConst instanceof ConstantElementSyntaxNode, true);
         Test.assertSyntaxToken(firstConst.identifier, text, TokenKind.Identifier, 'A');
-        assert.equal(firstConst.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(firstConst.expression instanceof LiteralSyntaxNode, true);
         let secondConst = <ConstantElementSyntaxNode>elements[1];
-        assert.equal(secondConst instanceof ConstantElementSyntaxNode, true);
+        assert.strictEqual(secondConst instanceof ConstantElementSyntaxNode, true);
         Test.assertSyntaxToken(secondConst.identifier, text, TokenKind.Identifier, 'B');
-        assert.equal(secondConst.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(secondConst.expression instanceof LiteralSyntaxNode, true);
       })
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -521,46 +521,46 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('namespace A;', 'should parse a namespace declaration', (statements) => {
         let decl = <NamespaceDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceDeclarationSyntaxNode, true, 'NamespaceDeclarationSyntaxNode');
-        assert.equal(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(decl instanceof NamespaceDeclarationSyntaxNode, true, 'NamespaceDeclarationSyntaxNode');
+        assert.strictEqual(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
       new ParserTestArgs('namespace A\\B;', 'should parse a namespace declaration with multiple names', (statements) => {
         let decl = <NamespaceDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceDeclarationSyntaxNode, true, 'NamespaceDeclarationSyntaxNode');
-        assert.equal(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(decl instanceof NamespaceDeclarationSyntaxNode, true, 'NamespaceDeclarationSyntaxNode');
+        assert.strictEqual(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
       new ParserTestArgs('namespace A {}', 'should parse a namespace group declaration', (statements) => {
         let decl = <NamespaceGroupDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
-        assert.equal(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
+        assert.strictEqual(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.strictEqual(decl.statements, null);
       }),
       new ParserTestArgs('namespace A\\B {}', 'should parse a namespace group declaration with multiple names', (statements) => {
         let decl = <NamespaceGroupDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
-        assert.equal(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
+        assert.strictEqual(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.strictEqual(decl.statements, null);
       }),
       new ParserTestArgs('namespace A { ; }', 'should parse a namespace group declaration with child statement', (statements) => {
         let decl = <NamespaceGroupDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
-        assert.equal(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
+        assert.strictEqual(decl.name instanceof PartiallyQualifiedNameSyntaxNode, true);
         let children = decl.statements ? decl.statements.childNodes() : [];
-        assert.equal(children.length, 1);
-        assert.equal(children[0] instanceof ExpressionStatementSyntaxNode, true);
+        assert.strictEqual(children.length, 1);
+        assert.strictEqual(children[0] instanceof ExpressionStatementSyntaxNode, true);
       }),
       new ParserTestArgs('namespace {}', 'should parse a global namespace declaration', (statements) => {
         let decl = <NamespaceGroupDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
+        assert.strictEqual(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
         assert.strictEqual(decl.name, null);
       }),
       new ParserTestArgs('namespace { ; }', 'should parse a global namespace declaration with child statement', (statements) => {
         let decl = <NamespaceGroupDeclarationSyntaxNode>statements[0];
-        assert.equal(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
+        assert.strictEqual(decl instanceof NamespaceGroupDeclarationSyntaxNode, true, 'NamespaceGroupDeclarationSyntaxNode');
         assert.strictEqual(decl.name, null);
         let children = decl.statements ? decl.statements.childNodes() : [];
-        assert.equal(children.length, 1);
-        assert.equal(children[0] instanceof ExpressionStatementSyntaxNode, true);
+        assert.strictEqual(children.length, 1);
+        assert.strictEqual(children[0] instanceof ExpressionStatementSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -581,18 +581,18 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('global $a;', 'should parse a global declaration', (statements) => {
         let globalDecl = <GlobalSyntaxNode>statements[0];
-        assert.equal(globalDecl instanceof GlobalSyntaxNode, true, 'GlobalSyntaxNode');
+        assert.strictEqual(globalDecl instanceof GlobalSyntaxNode, true, 'GlobalSyntaxNode');
         let variables = globalDecl.variables ? globalDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 1);
-        assert.equal(variables[0] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variables.length, 1);
+        assert.strictEqual(variables[0] instanceof LocalVariableSyntaxNode, true);
       }),
       new ParserTestArgs('global $a, $b;', 'should parse multiple global declarations', (statements) => {
         let globalDecl = <GlobalSyntaxNode>statements[0];
-        assert.equal(globalDecl instanceof GlobalSyntaxNode, true, 'GlobalSyntaxNode');
+        assert.strictEqual(globalDecl instanceof GlobalSyntaxNode, true, 'GlobalSyntaxNode');
         let variables = globalDecl.variables ? globalDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 2);
-        assert.equal(variables[0] instanceof LocalVariableSyntaxNode, true);
-        assert.equal(variables[1] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variables.length, 2);
+        assert.strictEqual(variables[0] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variables[1] instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -614,65 +614,65 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('static $a;', 'should parse a static declaration', (statements, text) => {
         let staticDecl = <StaticSyntaxNode>statements[0];
-        assert.equal(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
+        assert.strictEqual(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
         let variables = staticDecl.variables ? staticDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 1);
+        assert.strictEqual(variables.length, 1);
         let staticVariable = <StaticElementSyntaxNode>variables[0];
-        assert.equal(staticVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(staticVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(staticVariable.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(staticVariable.expression, null);
       }),
       new ParserTestArgs('static $a=1;', 'should parse a static declaration with initializer', (statements, text) => {
         let staticDecl = <StaticSyntaxNode>statements[0];
-        assert.equal(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
+        assert.strictEqual(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
         let variables = staticDecl.variables ? staticDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 1);
+        assert.strictEqual(variables.length, 1);
         let staticVariable = <StaticElementSyntaxNode>variables[0];
-        assert.equal(staticVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(staticVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(staticVariable.variable, text, TokenKind.Variable, '$a');
-        assert.equal(staticVariable.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(staticVariable.expression instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('static $a, $b;', 'should parse multiple static declarations', (statements, text) => {
         let staticDecl = <StaticSyntaxNode>statements[0];
-        assert.equal(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
+        assert.strictEqual(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
         let variables = staticDecl.variables ? staticDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 2);
+        assert.strictEqual(variables.length, 2);
         let firstVariable = <StaticElementSyntaxNode>variables[0];
-        assert.equal(firstVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(firstVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(firstVariable.expression, null);
         let secondVariable = <StaticElementSyntaxNode>variables[1];
-        assert.equal(secondVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(secondVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
         assert.strictEqual(secondVariable.expression, null);
       }),
       new ParserTestArgs('static $a=1, $b;', 'should parse multiple static declarations (first with initializer)', (statements, text) => {
         let staticDecl = <StaticSyntaxNode>statements[0];
-        assert.equal(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
+        assert.strictEqual(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
         let variables = staticDecl.variables ? staticDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 2);
+        assert.strictEqual(variables.length, 2);
         let firstVariable = <StaticElementSyntaxNode>variables[0];
-        assert.equal(firstVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(firstVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
-        assert.equal(firstVariable.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(firstVariable.expression instanceof LiteralSyntaxNode, true);
         let secondVariable = <StaticElementSyntaxNode>variables[1];
-        assert.equal(secondVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(secondVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
         assert.strictEqual(secondVariable.expression, null);
       }),
       new ParserTestArgs('static $a, $b=2;', 'should parse multiple static declarations (second with initializer)', (statements, text) => {
         let staticDecl = <StaticSyntaxNode>statements[0];
-        assert.equal(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
+        assert.strictEqual(staticDecl instanceof StaticSyntaxNode, true, 'StaticSyntaxNode');
         let variables = staticDecl.variables ? staticDecl.variables.childNodes() : [];
-        assert.equal(variables.length, 2);
+        assert.strictEqual(variables.length, 2);
         let firstVariable = <StaticElementSyntaxNode>variables[0];
-        assert.equal(firstVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(firstVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(firstVariable.expression, null);
         let secondVariable = <StaticElementSyntaxNode>variables[1];
-        assert.equal(secondVariable instanceof StaticElementSyntaxNode, true);
+        assert.strictEqual(secondVariable instanceof StaticElementSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
-        assert.equal(secondVariable.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(secondVariable.expression instanceof LiteralSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -695,24 +695,24 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('__halt_compiler();', 'should parse a halt compiler statement', (statements) => {
         let haltCompiler = <HaltCompilerSyntaxNode>statements[0];
-        assert.equal(haltCompiler instanceof HaltCompilerSyntaxNode, true, 'HaltCompilerSyntaxNode');
+        assert.strictEqual(haltCompiler instanceof HaltCompilerSyntaxNode, true, 'HaltCompilerSyntaxNode');
         let root = <SourceTextSyntaxNode>haltCompiler.parent;
-        assert.equal(root instanceof SourceTextSyntaxNode, true, 'SourceTextSyntaxNode');
-        assert.equal(root.eof.fullSpan.length, 0);
+        assert.strictEqual(root instanceof SourceTextSyntaxNode, true, 'SourceTextSyntaxNode');
+        assert.strictEqual(root.eof.fullSpan.length, 0);
         let semicolon = <ISyntaxToken>root.eof.previousToken(false);
         assert.notStrictEqual(semicolon, null);
-        assert.equal(semicolon.kind, TokenKind.Semicolon);
+        assert.strictEqual(semicolon.kind, TokenKind.Semicolon);
         assert.strictEqual(semicolon.parent, haltCompiler);
       }),
       new ParserTestArgs('__halt_compiler(); $a = 1;', 'should parse a halt compiler statement with trailing text', (statements) => {
         let haltCompiler = <HaltCompilerSyntaxNode>statements[0];
-        assert.equal(haltCompiler instanceof HaltCompilerSyntaxNode, true, 'HaltCompilerSyntaxNode');
+        assert.strictEqual(haltCompiler instanceof HaltCompilerSyntaxNode, true, 'HaltCompilerSyntaxNode');
         let root = <SourceTextSyntaxNode>haltCompiler.parent;
-        assert.equal(root instanceof SourceTextSyntaxNode, true, 'SourceTextSyntaxNode');
-        assert.equal(root.eof.fullSpan.length, 8);
+        assert.strictEqual(root instanceof SourceTextSyntaxNode, true, 'SourceTextSyntaxNode');
+        assert.strictEqual(root.eof.fullSpan.length, 8);
         let semicolon = <ISyntaxToken>root.eof.previousToken(false);
         assert.notStrictEqual(semicolon, null);
-        assert.equal(semicolon.kind, TokenKind.Semicolon);
+        assert.strictEqual(semicolon.kind, TokenKind.Semicolon);
         assert.strictEqual(semicolon.parent, haltCompiler);
       }),
     ];

@@ -27,29 +27,29 @@ describe('StringText', function() {
   describe('#charCodeAt()', function() {
     let text = new StringText('abc', Encoding.Latin1);
     it('should get character at first offset', () => {
-      assert.equal(text.charCodeAt(0), 'a'.charCodeAt(0));
+      assert.strictEqual(text.charCodeAt(0), 'a'.charCodeAt(0));
     });
     it('should get character at last offset', () => {
-      assert.equal(text.charCodeAt(2), 'c'.charCodeAt(0));
+      assert.strictEqual(text.charCodeAt(2), 'c'.charCodeAt(0));
     });
     it('should return NaN if offset is less than starting offset', () => {
-      assert.equal(Number.isNaN(text.charCodeAt(-1)), true);
+      assert.strictEqual(Number.isNaN(text.charCodeAt(-1)), true);
     });
     it('should return NaN if offset is greater than or equal to text length', () => {
-      assert.equal(Number.isNaN(text.charCodeAt(3)), true, 'offset == text.length');
-      assert.equal(Number.isNaN(text.charCodeAt(4)), true, 'offset > text.length');
+      assert.strictEqual(Number.isNaN(text.charCodeAt(3)), true, 'offset == text.length');
+      assert.strictEqual(Number.isNaN(text.charCodeAt(4)), true, 'offset > text.length');
     });
   });
 
   describe('#slice()', function() {
     let text = new StringText('abc', Encoding.Latin1);
     it('should get slice if starting position is equal to text start', () => {
-      assert.equal(text.slice(new TextSpan(0, 3)).substring(0), 'abc');
-      assert.equal(text.slice(0).substring(0), 'abc');
+      assert.strictEqual(text.slice(new TextSpan(0, 3)).substring(0), 'abc');
+      assert.strictEqual(text.slice(0).substring(0), 'abc');
     });
     it('should get slice if starting position is equal to text length', () => {
-      assert.equal(text.slice(new TextSpan(3, 0)).substring(0), '');
-      assert.equal(text.slice(3).substring(0), '');
+      assert.strictEqual(text.slice(new TextSpan(3, 0)).substring(0), '');
+      assert.strictEqual(text.slice(3).substring(0), '');
     });
     it('should throw exception if starting position is less than starting offset', () => {
       assert.throws(() => { text.slice(-1); });
@@ -67,14 +67,14 @@ describe('StringText', function() {
   describe('#substring()', function() {
     let text = new StringText('abc', Encoding.Latin1);
     it('should get substring if starting position is equal to text start', () => {
-      assert.equal(text.substring(0, 1), 'a');
-      assert.equal(text.substring(-3, 1), 'a');
+      assert.strictEqual(text.substring(0, 1), 'a');
+      assert.strictEqual(text.substring(-3, 1), 'a');
     });
     it('should get substring if starting position is equal to text length', () => {
-      assert.equal(text.substring(3, 0), '');
+      assert.strictEqual(text.substring(3, 0), '');
     });
     it('should get substring if length is negative', () => {
-      assert.equal(text.substring(3, -1), '');
+      assert.strictEqual(text.substring(3, -1), '');
     });
     it('should throw exception if starting position is greater than text length', () => {
       assert.throws(() => { text.substring(4, 0); });

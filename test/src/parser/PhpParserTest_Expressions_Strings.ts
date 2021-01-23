@@ -48,14 +48,14 @@ import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent: string, templateText?: string | null): ISyntaxNode[] {
   let element = <FlexibleHeredocElementSyntaxNode>node;
-  assert.equal(element instanceof FlexibleHeredocElementSyntaxNode, true, 'FlexibleHeredocElementSyntaxNode');
+  assert.strictEqual(element instanceof FlexibleHeredocElementSyntaxNode, true, 'FlexibleHeredocElementSyntaxNode');
   Test.assertSyntaxToken(element.indent, sourceText, TokenKind.StringIndent, indent);
   let template = element.template ? element.template.childNodes() : [];
   if (templateText) {
     // Simple literal.
-    assert.equal(template.length, 1);
+    assert.strictEqual(template.length, 1);
     let stringLiteral = <LiteralSyntaxNode>template[0];
-    assert.equal(stringLiteral instanceof LiteralSyntaxNode, true);
+    assert.strictEqual(stringLiteral instanceof LiteralSyntaxNode, true);
     Test.assertSyntaxToken(stringLiteral.value, sourceText, TokenKind.StringTemplateLiteral, templateText);
   }
   else if (templateText === null) {
@@ -71,17 +71,17 @@ function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent
 
 function assertFlexibleHeredocTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let interpolatedString = <FlexibleHeredocTemplateSyntaxNode>exprNode.expression;
-  assert.equal(interpolatedString instanceof FlexibleHeredocTemplateSyntaxNode, true, 'FlexibleHeredocTemplateSyntaxNode');
+  assert.strictEqual(interpolatedString instanceof FlexibleHeredocTemplateSyntaxNode, true, 'FlexibleHeredocTemplateSyntaxNode');
   return interpolatedString.flexibleElements.childNodes();
 }
 
 function assertStringTemplate(statements: ISyntaxNode[]): ISyntaxNode[] {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let interpolatedString = <StringTemplateSyntaxNode>exprNode.expression;
-  assert.equal(interpolatedString instanceof StringTemplateSyntaxNode, true, 'StringTemplateSyntaxNode');
+  assert.strictEqual(interpolatedString instanceof StringTemplateSyntaxNode, true, 'StringTemplateSyntaxNode');
   return interpolatedString.template.childNodes();
 }
 
@@ -92,22 +92,22 @@ describe('PhpParser', function() {
       // Variable.
       new ParserTestArgs('"$a";', 'should parse a template', (statements) => {
         let contents = assertStringTemplate(statements);
-        assert.equal(contents[0] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof LocalVariableSyntaxNode, true);
       }),
       new ParserTestArgs('"$a->b";', 'should parse a template using member access', (statements) => {
         let contents = assertStringTemplate(statements);
-        assert.equal(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
       }),
       new ParserTestArgs('"$a->class";', 'should parse a template using member access with keyword (class)', (statements) => {
         let contents = assertStringTemplate(statements);
-        assert.equal(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
       }),
 
       // Variable with element access.
       new ParserTestArgs('"$a[0]";', 'should parse a template using element access with numeric offset', (statements, text) => {
         let contents = assertStringTemplate(statements);
         let elementAccess = <StringElementAccessSyntaxNode>contents[0];
-        assert.equal(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
+        assert.strictEqual(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
         Test.assertSyntaxToken(elementAccess.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(elementAccess.minus, null);
         Test.assertSyntaxToken(elementAccess.index, text, TokenKind.StringNumber, '0');
@@ -115,7 +115,7 @@ describe('PhpParser', function() {
       new ParserTestArgs('"$a[-1]";', 'should parse a template using element access with numeric offset (negative)', (statements, text) => {
         let contents = assertStringTemplate(statements);
         let elementAccess = <StringElementAccessSyntaxNode>contents[0];
-        assert.equal(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
+        assert.strictEqual(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
         Test.assertSyntaxToken(elementAccess.variable, text, TokenKind.Variable, '$a');
         Test.assertSyntaxToken(elementAccess.minus, text, TokenKind.Minus, '-');
         Test.assertSyntaxToken(elementAccess.index, text, TokenKind.StringNumber, '1');
@@ -123,7 +123,7 @@ describe('PhpParser', function() {
       new ParserTestArgs('"$a[B]";', 'should parse a template using element access with named offset', (statements, text) => {
         let contents = assertStringTemplate(statements);
         let elementAccess = <StringElementAccessSyntaxNode>contents[0];
-        assert.equal(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
+        assert.strictEqual(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
         Test.assertSyntaxToken(elementAccess.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(elementAccess.minus, null);
         Test.assertSyntaxToken(elementAccess.index, text, TokenKind.Identifier, 'B');
@@ -131,7 +131,7 @@ describe('PhpParser', function() {
       new ParserTestArgs('"$a[$b]";', 'should parse a template using element access with variable offset', (statements, text) => {
         let contents = assertStringTemplate(statements);
         let elementAccess = <StringElementAccessSyntaxNode>contents[0];
-        assert.equal(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
+        assert.strictEqual(elementAccess instanceof StringElementAccessSyntaxNode, true, 'StringElementAccessSyntaxNode');
         Test.assertSyntaxToken(elementAccess.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(elementAccess.minus, null);
         Test.assertSyntaxToken(elementAccess.index, text, TokenKind.Variable, '$b');
@@ -141,31 +141,31 @@ describe('PhpParser', function() {
       new ParserTestArgs('"${a}";', 'should parse a template using indirect variable name', (statements) => {
         let contents = assertStringTemplate(statements);
         let variable = <IndirectStringVariableSyntaxNode>contents[0];
-        assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
-        assert.equal(variable.expression instanceof StringVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof IndirectStringVariableSyntaxNode, true);
+        assert.strictEqual(variable.expression instanceof StringVariableSyntaxNode, true);
       }),
       new ParserTestArgs('"${a[0]}";', 'should parse a template using element access of indirect variable name', (statements) => {
         let contents = assertStringTemplate(statements);
         let variable = <IndirectStringVariableSyntaxNode>contents[0];
-        assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof IndirectStringVariableSyntaxNode, true);
         let elementAccess = <ElementAccessSyntaxNode>variable.expression;
-        assert.equal(elementAccess instanceof ElementAccessSyntaxNode, true);
-        assert.equal(elementAccess.dereferencable instanceof StringVariableSyntaxNode, true);
-        assert.equal(elementAccess.index instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(elementAccess instanceof ElementAccessSyntaxNode, true);
+        assert.strictEqual(elementAccess.dereferencable instanceof StringVariableSyntaxNode, true);
+        assert.strictEqual(elementAccess.index instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('"${$a}";', 'should parse a template using indirect variable name with expression', (statements) => {
         let contents = assertStringTemplate(statements);
         let variable = <IndirectStringVariableSyntaxNode>contents[0];
-        assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
-        assert.equal(variable.expression instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof IndirectStringVariableSyntaxNode, true);
+        assert.strictEqual(variable.expression instanceof LocalVariableSyntaxNode, true);
       }),
 
       // Expression.
       new ParserTestArgs('"{$a}";', 'should parse a template using variable expression', (statements) => {
         let contents = assertStringTemplate(statements);
         let strExpr = <StringExpressionSyntaxNode>contents[0];
-        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
-        assert.equal(strExpr.expression instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(strExpr instanceof StringExpressionSyntaxNode, true);
+        assert.strictEqual(strExpr.expression instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -200,26 +200,26 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('`a`;', 'should parse a shell command expression', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let shellCommand = <ShellCommandTemplateSyntaxNode>exprNode.expression;
-        assert.equal(shellCommand instanceof ShellCommandTemplateSyntaxNode, true);
+        assert.strictEqual(shellCommand instanceof ShellCommandTemplateSyntaxNode, true);
         let contents = shellCommand.template ? shellCommand.template.childNodes() : [];
-        assert.equal(contents[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('``;', 'should parse a shell command expression (empty)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let shellCommand = <ShellCommandTemplateSyntaxNode>exprNode.expression;
-        assert.equal(shellCommand instanceof ShellCommandTemplateSyntaxNode, true);
+        assert.strictEqual(shellCommand instanceof ShellCommandTemplateSyntaxNode, true);
         assert.strictEqual(shellCommand.template, null);
       }),
       new ParserTestArgs('`$a`;', 'should parse a shell command expression with interpolation', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let shellCommand = <ShellCommandTemplateSyntaxNode>exprNode.expression;
-        assert.equal(shellCommand instanceof ShellCommandTemplateSyntaxNode, true);
+        assert.strictEqual(shellCommand instanceof ShellCommandTemplateSyntaxNode, true);
         let contents = shellCommand.template ? shellCommand.template.childNodes() : [];
-        assert.equal(contents[0] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -238,26 +238,26 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('<<<LABEL\na\nLABEL;\n', 'should parse a heredoc string', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let heredoc = <HeredocTemplateSyntaxNode>exprNode.expression;
-        assert.equal(heredoc instanceof HeredocTemplateSyntaxNode, true);
+        assert.strictEqual(heredoc instanceof HeredocTemplateSyntaxNode, true);
         let contents = heredoc.template ? heredoc.template.childNodes() : [];
-        assert.equal(contents[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('<<<LABEL\nLABEL;\n', 'should parse a heredoc string (empty)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let heredoc = <HeredocTemplateSyntaxNode>exprNode.expression;
-        assert.equal(heredoc instanceof HeredocTemplateSyntaxNode, true);
+        assert.strictEqual(heredoc instanceof HeredocTemplateSyntaxNode, true);
         assert.strictEqual(heredoc.template, null);
       }),
       new ParserTestArgs('<<<LABEL\n$a\nLABEL;\n', 'should parse a heredoc string with interpolation', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let heredoc = <HeredocTemplateSyntaxNode>exprNode.expression;
-        assert.equal(heredoc instanceof HeredocTemplateSyntaxNode, true);
+        assert.strictEqual(heredoc instanceof HeredocTemplateSyntaxNode, true);
         let contents = heredoc.template ? heredoc.template.childNodes() : [];
-        assert.equal(contents[0] instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -283,17 +283,17 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('<<<\'LABEL\'\na\nLABEL;\n', 'should parse a nowdoc string', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let heredoc = <HeredocTemplateSyntaxNode>exprNode.expression;
-        assert.equal(heredoc instanceof HeredocTemplateSyntaxNode, true);
+        assert.strictEqual(heredoc instanceof HeredocTemplateSyntaxNode, true);
         let contents = heredoc.template ? heredoc.template.childNodes() : [];
-        assert.equal(contents[0] instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(contents[0] instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('<<<\'LABEL\'\nLABEL;\n', 'should parse a nowdoc string (empty)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let heredoc = <HeredocTemplateSyntaxNode>exprNode.expression;
-        assert.equal(heredoc instanceof HeredocTemplateSyntaxNode, true);
+        assert.strictEqual(heredoc instanceof HeredocTemplateSyntaxNode, true);
         assert.strictEqual(heredoc.template, null);
       }),
     ];
@@ -306,111 +306,111 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('<<<LABEL\n  LABEL;', 'should parse a flexible heredoc string (empty)', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 1);
+        assert.strictEqual(elements.length, 1);
         assertFlexibleHeredocLine(elements[0], text, '  ', null);
       }),
 
       new ParserTestArgs('<<<LABEL\n\n  LABEL;', 'should parse an empty line', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 2);
+        assert.strictEqual(elements.length, 2);
         let lineBreak = <LiteralSyntaxNode>elements[0];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         Test.assertSyntaxToken(lineBreak.value, text, TokenKind.StringLineBreak, '\n');
         assertFlexibleHeredocLine(elements[1], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  \n  LABEL;', 'should parse an indented line', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
         assertFlexibleHeredocLine(elements[0], text, '  ', null);
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
 
       new ParserTestArgs('<<<LABEL\n  a\n  LABEL;', 'should parse an indented line with literal', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
         assertFlexibleHeredocLine(elements[0], text, '  ', 'a');
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  $a\n  LABEL;', 'should parse an indented line with interpolation', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
         let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
         let variable = <LocalVariableSyntaxNode>interpolations[0];
-        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  $a b\n  LABEL;', 'should parse an indented line with interpolation followed by literal', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
 
         let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
         let variable = <LocalVariableSyntaxNode>interpolations[0];
-        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$a');
         let literal = <LiteralSyntaxNode>interpolations[1];
         Test.assertSyntaxToken(literal.value, text, TokenKind.StringTemplateLiteral, ' b');
 
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  a $b\n  LABEL;', 'should parse an indented line with literal followed by interpolation', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
 
         let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
         let literal = <LiteralSyntaxNode>interpolations[0];
         Test.assertSyntaxToken(literal.value, text, TokenKind.StringTemplateLiteral, 'a ');
         let variable = <LocalVariableSyntaxNode>interpolations[1];
-        assert.equal(variable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(variable.variable, text, TokenKind.Variable, '$b');
 
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  $a$b\n  LABEL;', 'should parse an indented line with consecutive interpolations', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
 
         let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
         let firstVariable = <LocalVariableSyntaxNode>interpolations[0];
-        assert.equal(firstVariable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(firstVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
         let secondVariable = <LocalVariableSyntaxNode>interpolations[1];
-        assert.equal(secondVariable instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(secondVariable instanceof LocalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
 
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
 
       new ParserTestArgs('<<<LABEL\n  ${a}\n  LABEL;', 'should parse an indented line with indirection', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
         let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
         let variable = <IndirectStringVariableSyntaxNode>interpolations[0];
-        assert.equal(variable instanceof IndirectStringVariableSyntaxNode, true);
+        assert.strictEqual(variable instanceof IndirectStringVariableSyntaxNode, true);
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
       new ParserTestArgs('<<<LABEL\n  {$a}\n  LABEL;', 'should parse an indented line with interpolated expression', (statements, text) => {
         let elements = assertFlexibleHeredocTemplate(statements);
-        assert.equal(elements.length, 3);
+        assert.strictEqual(elements.length, 3);
         let interpolations = assertFlexibleHeredocLine(elements[0], text, '  ');
         let strExpr = <StringExpressionSyntaxNode>interpolations[0];
-        assert.equal(strExpr instanceof StringExpressionSyntaxNode, true);
+        assert.strictEqual(strExpr instanceof StringExpressionSyntaxNode, true);
         let lineBreak = <LiteralSyntaxNode>elements[1];
-        assert.equal(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+        assert.strictEqual(lineBreak instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         assertFlexibleHeredocLine(elements[2], text, '  ', null);
       }),
     ];

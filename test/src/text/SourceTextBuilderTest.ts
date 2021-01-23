@@ -47,9 +47,9 @@ class TestSourceTextBuilder extends SourceTextBuilder {
 }
 
 function assertSourceText(text: ISourceText, expectedText: string, expectedEncoding = Encoding.Latin1): void {
-  assert.equal(text.substring(0), expectedText);
-  assert.equal(text.length, expectedText.length);
-  assert.equal(Encoding[text.encoding], Encoding[expectedEncoding]);
+  assert.strictEqual(text.substring(0), expectedText);
+  assert.strictEqual(text.length, expectedText.length);
+  assert.strictEqual(Encoding[text.encoding], Encoding[expectedEncoding]);
 }
 
 function createSourceTextList(...args: string[]): ISourceText[] {
@@ -73,9 +73,9 @@ describe('SourceTextBuilder', function() {
       let builder = new TestSourceTextBuilder(characters.slice(0, 6));
       let text = <CompositeText>builder.toSourceText();
       assertSourceText(text, 'abcdef');
-      assert.equal(text.sources.length, 2);
-      assert.equal(text.sources[0].length, 4);
-      assert.equal(text.sources[1].length, 2);
+      assert.strictEqual(text.sources.length, 2);
+      assert.strictEqual(text.sources[0].length, 4);
+      assert.strictEqual(text.sources[1].length, 2);
     });
     it('should merge segments to maximum length', () => {
       const short = SourceTextFactory.from('AB');
@@ -84,9 +84,9 @@ describe('SourceTextBuilder', function() {
       let builder = new TestSourceTextBuilder([long, short, short, short, short]);
       let text = <CompositeText>builder.toSourceText();
       assertSourceText(text, '1234567ABABABAB');
-      assert.equal(text.sources.length, 2);
-      assert.equal(text.sources[0].length, 7);
-      assert.equal(text.sources[1].length, 8);
+      assert.strictEqual(text.sources.length, 2);
+      assert.strictEqual(text.sources[0].length, 7);
+      assert.strictEqual(text.sources[1].length, 8);
     });
     it('should recalculate source length if text was deleted', () => {
       const source = SourceTextFactory.from('12345');
@@ -94,17 +94,17 @@ describe('SourceTextBuilder', function() {
       let builder = new TestSourceTextBuilder([...characters.slice(0, 5), segment]);
       let text = <CompositeText>builder.toSourceText();
       assertSourceText(text, 'abcde123');
-      assert.equal(text.sourceLength, 8);  // Previous length was 10.
+      assert.strictEqual(text.sourceLength, 8);  // Previous length was 10.
     });
     it('should exceed segment target if text is too long', () => {
       const long = SourceTextFactory.from('1234567');
       let builder = new TestSourceTextBuilder([long, long, ...characters.slice(0, 3)]);
       let text = <CompositeText>builder.toSourceText();
       assertSourceText(text, '12345671234567abc');
-      assert.equal(text.sources.length, 3);
-      assert.equal(text.sources[0].length, 7);
-      assert.equal(text.sources[1].length, 8);
-      assert.equal(text.sources[2].length, 2);
+      assert.strictEqual(text.sources.length, 3);
+      assert.strictEqual(text.sources[0].length, 7);
+      assert.strictEqual(text.sources[1].length, 8);
+      assert.strictEqual(text.sources[2].length, 2);
     });
   });
 
@@ -114,14 +114,14 @@ describe('SourceTextBuilder', function() {
       let builder = new TestSourceTextBuilder(characters.slice(0, 4));
       let text = <CompositeText>builder.toSourceText();
       assertSourceText(text, 'abcd');
-      assert.equal(text.sources.length, 4);
+      assert.strictEqual(text.sources.length, 4);
     });
     it('should reduce segments if count is greater than limit', () => {
       // SegmentLimit = 4
       let builder = new TestSourceTextBuilder(characters.slice(0, 5));
       let text = <CompositeText>builder.toSourceText();
       assertSourceText(text, 'abcde');
-      assert.equal(text.sources.length, 2);
+      assert.strictEqual(text.sources.length, 2);
     });
     it('should remove deleted text', () => {
       const source = SourceTextFactory.from('1234567890');
@@ -129,8 +129,8 @@ describe('SourceTextBuilder', function() {
       let builder = new TestSourceTextBuilder([segment]);
       let text = <StringText>builder.toSourceText();
       assertSourceText(text, '123');
-      assert.equal(text instanceof StringText, true);
-      assert.equal(text.sourceLength, 3);
+      assert.strictEqual(text instanceof StringText, true);
+      assert.strictEqual(text.sourceLength, 3);
     });
   });
 

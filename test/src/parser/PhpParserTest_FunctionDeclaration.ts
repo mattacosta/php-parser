@@ -42,7 +42,7 @@ import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertFunctionWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
   let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-  assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+  assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
   assert.strictEqual(funcDecl.ampersand, null);
   assert.strictEqual(funcDecl.returnType, null);
   let parameters = funcDecl.parameters ? funcDecl.parameters.childNodes() : [];
@@ -51,7 +51,7 @@ function assertFunctionWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] 
 
 function assertParameter(node: ISyntaxNode, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
   let parameter = <ParameterSyntaxNode>node;
-  assert.equal(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  assert.strictEqual(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
   if (!hasType) {
     assert.strictEqual(parameter.type, null);
   }
@@ -81,14 +81,14 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('function a() {}', 'should parse a function', (statements) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         assert.strictEqual(funcDecl.returnType, null);
       }),
       new ParserTestArgs('function &a() {}', 'should parse a function (byref)', (statements) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.notStrictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         assert.strictEqual(funcDecl.returnType, null);
@@ -96,41 +96,41 @@ describe('PhpParser', function() {
 
       new ParserTestArgs('function a(): B {}', 'should parse a function with return type', (statements) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
-        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
         assert.strictEqual(returnType.question, null);
-        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
       new ParserTestArgs('function a(): \\B {}', 'should parse a function with return type (fully qualified)', (statements) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
-        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
         assert.strictEqual(returnType.question, null);
-        assert.equal(returnType.typeName instanceof FullyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(returnType.typeName instanceof FullyQualifiedNameSyntaxNode, true);
       }),
       new ParserTestArgs('function a(): array {}', 'should parse a function with predefined return type (array)', (statements, text) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         let returnType = <PredefinedTypeSyntaxNode>funcDecl.returnType;
-        assert.equal(returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        assert.strictEqual(returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
         assert.strictEqual(returnType.question, null);
         Test.assertSyntaxToken(returnType.keyword, text, TokenKind.Array, 'array');
       }),
       new ParserTestArgs('function a(): callable {}', 'should parse a function with predefined return type (callable)', (statements, text) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         let returnType = <PredefinedTypeSyntaxNode>funcDecl.returnType;
-        assert.equal(returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        assert.strictEqual(returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
         assert.strictEqual(returnType.question, null);
         Test.assertSyntaxToken(returnType.keyword, text, TokenKind.Callable, 'callable');
       }),
@@ -140,13 +140,13 @@ describe('PhpParser', function() {
     let syntaxTests7_1 = [
       new ParserTestArgs('function a(): ? B {}', 'should parse a function with nullable return type', (statements) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);
         let returnType = <NamedTypeSyntaxNode>funcDecl.returnType;
-        assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+        assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
         assert.notStrictEqual(returnType.question, null);
-        assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
@@ -167,90 +167,90 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('function a($b) {}', 'should parse a parameter', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         assertParameter(parameters[0], false, false, false, false);
       }),
       new ParserTestArgs('function a(&$b) {}', 'should parse a parameter (byref)', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         assertParameter(parameters[0], false, true, false, false);
       }),
       new ParserTestArgs('function a($b, $c) {}', 'should parse multiple parameters', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 2);
+        assert.strictEqual(parameters.length, 2);
         assertParameter(parameters[0], false, false, false, false);
         assertParameter(parameters[1], false, false, false, false);
       }),
       new ParserTestArgs('function a(B $c) {}', 'should parse a parameter with type', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], true, false, false, false);
         let type = <NamedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type instanceof NamedTypeSyntaxNode, true);
         assert.strictEqual(type.question, null);
-        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
       new ParserTestArgs('function a(array $c) {}', 'should parse a parameter with predefined type (array)', (statements, text) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], true, false, false, false);
         let type = <PredefinedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof PredefinedTypeSyntaxNode, true);
+        assert.strictEqual(type instanceof PredefinedTypeSyntaxNode, true);
         assert.strictEqual(type.question, null);
         Test.assertSyntaxToken(type.keyword, text, TokenKind.Array, 'array');
       }),
       new ParserTestArgs('function a(callable $c) {}', 'should parse a parameter with predefined type (callable)', (statements, text) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], true, false, false, false);
         let type = <PredefinedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof PredefinedTypeSyntaxNode, true);
+        assert.strictEqual(type instanceof PredefinedTypeSyntaxNode, true);
         assert.strictEqual(type.question, null);
         Test.assertSyntaxToken(type.keyword, text, TokenKind.Callable, 'callable');
       }),
       new ParserTestArgs('function a($b = 1) {}', 'should parse a parameter with default value', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], false, false, false, true);
         assert.notStrictEqual(param.equal, null);
-        assert.equal(param.expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(param.expression instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('function a(B $c = null) {}', 'should parse a parameter with type and default value', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], true, false, false, true);
         let type = <NamedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type instanceof NamedTypeSyntaxNode, true);
         assert.strictEqual(type.question, null);
-        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.notStrictEqual(param.equal, null);
-        assert.equal(param.expression instanceof ConstantSyntaxNode, true);
+        assert.strictEqual(param.expression instanceof ConstantSyntaxNode, true);
       }),
 
       new ParserTestArgs('function a(...$c) {}', 'should parse a variadic parameter', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         assertParameter(parameters[0], false, false, true, false);
       }),
       new ParserTestArgs('function a(&...$c) {}', 'should parse a variadic parameter (byref)', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         assertParameter(parameters[0], false, true, true, false);
       }),
       new ParserTestArgs('function a($b, ...$c) {}', 'should parse a variadic parameter after a parameter', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 2);
+        assert.strictEqual(parameters.length, 2);
         assertParameter(parameters[0], false, false, false, false);
         assertParameter(parameters[1], false, false, true, false);
       }),
       new ParserTestArgs('function a(B ...$c) {}', 'should parse a variadic parameter with type', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], true, false, true, false);
         let type = <NamedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type instanceof NamedTypeSyntaxNode, true);
         assert.strictEqual(type.question, null);
-        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -258,12 +258,12 @@ describe('PhpParser', function() {
     let syntaxTests7_1 = [
       new ParserTestArgs('function a(?B $c) {}', 'should parse a parameter with nullable type', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
-        assert.equal(parameters.length, 1);
+        assert.strictEqual(parameters.length, 1);
         let param = assertParameter(parameters[0], true, false, false, false);
         let type = <NamedTypeSyntaxNode>param.type;
-        assert.equal(type instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(type instanceof NamedTypeSyntaxNode, true);
         assert.notStrictEqual(type.question, null);
-        assert.equal(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(type.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);

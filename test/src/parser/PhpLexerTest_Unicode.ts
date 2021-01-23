@@ -54,15 +54,15 @@ function assertTokensWithEncoding(
         if (args.skipTrivia && TokenKindInfo.isTrivia(token.kind)) {
           continue;
         }
-        assert.equal(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]], 'token kind');
-        assert.equal(token.diagnostics.length, 0, 'contains diagnostics');
+        assert.strictEqual(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]], 'token kind');
+        assert.strictEqual(token.diagnostics.length, 0, 'contains diagnostics');
         if (args.expectedText[tokenCount]) {
-          assert.equal(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
+          assert.strictEqual(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
         }
         tokenCount++;
       } while (token.kind !== TokenKind.EOF && tokenCount < args.expectedTokens.length);
 
-      assert.equal(tokenCount, args.expectedTokens.length, 'unexpected end of text');
+      assert.strictEqual(tokenCount, args.expectedTokens.length, 'unexpected end of text');
     });
   }
 }

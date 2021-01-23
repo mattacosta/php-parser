@@ -37,7 +37,7 @@ describe('SyntaxToken', function() {
     it('should include leading trivia', () => {
       let tree = PhpSyntaxTree.fromText('<?php $a = 1;');
       let variable = <SyntaxToken>tree.root.firstToken();
-      assert.equal(variable.fullSpan.equals(new TextSpan(0, 8)), true);
+      assert.strictEqual(variable.fullSpan.equals(new TextSpan(0, 8)), true);
     });
   });
 
@@ -45,7 +45,7 @@ describe('SyntaxToken', function() {
     it('should equal itself', () => {
       let tree = PhpSyntaxTree.fromText('<?php $a = 1;');
       let variable = <SyntaxToken>tree.root.firstToken();
-      assert.equal(variable.equals(variable), true);
+      assert.strictEqual(variable.equals(variable), true);
     });
   });
 
@@ -55,25 +55,25 @@ describe('SyntaxToken', function() {
 
     it('should get text', function() {
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
-      assert.equal(SyntaxToken.getText(node.openBrace, text), '{');
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(SyntaxToken.getText(node.openBrace, text), '{');
     });
     it('should get text at end of source', function() {
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
-      assert.equal(SyntaxToken.getText(node.closeBrace, text), '}');
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(SyntaxToken.getText(node.closeBrace, text), '}');
     });
     it('should get empty string if token is missing', function() {
       let text = SourceTextFactory.from('<?php {');
       let tree = PhpSyntaxTree.fromText('<?php {');
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
-      assert.equal(SyntaxToken.getText(node.closeBrace, text), '');
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(SyntaxToken.getText(node.closeBrace, text), '');
     });
     it('should throw exception if token is not in source', function() {
       let changedText = SourceTextFactory.from('<?php { }');
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       assert.throws(() => { SyntaxToken.getText(node.closeBrace, changedText); });
     });
   });
@@ -83,42 +83,42 @@ describe('SyntaxToken', function() {
       let text = '<?php {}';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.openBrace.nextToken(), text, TokenKind.CloseBrace, '}');
     });
     it('should get next token in sibling node', function() {
       let text = '<?php {} {}';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.closeBrace.nextToken(), text, TokenKind.OpenBrace, '{');
     });
     it('should get next token in parent node', function() {
       let text = '<?php { ; }';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <ExpressionStatementSyntaxNode>tree.root.findChildNode(new TextSpan(8, 1));
-      assert.equal(node instanceof ExpressionStatementSyntaxNode, true);
+      assert.strictEqual(node instanceof ExpressionStatementSyntaxNode, true);
       Test.assertSyntaxToken(node.semicolon.nextToken(), text, TokenKind.CloseBrace, '}');
     });
     it('should get next token in child node', function() {
       let text = '<?php { ; }';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.openBrace.nextToken(), text, TokenKind.Semicolon, ';');
     });
     it('should get next missing token', function() {
       let text = '<?php {';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.openBrace.nextToken(true), text, TokenKind.CloseBrace, '', true);
     });
     it('should return null if at end of file', function() {
       let text = '<?php {}';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       assert.strictEqual(node.closeBrace.nextToken(), null);
     });
   });
@@ -128,28 +128,28 @@ describe('SyntaxToken', function() {
       let text = '<?php {}';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.closeBrace.previousToken(), text, TokenKind.OpenBrace, '{');
     });
     it('should get previous token in sibling node', function() {
       let text = '<?php {} {}';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[1];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.openBrace.previousToken(), text, TokenKind.CloseBrace, '}');
     });
     it('should get previous token in parent node', function() {
       let text = '<?php { ; }';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <ExpressionStatementSyntaxNode>tree.root.findChildNode(new TextSpan(8, 1));
-      assert.equal(node instanceof ExpressionStatementSyntaxNode, true);
+      assert.strictEqual(node instanceof ExpressionStatementSyntaxNode, true);
       Test.assertSyntaxToken(node.semicolon.previousToken(), text, TokenKind.OpenBrace, '{');
     });
     it('should get previous token in child node', function() {
       let text = '<?php { ; }';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       Test.assertSyntaxToken(node.closeBrace.previousToken(), text, TokenKind.Semicolon, ';');
     });
     it('should get previous missing token', function() {
@@ -161,7 +161,7 @@ describe('SyntaxToken', function() {
       let text = '<?php {}';
       let tree = PhpSyntaxTree.fromText(text);
       let node = <StatementBlockSyntaxNode>tree.root.childNodes()[0];
-      assert.equal(node instanceof StatementBlockSyntaxNode, true);
+      assert.strictEqual(node instanceof StatementBlockSyntaxNode, true);
       assert.strictEqual(node.openBrace.previousToken(), null);
     });
   });

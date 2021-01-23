@@ -27,18 +27,18 @@ describe('TextSpan', function() {
     it('should equal the same change', () => {
       let a = new TextChange(new TextSpan(0, 3), 'abc');
       let b = new TextChange(new TextSpan(0, 3), 'abc');
-      assert.equal(a.equals(a), true);  // Reference equality.
-      assert.equal(a.equals(b), true);
+      assert.strictEqual(a.equals(a), true);  // Reference equality.
+      assert.strictEqual(a.equals(b), true);
     });
     it('should not equal a change with different spans', () => {
       let a = new TextChange(new TextSpan(0, 3), 'abc');
       let b = new TextChange(new TextSpan(3, 3), 'abc');
-      assert.equal(a.equals(b), false);
+      assert.strictEqual(a.equals(b), false);
     });
     it('should not equal a change with different text', () => {
       let a = new TextChange(new TextSpan(0, 3), 'abc');
       let b = new TextChange(new TextSpan(0, 3), 'xyz');
-      assert.equal(a.equals(b), false);
+      assert.strictEqual(a.equals(b), false);
     });
   });
 

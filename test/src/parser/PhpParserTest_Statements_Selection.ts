@@ -43,26 +43,26 @@ import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
 import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 
 function firstSwitchBlockLabel(switchNode: SwitchBlockSyntaxNode): SwitchCaseSyntaxNode {
-  assert.equal(switchNode instanceof SwitchBlockSyntaxNode, true, 'SwitchBlockSyntaxNode');
-  assert.equal(switchNode.expression instanceof LocalVariableSyntaxNode, true);
+  assert.strictEqual(switchNode instanceof SwitchBlockSyntaxNode, true, 'SwitchBlockSyntaxNode');
+  assert.strictEqual(switchNode.expression instanceof LocalVariableSyntaxNode, true);
   let clauses = switchNode.caseClauses;
-  assert.equal(clauses instanceof SyntaxList, true);
+  assert.strictEqual(clauses instanceof SyntaxList, true);
   let labels = clauses ? clauses.childNodes() : [];
-  assert.equal(labels.length, 1);
+  assert.strictEqual(labels.length, 1);
   let firstLabel = <SwitchCaseSyntaxNode>labels[0];
-  assert.equal(firstLabel instanceof SwitchCaseSyntaxNode, true);
+  assert.strictEqual(firstLabel instanceof SwitchCaseSyntaxNode, true);
   return firstLabel;
 }
 
 function firstSwitchLabel(switchNode: SwitchSyntaxNode): SwitchCaseSyntaxNode {
-  assert.equal(switchNode instanceof SwitchSyntaxNode, true, 'SwitchSyntaxNode');
-  assert.equal(switchNode.expression instanceof LocalVariableSyntaxNode, true);
+  assert.strictEqual(switchNode instanceof SwitchSyntaxNode, true, 'SwitchSyntaxNode');
+  assert.strictEqual(switchNode.expression instanceof LocalVariableSyntaxNode, true);
   let clauses = switchNode.caseClauses;
-  assert.equal(clauses instanceof SyntaxList, true);
+  assert.strictEqual(clauses instanceof SyntaxList, true);
   let labels = clauses ? clauses.childNodes() : [];
-  assert.equal(labels.length, 1);
+  assert.strictEqual(labels.length, 1);
   let firstLabel = <SwitchCaseSyntaxNode>labels[0];
-  assert.equal(firstLabel instanceof SwitchCaseSyntaxNode, true);
+  assert.strictEqual(firstLabel instanceof SwitchCaseSyntaxNode, true);
   return firstLabel;
 }
 
@@ -74,86 +74,86 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('if ($a) 1;', 'should parse an if statement', (statements) => {
           let ifNode = <IfSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(ifNode.elseIfClauses, null);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a) 1; elseif ($b) 2;', 'should parse an elseif clause', (statements) => {
           let ifNode = <IfSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
           let elseIfNodes = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfNodes.length, 1);
+          assert.strictEqual(elseIfNodes.length, 1);
           let elseIf = <ElseIfSyntaxNode>elseIfNodes[0];
-          assert.equal(elseIf instanceof ElseIfSyntaxNode, true);
-          assert.equal(elseIf.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(elseIf.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(elseIf instanceof ElseIfSyntaxNode, true);
+          assert.strictEqual(elseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(elseIf.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a) 1; elseif ($b) 2; elseif ($c) 3;', 'should parse multiple elseif clauses', (statements) => {
           let ifNode = <IfSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
           let elseIfNodes = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfNodes.length, 2);
+          assert.strictEqual(elseIfNodes.length, 2);
           let firstElseIf = <ElseIfSyntaxNode>elseIfNodes[0];
-          assert.equal(firstElseIf instanceof ElseIfSyntaxNode, true);
-          assert.equal(firstElseIf.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(firstElseIf.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(firstElseIf instanceof ElseIfSyntaxNode, true);
+          assert.strictEqual(firstElseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(firstElseIf.statement instanceof ExpressionStatementSyntaxNode, true);
           let secondElseIf = <ElseIfSyntaxNode>elseIfNodes[1];
-          assert.equal(secondElseIf instanceof ElseIfSyntaxNode, true);
-          assert.equal(secondElseIf.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(secondElseIf.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(secondElseIf instanceof ElseIfSyntaxNode, true);
+          assert.strictEqual(secondElseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(secondElseIf.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a) 1; else 2;', 'should parse an else clause', (statements) => {
           let ifNode = <IfSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(ifNode.elseIfClauses, null);
           let elseNode = <ElseSyntaxNode>ifNode.elseClause;
-          assert.equal(elseNode instanceof ElseSyntaxNode, true);
-          assert.equal(elseNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(elseNode instanceof ElseSyntaxNode, true);
+          assert.strictEqual(elseNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         new ParserTestArgs('if ($a) 1; elseif ($b) 2; else 3;', 'should parse an else clause after an elseif clause', (statements) => {
           let ifNode = <IfSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
           let elseIfNodes = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfNodes.length, 1);
+          assert.strictEqual(elseIfNodes.length, 1);
           let elseIf = <ElseIfSyntaxNode>elseIfNodes[0];
-          assert.equal(elseIf instanceof ElseIfSyntaxNode, true);
-          assert.equal(elseIf.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(elseIf.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(elseIf instanceof ElseIfSyntaxNode, true);
+          assert.strictEqual(elseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(elseIf.statement instanceof ExpressionStatementSyntaxNode, true);
           let elseNode = <ElseSyntaxNode>ifNode.elseClause;
-          assert.equal(elseNode instanceof ElseSyntaxNode, true);
-          assert.equal(elseNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(elseNode instanceof ElseSyntaxNode, true);
+          assert.strictEqual(elseNode.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
         // `elseif`  -> if {} elseif {} else {}
         // `else if` -> if {} else { if {} else {} }
         new ParserTestArgs('if ($a) 1; else if ($b) 2; else 3;', 'should parse a nested else clause with child if statement', (statements) => {
           let ifNode = <IfSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfSyntaxNode, true, 'IfSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(ifNode.elseIfClauses, null);
           let elseNode = <ElseSyntaxNode>ifNode.elseClause;
-          assert.equal(elseNode instanceof ElseSyntaxNode, true);
+          assert.strictEqual(elseNode instanceof ElseSyntaxNode, true);
 
           let childIf = <IfSyntaxNode>elseNode.statement;
-          assert.equal(childIf instanceof IfSyntaxNode, true);
-          assert.equal(childIf.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(childIf.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(childIf instanceof IfSyntaxNode, true);
+          assert.strictEqual(childIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(childIf.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(childIf.elseIfClauses, null);
           let childElse = <ElseSyntaxNode>childIf.elseClause;
-          assert.equal(childElse instanceof ElseSyntaxNode, true);
-          assert.equal(childElse.statement instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(childElse instanceof ElseSyntaxNode, true);
+          assert.strictEqual(childElse.statement instanceof ExpressionStatementSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -183,101 +183,101 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('if ($a): endif;', 'should parse an if statement', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           assert.strictEqual(ifNode.elseIfClauses, null);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a): 1; 2; endif;', 'should parse an if statement with child statements', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           let expressions = ifNode.statements ? ifNode.statements.childNodes() : [];
-          assert.equal(expressions.length, 2);
+          assert.strictEqual(expressions.length, 2);
           assert.strictEqual(ifNode.elseIfClauses, null);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a): else: endif;', 'should parse an else clause', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           assert.strictEqual(ifNode.elseIfClauses, null);
           let elseClause = <ElseBlockSyntaxNode>ifNode.elseClause;
-          assert.equal(elseClause instanceof ElseBlockSyntaxNode, true);
+          assert.strictEqual(elseClause instanceof ElseBlockSyntaxNode, true);
           assert.strictEqual(elseClause.statements, null);
         }),
         new ParserTestArgs('if ($a): else: 1; 2; endif;', 'should parse an else clause with child statements', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           assert.strictEqual(ifNode.elseIfClauses, null);
           let elseClause = <ElseBlockSyntaxNode>ifNode.elseClause;
-          assert.equal(elseClause instanceof ElseBlockSyntaxNode, true);
+          assert.strictEqual(elseClause instanceof ElseBlockSyntaxNode, true);
           let expressions = elseClause.statements ? elseClause.statements.childNodes() : [];
-          assert.equal(expressions.length, 2);
+          assert.strictEqual(expressions.length, 2);
         }),
         new ParserTestArgs('if ($a): elseif ($b): endif;', 'should parse an elseif clause', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           let elseIfClauses = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfClauses.length, 1);
+          assert.strictEqual(elseIfClauses.length, 1);
           let elseIf = <ElseIfBlockSyntaxNode>elseIfClauses[0];
-          assert.equal(elseIf instanceof ElseIfBlockSyntaxNode, true);
-          assert.equal(elseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(elseIf instanceof ElseIfBlockSyntaxNode, true);
+          assert.strictEqual(elseIf.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(elseIf.statements, null);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a): elseif ($b): 1; 2; endif;', 'should parse an elseif clause with child statements', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           let elseIfClauses = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfClauses.length, 1);
+          assert.strictEqual(elseIfClauses.length, 1);
           let elseIf = <ElseIfBlockSyntaxNode>elseIfClauses[0];
-          assert.equal(elseIf instanceof ElseIfBlockSyntaxNode, true);
-          assert.equal(elseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(elseIf instanceof ElseIfBlockSyntaxNode, true);
+          assert.strictEqual(elseIf.condition instanceof LocalVariableSyntaxNode, true);
           let expressions = elseIf.statements ? elseIf.statements.childNodes() : [];
-          assert.equal(expressions.length, 2);
-          assert.equal(expressions[0] instanceof ExpressionStatementSyntaxNode, true);
-          assert.equal(expressions[1] instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(expressions.length, 2);
+          assert.strictEqual(expressions[0] instanceof ExpressionStatementSyntaxNode, true);
+          assert.strictEqual(expressions[1] instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a): elseif ($b): elseif ($c): endif;', 'should parse multiple elseif clauses', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           let elseIfClauses = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfClauses.length, 2);
+          assert.strictEqual(elseIfClauses.length, 2);
           let firstElseIf = <ElseIfBlockSyntaxNode>elseIfClauses[0];
-          assert.equal(firstElseIf instanceof ElseIfBlockSyntaxNode, true);
-          assert.equal(firstElseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(firstElseIf instanceof ElseIfBlockSyntaxNode, true);
+          assert.strictEqual(firstElseIf.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(firstElseIf.statements, null);
           let secondElseIf = <ElseIfBlockSyntaxNode>elseIfClauses[0];
-          assert.equal(secondElseIf instanceof ElseIfBlockSyntaxNode, true);
-          assert.equal(secondElseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(secondElseIf instanceof ElseIfBlockSyntaxNode, true);
+          assert.strictEqual(secondElseIf.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(secondElseIf.statements, null);
           assert.strictEqual(ifNode.elseClause, null);
         }),
         new ParserTestArgs('if ($a): elseif ($b): else: endif;', 'should parse an else clause after an elseif clause', (statements) => {
           let ifNode = <IfBlockSyntaxNode>statements[0];
-          assert.equal(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
-          assert.equal(ifNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(ifNode instanceof IfBlockSyntaxNode, true, 'IfBlockSyntaxNode');
+          assert.strictEqual(ifNode.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(ifNode.statements, null);
           let elseIfClauses = ifNode.elseIfClauses ? ifNode.elseIfClauses.childNodes() : [];
-          assert.equal(elseIfClauses.length, 1);
+          assert.strictEqual(elseIfClauses.length, 1);
           let elseIf = <ElseIfBlockSyntaxNode>elseIfClauses[0];
-          assert.equal(elseIf instanceof ElseIfBlockSyntaxNode, true);
-          assert.equal(elseIf.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(elseIf instanceof ElseIfBlockSyntaxNode, true);
+          assert.strictEqual(elseIf.condition instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(elseIf.statements, null);
           let elseClause = <ElseBlockSyntaxNode>ifNode.elseClause;
-          assert.equal(elseClause instanceof ElseBlockSyntaxNode, true);
+          assert.strictEqual(elseClause instanceof ElseBlockSyntaxNode, true);
           assert.strictEqual(elseClause.statements, null);
         }),
       ];
@@ -323,41 +323,41 @@ describe('PhpParser', function() {
         new ParserTestArgs('switch ($a) { case 1: }', 'should parse a case statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a) { case 1; }', 'should parse a case statement with semicolon', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a) { case 1: ; }', 'should parse a case statement with child statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
-          assert.equal(caseLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
         new ParserTestArgs('switch ($a) { case 1; ; }', 'should parse a case statement with semicolon and child statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
-          assert.equal(caseLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
         new ParserTestArgs('switch ($a) { case 1: case 2: }', 'should parse multiple case statements', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
-          assert.equal(switchNode instanceof SwitchSyntaxNode, true, 'SwitchSyntaxNode');
-          assert.equal(switchNode.expression instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(switchNode instanceof SwitchSyntaxNode, true, 'SwitchSyntaxNode');
+          assert.strictEqual(switchNode.expression instanceof LocalVariableSyntaxNode, true);
           let clauses = switchNode.caseClauses;
-          assert.equal(clauses instanceof SyntaxList, true);
+          assert.strictEqual(clauses instanceof SyntaxList, true);
           let labels = clauses ? clauses.childNodes() : [];
-          assert.equal(labels.length, 2);
-          assert.equal(labels[0] instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(labels[1] instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(labels.length, 2);
+          assert.strictEqual(labels[0] instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(labels[1] instanceof SwitchCaseSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -374,30 +374,30 @@ describe('PhpParser', function() {
         new ParserTestArgs('switch ($a): case 1: endswitch;', 'should parse a case statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a): case 1; endswitch;', 'should parse a case statement with semicolon', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a): case 1: ; endswitch;', 'should parse a case statement with child statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
-          assert.equal(caseLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
         new ParserTestArgs('switch ($a): case 1; ; endswitch;', 'should parse a case statement with semicolon and child statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(caseLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.equal(caseLabel.expression instanceof LiteralSyntaxNode, true);
-          assert.equal(caseLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -414,30 +414,30 @@ describe('PhpParser', function() {
         new ParserTestArgs('switch ($a) { default: }', 'should parse a default statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let defaultLabel = firstSwitchLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
           assert.strictEqual(defaultLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a) { default; }', 'should parse a default statement with semicolon', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let defaultLabel = firstSwitchLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
           assert.strictEqual(defaultLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a) { default: ; }', 'should parse a default statement with child statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let defaultLabel = firstSwitchLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
-          assert.equal(defaultLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
         }),
         new ParserTestArgs('switch ($a) { default; ; }', 'should parse a default statement with semicolon and child statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let defaultLabel = firstSwitchLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
-          assert.equal(defaultLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -454,30 +454,30 @@ describe('PhpParser', function() {
         new ParserTestArgs('switch ($a): default: endswitch;', 'should parse a default statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
           assert.strictEqual(defaultLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a): default; endswitch;', 'should parse a default statement with semicolon', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
           assert.strictEqual(defaultLabel.statements, null);
         }),
         new ParserTestArgs('switch ($a): default: ; endswitch;', 'should parse a default statement with child statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
-          assert.equal(defaultLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
         }),
         new ParserTestArgs('switch ($a): default; ; endswitch;', 'should parse a default statement with semicolon and child statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.equal(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(defaultLabel.expression, null);
-          assert.equal(defaultLabel.statements instanceof SyntaxList, true);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);

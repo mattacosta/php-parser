@@ -28,18 +28,18 @@ describe('SourceTextBase', function() {
     it('should equal the same text', () => {
       let a = SourceTextFactory.from('abc');
       let b = SourceTextFactory.from('abc');
-      assert.equal(a.equals(a), true);  // Reference equality.
-      assert.equal(a.equals(b), true);
+      assert.strictEqual(a.equals(a), true);  // Reference equality.
+      assert.strictEqual(a.equals(b), true);
     });
     it('should not equal text with different length', () => {
       let a = SourceTextFactory.from('abc');
       let b = SourceTextFactory.from('abcabc');
-      assert.equal(a.equals(b), false);
+      assert.strictEqual(a.equals(b), false);
     });
     it('should not equal different text', () => {
       let a = SourceTextFactory.from('abc');
       let b = SourceTextFactory.from('xyz');
-      assert.equal(a.equals(b), false);
+      assert.strictEqual(a.equals(b), false);
     });
   });
 
@@ -48,15 +48,15 @@ describe('SourceTextBase', function() {
 
     it('insert from start', () => {
       let change = new TextChange(new TextSpan(0, 0), 'x');
-      assert.equal(text.withChanges([change]).substring(0), 'xabc');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'xabc');
     });
     it('insert from middle', () => {
       let change = new TextChange(new TextSpan(1, 0), 'x');
-      assert.equal(text.withChanges([change]).substring(0), 'axbc');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'axbc');
     });
     it('insert from end', () => {
       let change = new TextChange(new TextSpan(3, 0), 'x');
-      assert.equal(text.withChanges([change]).substring(0), 'abcx');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'abcx');
     });
     it('insert with no text', () => {
       let change = new TextChange(new TextSpan(2, 0), '');
@@ -65,15 +65,15 @@ describe('SourceTextBase', function() {
 
     it('delete from start', () => {
       let change = new TextChange(new TextSpan(0, 1), '');
-      assert.equal(text.withChanges([change]).substring(0), 'bc');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'bc');
     });
     it('delete from middle', () => {
       let change = new TextChange(new TextSpan(1, 1), '');
-      assert.equal(text.withChanges([change]).substring(0), 'ac');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'ac');
     });
     it('delete from end', () => {
       let change = new TextChange(new TextSpan(2, 1), '');
-      assert.equal(text.withChanges([change]).substring(0), 'ab');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'ab');
     });
     it('delete with no length', () => {
       let change = new TextChange(new TextSpan(0, 0), '');
@@ -82,15 +82,15 @@ describe('SourceTextBase', function() {
 
     it('replace from start', () => {
       let change = new TextChange(new TextSpan(0, 1), 'x');
-      assert.equal(text.withChanges([change]).substring(0), 'xbc');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'xbc');
     });
     it('replace from middle', () => {
       let change = new TextChange(new TextSpan(1, 1), 'x');
-      assert.equal(text.withChanges([change]).substring(0), 'axc');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'axc');
     });
     it('replace from end', () => {
       let change = new TextChange(new TextSpan(2, 1), 'x');
-      assert.equal(text.withChanges([change]).substring(0), 'abx');
+      assert.strictEqual(text.withChanges([change]).substring(0), 'abx');
     });
 
     it('should throw exception if changes are not sequential', () => {

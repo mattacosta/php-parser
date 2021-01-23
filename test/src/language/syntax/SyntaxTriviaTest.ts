@@ -36,7 +36,7 @@ describe('SyntaxTrivia', function() {
       let node = <ExpressionStatementSyntaxNode>tree.root.childNodes()[0];
       let leadingTrivia = <ISyntaxTriviaList>node.leadingTrivia;
       let comment = leadingTrivia.triviaAt(4);
-      assert.equal(comment.fullSpan.equals(new TextSpan(8, 13)), true);
+      assert.strictEqual(comment.fullSpan.equals(new TextSpan(8, 13)), true);
     });
   });
 
@@ -45,7 +45,7 @@ describe('SyntaxTrivia', function() {
       let node = <ExpressionStatementSyntaxNode>tree.root.childNodes()[0];
       let leadingTrivia = <ISyntaxTriviaList>node.leadingTrivia;
       let openTag = leadingTrivia.triviaAt(0);
-      assert.equal(openTag.equals(openTag), true);
+      assert.strictEqual(openTag.equals(openTag), true);
     });
     it('should equal equivalent instances', () => {
       let node = <ExpressionStatementSyntaxNode>tree.root.childNodes()[0];
@@ -54,7 +54,7 @@ describe('SyntaxTrivia', function() {
       let b = leadingTrivia.triviaAt(0);
       // This test only works if the trivia list creates new objects on demand.
       assert.notStrictEqual(a, b, 'same object');
-      assert.equal(a.equals(b), true);
+      assert.strictEqual(a.equals(b), true);
     });
   });
 

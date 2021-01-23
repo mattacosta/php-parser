@@ -54,51 +54,51 @@ import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstantDeclarationSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
-  assert.equal(members.length, 1);
+  assert.strictEqual(members.length, 1);
   let classConstant = <ClassConstantDeclarationSyntaxNode>members[0];
-  assert.equal(classConstant instanceof ClassConstantDeclarationSyntaxNode, true);
+  assert.strictEqual(classConstant instanceof ClassConstantDeclarationSyntaxNode, true);
   return classConstant;
 }
 
 function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
-  assert.equal(members.length, 1);
+  assert.strictEqual(members.length, 1);
   let method = <MethodDeclarationSyntaxNode>members[0];
-  assert.equal(method instanceof MethodDeclarationSyntaxNode, true);
+  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true);
   return method;
 }
 
 function assertPropertyDeclaration(statements: ISyntaxNode[]): PropertyDeclarationSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
-  assert.equal(members.length, 1);
+  assert.strictEqual(members.length, 1);
   let property = <PropertyDeclarationSyntaxNode>members[0];
-  assert.equal(property instanceof PropertyDeclarationSyntaxNode, true);
+  assert.strictEqual(property instanceof PropertyDeclarationSyntaxNode, true);
   return property;
 }
 
 function assertTraitUse(statements: ISyntaxNode[]): TraitUseSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
-  assert.equal(members.length, 1);
+  assert.strictEqual(members.length, 1);
   let traitUse = <TraitUseSyntaxNode>members[0];
-  assert.equal(traitUse instanceof TraitUseSyntaxNode, true);
+  assert.strictEqual(traitUse instanceof TraitUseSyntaxNode, true);
   return traitUse;
 }
 
 function assertTraitUseGroup(statements: ISyntaxNode[]): TraitUseGroupSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
-  assert.equal(members.length, 1);
+  assert.strictEqual(members.length, 1);
   let traitUseGroup = <TraitUseGroupSyntaxNode>members[0];
-  assert.equal(traitUseGroup instanceof TraitUseGroupSyntaxNode, true);
+  assert.strictEqual(traitUseGroup instanceof TraitUseGroupSyntaxNode, true);
   return traitUseGroup;
 }
 
@@ -108,7 +108,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('class A {}', 'should parse a class declaration', (statements, text) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         Test.assertSyntaxToken(classNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(classNode.baseType, null);
         assert.strictEqual(classNode.interfaces, null);
@@ -119,17 +119,17 @@ describe('PhpParser', function() {
       // @todo Should parse, but also cause an error during analysis?
       // new ParserTestArgs('class int {}', 'should parse a class with a reserved name', (statements) => {
       //   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-      //   assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+      //   assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
       //   assert.strictEqual(classNode.baseType, null);
       //   assert.strictEqual(classNode.interfaces, null);
       //   assert.strictEqual(classNode.members, null);
       // }),
       new ParserTestArgs('{ class A {} }', 'should parse a class declaration in statement block', (statements) => {
         let block = <StatementBlockSyntaxNode>statements[0];
-        assert.equal(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
         let innerStatements = block.childNodes();
-        assert.equal(innerStatements.length, 1);
-        assert.equal(innerStatements[0] instanceof ClassDeclarationSyntaxNode, true);
+        assert.strictEqual(innerStatements.length, 1);
+        assert.strictEqual(innerStatements[0] instanceof ClassDeclarationSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
@@ -153,9 +153,9 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('abstract class A {}', 'should parse an abstract class declaration', (statements, text) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         let modifiers = classNode.modifiers ? classNode.modifiers.childTokens() : [];
-        assert.equal(modifiers.length, 1);
+        assert.strictEqual(modifiers.length, 1);
         Test.assertSyntaxToken(classNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(classNode.baseType, null);
         assert.strictEqual(classNode.interfaces, null);
@@ -163,9 +163,9 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('final class A {}', 'should parse a final class declaration', (statements, text) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         let modifiers = classNode.modifiers ? classNode.modifiers.childTokens() : [];
-        assert.equal(modifiers.length, 1);
+        assert.strictEqual(modifiers.length, 1);
         Test.assertSyntaxToken(classNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(classNode.baseType, null);
         assert.strictEqual(classNode.interfaces, null);
@@ -200,22 +200,22 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('class A extends B {}', 'should parse a class declaration with a base type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
-        assert.equal(classNode.baseType instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode.baseType instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.interfaces, null);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A extends \\B {}', 'should parse a class declaration with fully qualified base type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
-        assert.equal(classNode.baseType instanceof FullyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode.baseType instanceof FullyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.interfaces, null);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A extends namespace\\B {}', 'should parse a class declaration with relative base type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
-        assert.equal(classNode.baseType instanceof RelativeNameSyntaxNode, true);
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode.baseType instanceof RelativeNameSyntaxNode, true);
         assert.strictEqual(classNode.interfaces, null);
         assert.strictEqual(classNode.members, null);
       }),
@@ -239,39 +239,39 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('class A implements B {}', 'should parse a class declaration with single interface type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
-        assert.equal(interfaces.length, 1);
-        assert.equal(interfaces[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(interfaces.length, 1);
+        assert.strictEqual(interfaces[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A implements B, C {}', 'should parse a class declaration with multiple interface types', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
-        assert.equal(interfaces.length, 2);
-        assert.equal(interfaces[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-        assert.equal(interfaces[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(interfaces.length, 2);
+        assert.strictEqual(interfaces[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(interfaces[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A implements \\B {}', 'should parse a class declaration with fully qualified interface type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
-        assert.equal(interfaces.length, 1);
-        assert.equal(interfaces[0] instanceof FullyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(interfaces.length, 1);
+        assert.strictEqual(interfaces[0] instanceof FullyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A implements namespace\\B {}', 'should parse a class declaration with relative interface type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.equal(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
-        assert.equal(interfaces.length, 1);
-        assert.equal(interfaces[0] instanceof RelativeNameSyntaxNode, true);
+        assert.strictEqual(interfaces.length, 1);
+        assert.strictEqual(interfaces[0] instanceof RelativeNameSyntaxNode, true);
         assert.strictEqual(classNode.members, null);
       }),
     ];
@@ -313,35 +313,35 @@ describe('PhpParser', function() {
           let declNode = assertClassConstantDeclaration(statements);
           assert.strictEqual(declNode.modifiers, null);
           let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(constNode instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(constNode.expression instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('class A { const B = 1, C = 2; }', 'should parse a class constant declaration with multiple elements', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           assert.strictEqual(declNode.modifiers, null);
           let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 2);
+          assert.strictEqual(elements.length, 2);
           let firstConst = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(firstConst instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(firstConst instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(firstConst.identifierOrKeyword, text, TokenKind.Identifier, 'B');
-          assert.equal(firstConst.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(firstConst.expression instanceof LiteralSyntaxNode, true);
           let secondConst = <ClassConstantElementSyntaxNode>elements[1];
-          assert.equal(secondConst instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(secondConst instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(secondConst.identifierOrKeyword, text, TokenKind.Identifier, 'C');
-          assert.equal(secondConst.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(secondConst.expression instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('class A { const foreach = 1; }', 'should parse a class constant declaration with a semi-reserved name', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           assert.strictEqual(declNode.modifiers, null);
           let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(constNode instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.ForEach, 'foreach');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(constNode.expression instanceof LiteralSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -350,38 +350,38 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { private const B = 1; }', 'should parse a private class constant declaration', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
           let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(constNode instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(constNode.expression instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('class A { protected const B = 1; }', 'should parse a protected class constant declaration', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
           let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(constNode instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(constNode.expression instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('class A { public const B = 1; }', 'should parse a public class constant declaration', (statements, text) => {
           let declNode = assertClassConstantDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           let elements = declNode.elements ? declNode.elements.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let constNode = <ClassConstantElementSyntaxNode>elements[0];
-          assert.equal(constNode instanceof ClassConstantElementSyntaxNode, true);
+          assert.strictEqual(constNode instanceof ClassConstantElementSyntaxNode, true);
           Test.assertSyntaxToken(constNode.identifierOrKeyword, text, TokenKind.Identifier, 'B');
-          assert.equal(constNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(constNode.expression instanceof LiteralSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
@@ -411,123 +411,123 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { public $b; }', 'should parse a property declaration', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { var $b; }', 'should parse a property declaration (var)', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { public $b = 1; }', 'should parse a property declaration with assignment', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.equal(propertyNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(propertyNode.expression instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('class A { public $b, $c; }', 'should parse a property declaration with multiple properties', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 2);
+          assert.strictEqual(elements.length, 2);
           let firstProperty = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(firstProperty instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(firstProperty instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(firstProperty.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(firstProperty.expression, null);
           let secondProperty = <PropertyElementSyntaxNode>elements[1];
-          assert.equal(secondProperty instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(secondProperty instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(secondProperty.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(secondProperty.expression, null);
         }),
         new ParserTestArgs('class A { protected $b; }', 'should parse a protected property declaration', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { private $b; }', 'should parse a private property declaration', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { static $b; }', 'should parse a static property declaration', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { public static $b; }', 'should parse a static property declaration with visibility modifier (before)', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { static public $b; }', 'should parse a static property declaration with visibility modifier (after)', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
           assert.strictEqual(declNode.type, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
           assert.strictEqual(propertyNode.expression, null);
         }),
@@ -538,84 +538,84 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { public B $c; }', 'should parse a typed property declaration', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
           assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { var B $c; }', 'should parse a typed property declaration (var)', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
           assert.notStrictEqual(declNode.type, null);
           assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { public \\B $c; }', 'should parse a typed property declaration with fully qualified name', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
           assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { public namespace\\B $c; }', 'should parse a typed property declaration with relative name', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
           assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { public array $c; }', 'should parse a property declaration with predefined type', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
           assert.strictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(propertyNode.expression, null);
         }),
         new ParserTestArgs('class A { public ?B $c; }', 'should parse a property declaration with nullable type', (statements, text) => {
           let declNode = assertPropertyDeclaration(statements);
           let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.notStrictEqual(declNode.type, null);
           assert.notStrictEqual(declNode.type ? declNode.type.question : false, null);
           let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.equal(propertyNode instanceof PropertyElementSyntaxNode, true);
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
           Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
           assert.strictEqual(propertyNode.expression, null);
         }),
@@ -678,7 +678,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { abstract function b(); }', 'should parse an abstract method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
@@ -687,7 +687,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { final function b() {} }', 'should parse a final method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Final, 'final');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
@@ -696,7 +696,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { private function b() {} }', 'should parse a private method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
@@ -705,7 +705,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { protected function b() {} }', 'should parse a protected method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
@@ -714,7 +714,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { public function b() {} }', 'should parse a public method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
@@ -723,7 +723,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { static function b() {} }', 'should parse a static method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 1);
+          assert.strictEqual(modifiers.length, 1);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
@@ -734,7 +734,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { abstract protected function b(); }', 'should parse an abstract and protected method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Protected, 'protected');
           assert.strictEqual(method.ampersand, null);
@@ -744,7 +744,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { abstract public function b(); }', 'should parse an abstract and public method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
           assert.strictEqual(method.ampersand, null);
@@ -754,7 +754,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { abstract static function b(); }', 'should parse an abstract and static method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
           assert.strictEqual(method.ampersand, null);
@@ -764,7 +764,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { static final function b() {} }', 'should parse a static and final method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Final, 'final');
           assert.strictEqual(method.ampersand, null);
@@ -774,7 +774,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { static private function b() {} }', 'should parse a static and private method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Private, 'private');
           assert.strictEqual(method.ampersand, null);
@@ -784,7 +784,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { static protected function b() {} }', 'should parse a static and protected method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Protected, 'protected');
           assert.strictEqual(method.ampersand, null);
@@ -794,7 +794,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { static public function b() {} }', 'should parse a static and public method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.equal(modifiers.length, 2);
+          assert.strictEqual(modifiers.length, 2);
           Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
           Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
           assert.strictEqual(method.ampersand, null);
@@ -808,35 +808,35 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.equal(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
         }),
         new ParserTestArgs('class A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.equal(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
         }),
         new ParserTestArgs('class A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.equal(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
         }),
         new ParserTestArgs('class A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.equal(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
         }),
         new ParserTestArgs('class A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.equal(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -848,9 +848,9 @@ describe('PhpParser', function() {
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           let returnType = <NamedTypeSyntaxNode>method.returnType;
-          assert.equal(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
           assert.notStrictEqual(returnType.question, null);
-          assert.equal(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
@@ -882,55 +882,55 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B; }', 'should parse a trait use clause', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use \\B; }', 'should parse a trait use clause with fully qualified name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof FullyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof FullyQualifiedNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use namespace\\B; }', 'should parse a trait use clause with relative name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof RelativeNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof RelativeNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use B { } }', 'should parse a trait use clause with adaptations', (statements) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           assert.strictEqual(traitUseGroup.adaptations, null);
         }),
         new ParserTestArgs('class A { use B, C; }', 'should parse a trait use clause list', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
-          assert.equal(names.length, 2);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-          assert.equal(names[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 2);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use B, \\C; }', 'should parse a trait use clause list with fully qualified name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
-          assert.equal(names.length, 2);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-          assert.equal(names[1] instanceof FullyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 2);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names[1] instanceof FullyQualifiedNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use B, namespace\\C; }', 'should parse a trait use clause list with relative name', (statements) => {
           let traitUse = assertTraitUse(statements);
           let names = traitUse.traitNames ? traitUse.traitNames.childNodes() : [];
-          assert.equal(names.length, 2);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-          assert.equal(names[1] instanceof RelativeNameSyntaxNode, true);
+          assert.strictEqual(names.length, 2);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names[1] instanceof RelativeNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use B, C { } }', 'should parse a trait use clause list with adaptations', (statements) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 2);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-          assert.equal(names[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 2);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
           assert.strictEqual(traitUseGroup.adaptations, null);
         }),
 
@@ -938,12 +938,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as d; } }', 'should parse a trait alias', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -951,12 +951,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as list; } }', 'should parse a trait alias with semi-reserved keyword', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.List, 'list');
@@ -964,12 +964,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as public; } }', 'should parse a trait alias with public modifier', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Public, 'public');
           assert.strictEqual(aliasNode.alias, null);
@@ -977,12 +977,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as protected; } }', 'should parse a trait alias with protected modifier', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Protected, 'protected');
           assert.strictEqual(aliasNode.alias, null);
@@ -990,12 +990,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as private; } }', 'should parse a trait alias with private modifier', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Private, 'private');
           assert.strictEqual(aliasNode.alias, null);
@@ -1003,12 +1003,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as public d; } }', 'should parse a trait alias with public modifier and name', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Public, 'public');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1016,12 +1016,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as protected d; } }', 'should parse a trait alias with protected modifier and name', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Protected, 'protected');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1029,12 +1029,12 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { c as private d; } }', 'should parse a trait alias with private modifier and name', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <NamedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof NamedTraitAliasSyntaxNode, true);
           Test.assertSyntaxToken(aliasNode.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Private, 'private');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1044,15 +1044,15 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::c as d; } }', 'should parse a trait alias (method reference)', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
           assert.notStrictEqual(aliasNode.reference, null);
           let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1060,15 +1060,15 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::list as c; } }', 'should parse a trait alias (method reference with semi-reserved keyword)', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
           assert.notStrictEqual(aliasNode.reference, null);
           let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.List, 'list');
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'c');
@@ -1076,15 +1076,15 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::c as list; } }', 'should parse a trait alias with semi-reserved keyword (method reference)', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
           assert.notStrictEqual(aliasNode.reference, null);
           let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           assert.strictEqual(aliasNode.modifier, null);
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.List, 'list');
@@ -1092,15 +1092,15 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::c as public d; } }', 'should parse a trait alias with public modifier (method reference)', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
           assert.notStrictEqual(aliasNode.reference, null);
           let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Public, 'public');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1108,15 +1108,15 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::c as protected d; } }', 'should parse a trait alias with protected modifier (method reference)', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
           assert.notStrictEqual(aliasNode.reference, null);
           let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Protected, 'protected');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1124,15 +1124,15 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::c as private d; } }', 'should parse a trait alias with private modifier (method reference)', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let aliasNode = <ReferencedTraitAliasSyntaxNode>adaptations[0];
-          assert.equal(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
+          assert.strictEqual(aliasNode instanceof ReferencedTraitAliasSyntaxNode, true);
           assert.notStrictEqual(aliasNode.reference, null);
           let reference = <MethodReferenceSyntaxNode>aliasNode.reference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           Test.assertSyntaxToken(aliasNode.modifier, text, TokenKind.Private, 'private');
           Test.assertSyntaxToken(aliasNode.alias, text, TokenKind.Identifier, 'd');
@@ -1142,35 +1142,35 @@ describe('PhpParser', function() {
         new ParserTestArgs('class A { use B { B::c insteadof D; } }', 'should parse a trait precedence adaptation', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let precedence = <TraitPrecedenceSyntaxNode>adaptations[0];
-          assert.equal(precedence instanceof TraitPrecedenceSyntaxNode, true);
+          assert.strictEqual(precedence instanceof TraitPrecedenceSyntaxNode, true);
           let reference = <MethodReferenceSyntaxNode>precedence.methodReference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           let traitNames = precedence.traitNames ? precedence.traitNames.childNodes() : [];
-          assert.equal(traitNames.length, 1);
-          assert.equal(traitNames[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(traitNames.length, 1);
+          assert.strictEqual(traitNames[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
         new ParserTestArgs('class A { use B { B::c insteadof D, E; } }', 'should parse a trait precedence adapataion list', (statements, text) => {
           let traitUseGroup = assertTraitUseGroup(statements);
           let names = traitUseGroup.traitNames ? traitUseGroup.traitNames.childNodes() : [];
-          assert.equal(names.length, 1);
-          assert.equal(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(names.length, 1);
+          assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
           let adaptations = traitUseGroup.adaptations ? traitUseGroup.adaptations.childNodes() : [];
-          assert.equal(adaptations.length, 1);
+          assert.strictEqual(adaptations.length, 1);
           let precedence = <TraitPrecedenceSyntaxNode>adaptations[0];
-          assert.equal(precedence instanceof TraitPrecedenceSyntaxNode, true);
+          assert.strictEqual(precedence instanceof TraitPrecedenceSyntaxNode, true);
           let reference = <MethodReferenceSyntaxNode>precedence.methodReference;
-          assert.equal(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(reference.className instanceof PartiallyQualifiedNameSyntaxNode, true);
           Test.assertSyntaxToken(reference.methodName, text, TokenKind.Identifier, 'c');
           let traitNames = precedence.traitNames ? precedence.traitNames.childNodes() : [];
-          assert.equal(traitNames.length, 2);
-          assert.equal(traitNames[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
-          assert.equal(traitNames[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(traitNames.length, 2);
+          assert.strictEqual(traitNames[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+          assert.strictEqual(traitNames[1] instanceof PartiallyQualifiedNameSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);

@@ -48,7 +48,7 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, 
       while (TokenKindInfo.isTrivia(token.kind)) {
         token = lexer.lex(lexer.currentState);
       }
-      assert.equal(TokenKind[token.kind], TokenKind[templateKind], 'template kind');
+      assert.strictEqual(TokenKind[token.kind], TokenKind[templateKind], 'template kind');
 
       // Create a new lexer to rescan the template. This must use a substring
       // of the original source text to test the bounds of the template's span.
@@ -72,10 +72,10 @@ function assertRescannedTokens(tests: LexerTestArgs[], templateKind: TokenKind, 
 
       for (let n = 0; n < test.expectedTokens.length; n++) {
         let rescanToken = rescanLexer.lex(rescanLexer.currentState);
-        assert.equal(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
+        assert.strictEqual(TokenKind[rescanToken.kind], TokenKind[test.expectedTokens[n]], 'token kind');
         if (test.expectedText.length > 0) {
           let text = rescanText.substring(rescanToken.offset, rescanToken.length);
-          assert.equal(text, test.expectedText[n], 'token text');
+          assert.strictEqual(text, test.expectedText[n], 'token text');
         }
       }
     });

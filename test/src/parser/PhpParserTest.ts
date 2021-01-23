@@ -64,7 +64,7 @@ function assertModifiers(args: ModifierTestArgs[]): void {
   const parser = new TestPhpParser(lexer);
   for (let i = 0; i < args.length; i++) {
     it(args[i].description, () => {
-      assert.equal(parser.isAbstractAndPrivate(args[i].currentFlags, args[i].newFlag), args[i].expected);
+      assert.strictEqual(parser.isAbstractAndPrivate(args[i].currentFlags, args[i].newFlag), args[i].expected);
     });
   }
 }
@@ -82,7 +82,7 @@ function assertWithOptions(argList: ParserTestArgs[], options: PhpParserOptions)
 
         const root = parser.parse();
         const statements = root.statements;
-        assert.equal(root.containsDiagnostics, false, 'contains diagnostics');
+        assert.strictEqual(root.containsDiagnostics, false, 'contains diagnostics');
         assert.notStrictEqual(statements, null, 'statements not found');
         if (!statements) {
           return;
@@ -126,7 +126,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('function empty() {}', 'should parse function with reserved name', (statements, text) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
-        assert.equal(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
         Test.assertSyntaxToken(funcDecl.identifier, text, TokenKind.Empty, 'empty');
         assert.strictEqual(funcDecl.ampersand, null);
         assert.strictEqual(funcDecl.parameters, null);

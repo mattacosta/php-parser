@@ -45,20 +45,20 @@ describe('PhpParser', function() {
       let tests = [
         new ParserTestArgs('break;', 'should parse a break statement', (statements) => {
           let breakNode = <BreakSyntaxNode>statements[0];
-          assert.equal(breakNode instanceof BreakSyntaxNode, true, 'BreakSyntaxNode');
+          assert.strictEqual(breakNode instanceof BreakSyntaxNode, true, 'BreakSyntaxNode');
           assert.strictEqual(breakNode.depth, null);
         }),
         new ParserTestArgs('break 1;', 'should parse a break statement with a depth', (statements) => {
           let breakNode = <BreakSyntaxNode>statements[0];
-          assert.equal(breakNode instanceof BreakSyntaxNode, true, 'BreakSyntaxNode');
-          assert.equal(breakNode.depth instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(breakNode instanceof BreakSyntaxNode, true, 'BreakSyntaxNode');
+          assert.strictEqual(breakNode.depth instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('break (1);', 'should parse a break statement with a depth (expression group with integer)', (statements) => {
           let breakNode = <BreakSyntaxNode>statements[0];
-          assert.equal(breakNode instanceof BreakSyntaxNode, true, 'BreakSyntaxNode');
+          assert.strictEqual(breakNode instanceof BreakSyntaxNode, true, 'BreakSyntaxNode');
           let exprGroup = <ExpressionGroupSyntaxNode>breakNode.depth;
-          assert.equal(exprGroup instanceof ExpressionGroupSyntaxNode, true);
-          assert.equal(exprGroup.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(exprGroup instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(exprGroup.expression instanceof LiteralSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -79,20 +79,20 @@ describe('PhpParser', function() {
       let tests = [
         new ParserTestArgs('continue;', 'should parse a continue statement', (statements) => {
           let continueNode = <ContinueSyntaxNode>statements[0];
-          assert.equal(continueNode instanceof ContinueSyntaxNode, true, 'ContinueSyntaxNode');
+          assert.strictEqual(continueNode instanceof ContinueSyntaxNode, true, 'ContinueSyntaxNode');
           assert.strictEqual(continueNode.depth, null);
         }),
         new ParserTestArgs('continue 1;', 'should parse a continue statement with a depth', (statements) => {
           let continueNode = <ContinueSyntaxNode>statements[0];
-          assert.equal(continueNode instanceof ContinueSyntaxNode, true, 'ContinueSyntaxNode');
-          assert.equal(continueNode.depth instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(continueNode instanceof ContinueSyntaxNode, true, 'ContinueSyntaxNode');
+          assert.strictEqual(continueNode.depth instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('continue (1);', 'should parse a continue statement with a depth (expression group with integer)', (statements) => {
           let continueNode = <ContinueSyntaxNode>statements[0];
-          assert.equal(continueNode instanceof ContinueSyntaxNode, true, 'ContinueSyntaxNode');
+          assert.strictEqual(continueNode instanceof ContinueSyntaxNode, true, 'ContinueSyntaxNode');
           let exprGroup = <ExpressionGroupSyntaxNode>continueNode.depth;
-          assert.equal(exprGroup instanceof ExpressionGroupSyntaxNode, true);
-          assert.equal(exprGroup.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(exprGroup instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(exprGroup.expression instanceof LiteralSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -113,7 +113,7 @@ describe('PhpParser', function() {
       let tests = [
         new ParserTestArgs('goto label;', 'should parse a goto statement', (statements) => {
           let gotoNode = <GoToSyntaxNode>statements[0];
-          assert.equal(gotoNode instanceof GoToSyntaxNode, true, 'GoToSyntaxNode');
+          assert.strictEqual(gotoNode instanceof GoToSyntaxNode, true, 'GoToSyntaxNode');
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -129,13 +129,13 @@ describe('PhpParser', function() {
       let tests = [
         new ParserTestArgs('return;', 'should parse a return statement', (statements) => {
           let returnNode = <ReturnSyntaxNode>statements[0];
-          assert.equal(returnNode instanceof ReturnSyntaxNode, true, 'ReturnSyntaxNode');
+          assert.strictEqual(returnNode instanceof ReturnSyntaxNode, true, 'ReturnSyntaxNode');
           assert.strictEqual(returnNode.expression, null);
         }),
         new ParserTestArgs('return 1;', 'should parse a return statement with an expression', (statements) => {
           let returnNode = <ReturnSyntaxNode>statements[0];
-          assert.equal(returnNode instanceof ReturnSyntaxNode, true, 'ReturnSyntaxNode');
-          assert.equal(returnNode.expression instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(returnNode instanceof ReturnSyntaxNode, true, 'ReturnSyntaxNode');
+          assert.strictEqual(returnNode.expression instanceof LiteralSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -151,8 +151,8 @@ describe('PhpParser', function() {
       let tests = [
         new ParserTestArgs('throw $e;', 'should parse a throw statement', (statements) => {
           let throwNode = <ThrowSyntaxNode>statements[0];
-          assert.equal(throwNode instanceof ThrowSyntaxNode, true, 'ThrowSyntaxNode');
-          assert.equal(throwNode.expression instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(throwNode instanceof ThrowSyntaxNode, true, 'ThrowSyntaxNode');
+          assert.strictEqual(throwNode.expression instanceof LocalVariableSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);

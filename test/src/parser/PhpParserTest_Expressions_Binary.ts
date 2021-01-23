@@ -48,76 +48,76 @@ import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertArrayDeconstruction(statements: ISyntaxNode[]): ArraySyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let assignmentNode = <DestructuringAssignmentSyntaxNode>exprNode.expression;
-  assert.equal(assignmentNode instanceof DestructuringAssignmentSyntaxNode, true, 'DestructuringAssignmentSyntaxNode');
+  assert.strictEqual(assignmentNode instanceof DestructuringAssignmentSyntaxNode, true, 'DestructuringAssignmentSyntaxNode');
   let array = <ArraySyntaxNode>assignmentNode.unpackedList;
-  assert.equal(array instanceof ArraySyntaxNode, true);
+  assert.strictEqual(array instanceof ArraySyntaxNode, true);
   return array;
 }
 
 function assertAssignmentAssociativity(statements: ISyntaxNode[]): void {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let parentExpr = <AssignmentSyntaxNode>exprNode.expression;
-  assert.equal(parentExpr instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-  assert.equal(parentExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  assert.strictEqual(parentExpr instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
+  assert.strictEqual(parentExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
   let childExpr = <AssignmentSyntaxNode>parentExpr.rightOperand;
-  assert.equal(childExpr instanceof AssignmentSyntaxNode, true);
-  assert.equal(childExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-  assert.equal(childExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+  assert.strictEqual(childExpr instanceof AssignmentSyntaxNode, true);
+  assert.strictEqual(childExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  assert.strictEqual(childExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
 }
 
 function assertAssignmentNode(statements: ISyntaxNode[]): AssignmentSyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let assignmentNode = <AssignmentSyntaxNode>exprNode.expression;
-  assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-  assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-  assert.equal(assignmentNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+  assert.strictEqual(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
+  assert.strictEqual(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  assert.strictEqual(assignmentNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
   return assignmentNode;
 }
 
 function assertBinaryAssociativity(statements: ISyntaxNode[], isRightAssociative = false): void {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementNode');
   let parentExpr = <BinarySyntaxNode>exprNode.expression;
-  assert.equal(parentExpr instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
+  assert.strictEqual(parentExpr instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
   if (isRightAssociative) {
     // Expected: `1 <op> ($a <op> 2)`
-    assert.equal(parentExpr.leftOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 1
+    assert.strictEqual(parentExpr.leftOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 1
     let childExpr = <BinarySyntaxNode>parentExpr.rightOperand;
-    assert.equal(childExpr instanceof BinarySyntaxNode, true);
-    assert.equal(childExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');  // $a
-    assert.equal(childExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 2
+    assert.strictEqual(childExpr instanceof BinarySyntaxNode, true);
+    assert.strictEqual(childExpr.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');  // $a
+    assert.strictEqual(childExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 2
   }
   else {
     // Expected: `(1 <op> $a) <op> 2`
-    assert.equal(parentExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 2
+    assert.strictEqual(parentExpr.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 2
     let childExpr = <BinarySyntaxNode>parentExpr.leftOperand;
-    assert.equal(childExpr instanceof BinarySyntaxNode, true);
-    assert.equal(childExpr.leftOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 1
-    assert.equal(childExpr.rightOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');  // $a
+    assert.strictEqual(childExpr instanceof BinarySyntaxNode, true);
+    assert.strictEqual(childExpr.leftOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');  // 1
+    assert.strictEqual(childExpr.rightOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');  // $a
   }
 }
 
 function assertBinaryNode(statements: ISyntaxNode[]): BinarySyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let binaryNode = <BinarySyntaxNode>exprNode.expression;
-  assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
-  assert.equal(binaryNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-  assert.equal(binaryNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+  assert.strictEqual(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
+  assert.strictEqual(binaryNode.leftOperand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  assert.strictEqual(binaryNode.rightOperand instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
   return binaryNode;
 }
 
 function assertListDeconstruction(statements: ISyntaxNode[]): ListDestructureSyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-  assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
   let assignmentNode = <DestructuringAssignmentSyntaxNode>exprNode.expression;
-  assert.equal(assignmentNode instanceof DestructuringAssignmentSyntaxNode, true, 'DestructuringAssignmentSyntaxNode');
+  assert.strictEqual(assignmentNode instanceof DestructuringAssignmentSyntaxNode, true, 'DestructuringAssignmentSyntaxNode');
   let list = <ListDestructureSyntaxNode>assignmentNode.unpackedList;
-  assert.equal(list instanceof ListDestructureSyntaxNode, true);
+  assert.strictEqual(list instanceof ListDestructureSyntaxNode, true);
   return list;
 }
 
@@ -180,15 +180,15 @@ describe('PhpParser', function() {
         // Right: $a ? $b : ($c ? 1 : 2)
         new ParserTestArgs('$a ? $b : $c ? 1 : 2;', 'ternary', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementNode');
           let parentExpr = <ConditionalSyntaxNode>exprNode.expression;
-          assert.equal(parentExpr instanceof ConditionalSyntaxNode, true, 'ConditionalSyntaxNode');
-          assert.equal(parentExpr.trueExpr instanceof LiteralSyntaxNode, true, 'parent.trueExpr');
-          assert.equal(parentExpr.falseExpr instanceof LiteralSyntaxNode, true, 'parent.falseExpr');
+          assert.strictEqual(parentExpr instanceof ConditionalSyntaxNode, true, 'ConditionalSyntaxNode');
+          assert.strictEqual(parentExpr.trueExpr instanceof LiteralSyntaxNode, true, 'parent.trueExpr');
+          assert.strictEqual(parentExpr.falseExpr instanceof LiteralSyntaxNode, true, 'parent.falseExpr');
           let childExpr = <ConditionalSyntaxNode>parentExpr.condition;
-          assert.equal(childExpr.condition instanceof LocalVariableSyntaxNode, true);
-          assert.equal(childExpr.trueExpr instanceof LocalVariableSyntaxNode, true, 'child.trueExpr');
-          assert.equal(childExpr.falseExpr instanceof LocalVariableSyntaxNode, true, 'child.falseExpr');
+          assert.strictEqual(childExpr.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(childExpr.trueExpr instanceof LocalVariableSyntaxNode, true, 'child.trueExpr');
+          assert.strictEqual(childExpr.falseExpr instanceof LocalVariableSyntaxNode, true, 'child.falseExpr');
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -283,12 +283,12 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('$a instanceof A;', 'should parse an instanceof expression', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let binaryNode = <InstanceOfSyntaxNode>exprNode.expression;
-          assert.equal(binaryNode instanceof InstanceOfSyntaxNode, true, 'BinarySyntaxNode');
-          assert.equal(binaryNode.operand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+          assert.strictEqual(binaryNode instanceof InstanceOfSyntaxNode, true, 'BinarySyntaxNode');
+          assert.strictEqual(binaryNode.operand instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
           Test.assertSyntaxToken(binaryNode.instanceOfKeyword, text, TokenKind.InstanceOf, 'instanceof');
-          assert.equal(binaryNode.classNameOrReference instanceof PartiallyQualifiedNameSyntaxNode, true, 'PartiallyQualifiedNameSyntaxNode');
+          assert.strictEqual(binaryNode.classNameOrReference instanceof PartiallyQualifiedNameSyntaxNode, true, 'PartiallyQualifiedNameSyntaxNode');
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -449,21 +449,21 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('$a ? 1 : 2;', 'should parse a conditional expression', (statement) => {
           let exprNode = <ExpressionStatementSyntaxNode>statement[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let conditional = <ConditionalSyntaxNode>exprNode.expression;
-          assert.equal(conditional instanceof ConditionalSyntaxNode, true);
-          assert.equal(conditional.condition instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-          assert.equal(conditional.trueExpr instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
-          assert.equal(conditional.falseExpr instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(conditional instanceof ConditionalSyntaxNode, true);
+          assert.strictEqual(conditional.condition instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+          assert.strictEqual(conditional.trueExpr instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+          assert.strictEqual(conditional.falseExpr instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('$a ?: 1;', 'should parse a conditional expression without true expression', (statement) => {
           let exprNode = <ExpressionStatementSyntaxNode>statement[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let conditional = <ConditionalSyntaxNode>exprNode.expression;
-          assert.equal(conditional instanceof ConditionalSyntaxNode, true);
-          assert.equal(conditional.condition instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+          assert.strictEqual(conditional instanceof ConditionalSyntaxNode, true);
+          assert.strictEqual(conditional.condition instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
           assert.strictEqual(conditional.trueExpr, null);
-          assert.equal(conditional.falseExpr instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+          assert.strictEqual(conditional.falseExpr instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -491,52 +491,52 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('$a = 1;', 'should parse an assignment expression', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let assignmentNode = <AssignmentSyntaxNode>exprNode.expression;
-          assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true);
-          assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(assignmentNode instanceof AssignmentSyntaxNode, true);
+          assert.strictEqual(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(assignmentNode.ampersand, null);
-          assert.equal(assignmentNode.rightOperand instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(assignmentNode.rightOperand instanceof LiteralSyntaxNode, true);
         }),
         new ParserTestArgs('$a =& $b;', 'should parse a byref assignment expression', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let assignmentNode = <AssignmentSyntaxNode>exprNode.expression;
-          assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true);
-          assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(assignmentNode instanceof AssignmentSyntaxNode, true);
+          assert.strictEqual(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
           assert.notStrictEqual(assignmentNode.ampersand, null);
-          assert.equal(assignmentNode.rightOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(assignmentNode.rightOperand instanceof LocalVariableSyntaxNode, true);
         }),
         // Expected: !($a = 1)
         new ParserTestArgs('!$a = 1;', 'should parse lhs of assignment as explicit expression (unary)', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let parentNode = <UnarySyntaxNode>exprNode.expression;
-          assert.equal(parentNode instanceof UnarySyntaxNode, true, 'UnarySyntaxNode');
+          assert.strictEqual(parentNode instanceof UnarySyntaxNode, true, 'UnarySyntaxNode');
           let childNode = <AssignmentSyntaxNode>parentNode.operand;
-          assert.equal(childNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-          assert.equal(childNode.leftOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(childNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
+          assert.strictEqual(childNode.leftOperand instanceof LocalVariableSyntaxNode, true);
         }),
         // Expected: $a == ($b = 1)
         new ParserTestArgs('$a == $b = 1;', 'should parse lhs of assignment as explicit expression (binary)', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let binaryNode = <BinarySyntaxNode>exprNode.expression;
-          assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
+          assert.strictEqual(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
           let assignmentNode = <AssignmentSyntaxNode>binaryNode.rightOperand;
-          assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-          assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
+          assert.strictEqual(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('$a =& $b + $c;', 'should parse rhs of byref assignment as explicit expression', (statements) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.equal(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let binaryNode = <BinarySyntaxNode>exprNode.expression;
-          assert.equal(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
-          assert.equal(binaryNode.rightOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(binaryNode instanceof BinarySyntaxNode, true, 'BinarySyntaxNode');
+          assert.strictEqual(binaryNode.rightOperand instanceof LocalVariableSyntaxNode, true);
           let assignmentNode = <AssignmentSyntaxNode>binaryNode.leftOperand;
-          assert.equal(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
-          assert.equal(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
-          assert.equal(assignmentNode.rightOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(assignmentNode instanceof AssignmentSyntaxNode, true, 'AssignmentSyntaxNode');
+          assert.strictEqual(assignmentNode.leftOperand instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(assignmentNode.rightOperand instanceof LocalVariableSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -552,61 +552,61 @@ describe('PhpParser', function() {
         new ParserTestArgs('list($a) = $b;', 'should parse a destructuring assignment', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
           assert.strictEqual(element.ampersand, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list($a, $b) = $c;', 'should parse a destructuring assignment with multiple elements', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 2);
+          assert.strictEqual(elements.length, 2);
           let firstElement = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(firstElement instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(firstElement instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(firstElement.key, null);
-          assert.equal(firstElement.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(firstElement.value instanceof LocalVariableSyntaxNode, true);
           let secondElement = <ListDestructureElementSyntaxNode>elements[1];
-          assert.equal(secondElement instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(secondElement instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(secondElement.key, null);
-          assert.equal(secondElement.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(secondElement.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list($a,) = $c;', 'should parse a destructuring assignment with trailing comma', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list(,,$a) = $b;', 'should parse a destructuring assignment with empty leading elements', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list($a,,) = $b;', 'should parse a destructuring assignment with empty trailing elements', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list(list($a)) = $b;', 'should parse a destructuring assignment with nested deconstruction', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
-          assert.equal(element.value instanceof ListDestructureSyntaxNode, true);
+          assert.strictEqual(element.value instanceof ListDestructureSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -615,21 +615,21 @@ describe('PhpParser', function() {
         new ParserTestArgs('list($a => $b) = $c;', 'should parse a destructuring assignment with a key-value pair', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
-          assert.equal(element.key instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element.key instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(element.ampersand, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list(1 => $a) = $b;', 'should parse a destructuring assignment with a key-value pair (implicit key)', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
-          assert.equal(element.key instanceof LiteralSyntaxNode, true);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element.key instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
@@ -638,22 +638,22 @@ describe('PhpParser', function() {
         new ParserTestArgs('list(&$a) = $b;', 'should parse a destructuring assignment (byref value)', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
           assert.strictEqual(element.key, null);
           assert.notStrictEqual(element.ampersand, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('list($a => &$b) = $c;', 'should parse a destructuring assignment with a key-value pair (byref value)', (statements) => {
           let list = assertListDeconstruction(statements);
           let elements = list.variables ? list.variables.childNodes() : [];
-          assert.equal(elements.length, 1);
+          assert.strictEqual(elements.length, 1);
           let element = <ListDestructureElementSyntaxNode>elements[0];
-          assert.equal(element instanceof ListDestructureElementSyntaxNode, true);
-          assert.equal(element.key instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element instanceof ListDestructureElementSyntaxNode, true);
+          assert.strictEqual(element.key instanceof LocalVariableSyntaxNode, true);
           assert.notStrictEqual(element.ampersand, null);
-          assert.equal(element.value instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests7_3, PhpVersion.PHP7_3);
@@ -694,69 +694,69 @@ describe('PhpParser', function() {
         new ParserTestArgs('[$a] = $b;', 'should parse a destructuring assignment', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[&$a] = $b;', 'should parse a destructuring assignment with byref value', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[$a, $b] = $c;', 'should parse a destructuring assignment with multiple elements', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 2);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
-          assert.equal(elements[1] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 2);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements[1] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[,$a] = $c;', 'should parse a destructuring assignment with leading comma', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[$a,] = $c;', 'should parse a destructuring assignment with trailing comma', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[,,$a] = $b;', 'should parse a destructuring assignment with empty leading elements', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[$a,,] = $b;', 'should parse a destructuring assignment with empty trailing elements', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[[$a]] = $b;', 'should parse a destructuring assignment with nested deconstruction', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[$a => $b] = $c;', 'should parse a destructuring assignment with a key-value pair', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[$a => &$b] = $c;', 'should parse a destructuring assignment with a key-value pair (byref value)', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
         new ParserTestArgs('[1 => $a] = $b;', 'should parse a destructuring assignment with a key-value pair (implicit key)', (statements) => {
           let array = assertArrayDeconstruction(statements);
           let elements = array.initializerList ? array.initializerList.childNodes() : [];
-          assert.equal(elements.length, 1);
-          assert.equal(elements[0] instanceof ArrayElementSyntaxNode, true);
+          assert.strictEqual(elements.length, 1);
+          assert.strictEqual(elements[0] instanceof ArrayElementSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_1);

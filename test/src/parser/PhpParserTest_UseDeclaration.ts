@@ -37,7 +37,7 @@ import { PhpVersion } from '../../../src/parser/PhpVersion';
 import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQualified: boolean, type: string | null, alias: string | null): void {
-  assert.equal(element instanceof UseElementSyntaxNode, true, 'UseElementSyntaxNode');
+  assert.strictEqual(element instanceof UseElementSyntaxNode, true, 'UseElementSyntaxNode');
   if (type) {
     let kind = type === 'function' ? TokenKind.Function : TokenKind.Const;
     Test.assertSyntaxToken(element.typeKeyword, text, kind, type);
@@ -46,10 +46,10 @@ function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQu
     assert.strictEqual(element.typeKeyword, null);
   }
   if (isFullyQualified) {
-    assert.equal(element.target instanceof FullyQualifiedNameSyntaxNode, true, 'FullyQualifiedNameSyntaxNode');
+    assert.strictEqual(element.target instanceof FullyQualifiedNameSyntaxNode, true, 'FullyQualifiedNameSyntaxNode');
   }
   else {
-    assert.equal(element.target instanceof PartiallyQualifiedNameSyntaxNode, true, 'PartiallyQualifiedNameSyntaxNode');
+    assert.strictEqual(element.target instanceof PartiallyQualifiedNameSyntaxNode, true, 'PartiallyQualifiedNameSyntaxNode');
   }
   if (alias) {
     assert.notStrictEqual(element.asKeyword, null);
@@ -62,7 +62,7 @@ function assertUseElement(element: UseElementSyntaxNode, text: string, isFullyQu
 }
 
 function assertUseGroupDeclaration(decl: UseGroupDeclarationSyntaxNode, nameTokenCount: number, hasUseType = true): UseElementSyntaxNode[] {
-  assert.equal(decl instanceof UseGroupDeclarationSyntaxNode, true, 'UseGroupDeclarationSyntaxNode');
+  assert.strictEqual(decl instanceof UseGroupDeclarationSyntaxNode, true, 'UseGroupDeclarationSyntaxNode');
   if (hasUseType) {
     assert.notStrictEqual(decl.useType, null);
   }
@@ -70,7 +70,7 @@ function assertUseGroupDeclaration(decl: UseGroupDeclarationSyntaxNode, nameToke
     assert.strictEqual(decl.useType, null);
   }
   let nameTokens = decl.rootName ? decl.rootName.childTokens() : [];
-  assert.equal(nameTokens.length, nameTokenCount);
+  assert.strictEqual(nameTokens.length, nameTokenCount);
   let declarations = decl.declarations ? decl.declarations.childNodes() : [];
   return <UseElementSyntaxNode[]>declarations;
 }
@@ -83,37 +83,37 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('use A;', 'should parse a use declaration', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.strictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, false, null, null);
         }),
         new ParserTestArgs('use \\A;', 'should parse a use declaration with a fully qualified name', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.strictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, true, null, null);
         }),
         new ParserTestArgs('use A as B;', 'should parse a use declaration with alias', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.strictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, false, null, 'B');
         }),
         new ParserTestArgs('use \\A as B;', 'should parse a use declaration with a fully qualified name and alias', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.strictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, true, null, 'B');
         }),
@@ -137,37 +137,37 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('use function A;', 'should parse a use function declaration', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.notStrictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, false, null, null);
         }),
         new ParserTestArgs('use function \\A;', 'should parse a use function declaration with a fully qualified name', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.notStrictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, true, null, null);
         }),
         new ParserTestArgs('use const A;', 'should parse a use const declaration', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.notStrictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, false, null, null);
         }),
         new ParserTestArgs('use const \\A;', 'should parse a use const declaration with a fully qualified name', (statements, text) => {
           let useDecl = <UseDeclarationSyntaxNode>statements[0];
-          assert.equal(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
+          assert.strictEqual(useDecl instanceof UseDeclarationSyntaxNode, true, 'UseDeclarationSyntaxNode');
           assert.notStrictEqual(useDecl.useType, null);
           let declarations = useDecl.declarations ? useDecl.declarations.childNodes() : [];
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           let element = <UseElementSyntaxNode>declarations[0];
           assertUseElement(element, text, true, null, null);
         }),
@@ -196,64 +196,64 @@ describe('PhpParser', function() {
         new ParserTestArgs('use function A\\{ B };', 'should parse a use function group declaration', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
         new ParserTestArgs('use function A\\{ B, C };', 'should parse a use function group declaration with list of names', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, null, null);
           assertUseElement(declarations[1], text, false, null, null);
         }),
         new ParserTestArgs('use function A\\{ B as C };', 'should parse a use function group declaration with aliased function name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, 'C');
         }),
         new ParserTestArgs('use function \\A\\{ B };', 'should parse a use function group declaration with a fully qualified name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 3);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
         new ParserTestArgs('use function \\A\\{ B, C };', 'should parse a use function group declaration with a fully qualified name and list of names', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 3);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, null, null);
           assertUseElement(declarations[1], text, false, null, null);
         }),
         new ParserTestArgs('use const A\\{ B };', 'should parse a use const group declaration', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
         new ParserTestArgs('use const A\\{ B, C };', 'should parse a use const group declaration with list of names', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, null, null);
           assertUseElement(declarations[1], text, false, null, null);
         }),
         new ParserTestArgs('use const A\\{ B as C };', 'should parse a use const group declaration with aliased constant name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, 'C');
         }),
         new ParserTestArgs('use const \\A\\{ B };', 'should parse a use const group declaration with a fully qualified name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 3);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
         new ParserTestArgs('use const \\A\\{ B, C };', 'should parse a use const group declaration with a fully qualified name and list of names', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 3);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, null, null);
           assertUseElement(declarations[1], text, false, null, null);
         }),
@@ -264,13 +264,13 @@ describe('PhpParser', function() {
         new ParserTestArgs('use function A\\{ B, };', 'should parse a use function group declaration with trailing comma', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
         new ParserTestArgs('use const A\\{ B, };', 'should parse a use const group declaration with trailing comma', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, null, null);
         }),
       ];
@@ -316,54 +316,54 @@ describe('PhpParser', function() {
         new ParserTestArgs('use A\\{ function B };', 'should parse a mixed use group declaration', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, 'function', null);
         }),
         new ParserTestArgs('use A\\{ function B, function C };', 'should parse a mixed use group declaration with multiple imports', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, 'function', null);
           assertUseElement(declarations[1], text, false, 'function', null);
         }),
         new ParserTestArgs('use A\\{ function B, function C as D };', 'should parse a mixed use group declaration with aliased function name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, 'function', null);
           assertUseElement(declarations[1], text, false, 'function', 'D');
         }),
         new ParserTestArgs('use A\\{ function B, const C };', 'should parse a mixed use group declaration with function and constant import types', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, 'function', null);
           assertUseElement(declarations[1], text, false, 'const', null);
         }),
         new ParserTestArgs('use A\\{ function B, const C as D };', 'should parse a mixed use group declaration with aliased constant name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, 'function', null);
           assertUseElement(declarations[1], text, false, 'const', 'D');
         }),
         new ParserTestArgs('use A\\{ function B, C };', 'should parse a mixed use group declaration with function and class import types', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 2);
+          assert.strictEqual(declarations.length, 2);
           assertUseElement(declarations[0], text, false, 'function', null);
           assertUseElement(declarations[1], text, false, null, null);
         }),
         new ParserTestArgs('use A\\{ function B\\C };', 'should parse a mixed use group declaration with partially qualified import', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, 'function', null);
         }),
         new ParserTestArgs('use \\A\\{ function B };', 'should parse a mixed use group declaration with fully qualified root name', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 3, false);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, 'function', null);
         }),
       ];
@@ -373,7 +373,7 @@ describe('PhpParser', function() {
         new ParserTestArgs('use A\\{ function B, };', 'should parse a mixed use group declaration with trailing comma', (statements, text) => {
           let useDecl = <UseGroupDeclarationSyntaxNode>statements[0];
           let declarations = assertUseGroupDeclaration(useDecl, 2, false);
-          assert.equal(declarations.length, 1);
+          assert.strictEqual(declarations.length, 1);
           assertUseElement(declarations[0], text, false, 'function', null);
         }),
       ];

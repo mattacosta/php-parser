@@ -113,13 +113,13 @@ export class Test {
       return;
     }
     if (!allowMissing) {
-      assert.equal(token.containsDiagnostics, false, 'contains diagnostics');
-      assert.equal(token.isMissing, false, 'is missing');
+      assert.strictEqual(token.containsDiagnostics, false, 'contains diagnostics');
+      assert.strictEqual(token.isMissing, false, 'is missing');
     }
-    assert.equal(TokenKind[token.kind], TokenKind[expectedKind], 'token kind');
+    assert.strictEqual(TokenKind[token.kind], TokenKind[expectedKind], 'token kind');
     let span = token.span;
     let text = sourceText.substr(span.start, span.length);
-    assert.equal(text, expectedText, 'token text');
+    assert.strictEqual(text, expectedText, 'token text');
   }
 
   public static assertSyntaxTrivia(trivia: ISyntaxTrivia | null, sourceText: string, expectedKind: TokenKind, expectedText: string, isSkippedToken = false, hasStructure = false): void {
@@ -127,12 +127,12 @@ export class Test {
     if (trivia === null) {
       return;
     }
-    assert.equal(TokenKind[trivia.kind], TokenKind[expectedKind], 'trivia kind');
-    assert.equal(trivia.containsSkippedText, isSkippedToken);
-    assert.equal(trivia.containsStructuredTrivia, hasStructure);
+    assert.strictEqual(TokenKind[trivia.kind], TokenKind[expectedKind], 'trivia kind');
+    assert.strictEqual(trivia.containsSkippedText, isSkippedToken);
+    assert.strictEqual(trivia.containsStructuredTrivia, hasStructure);
     let span = trivia.span;
     let text = sourceText.substr(span.start, span.length);
-    assert.equal(text, expectedText, 'trivia text');
+    assert.strictEqual(text, expectedText, 'trivia text');
   }
 
   public static assertTokens(tests: LexerTestArgs[], minVersion = PhpVersion.PHP7_0, maxVersion = PhpVersion.Latest): void {
@@ -155,15 +155,15 @@ export class Test {
           if (args.skipTrivia && TokenKindInfo.isTrivia(token.kind)) {
             continue;
           }
-          assert.equal(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]], 'token kind');
-          assert.equal(token.diagnostics.length, 0, 'contains diagnostics');
+          assert.strictEqual(TokenKind[token.kind], TokenKind[args.expectedTokens[tokenCount]], 'token kind');
+          assert.strictEqual(token.diagnostics.length, 0, 'contains diagnostics');
           if (args.expectedText[tokenCount]) {
-            assert.equal(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
+            assert.strictEqual(args.text.substr(token.offset, token.length), args.expectedText[tokenCount]);
           }
           tokenCount++;
         } while (token.kind !== TokenKind.EOF && tokenCount < args.expectedTokens.length);
 
-        assert.equal(tokenCount, args.expectedTokens.length, 'unexpected end of text');
+        assert.strictEqual(tokenCount, args.expectedTokens.length, 'unexpected end of text');
       });
     }
   }
@@ -183,10 +183,10 @@ export class Test {
           state = lexer.currentState;
           if (token.kind === args.expectedToken) {
             found = true;
-            assert.equal(token.diagnostics.length > 0, true, 'diagnostic not found');
-            assert.equal(ErrorCode[token.diagnostics[0].code], ErrorCode[args.expectedCode], 'diagnostic code');
+            assert.strictEqual(token.diagnostics.length > 0, true, 'diagnostic not found');
+            assert.strictEqual(ErrorCode[token.diagnostics[0].code], ErrorCode[args.expectedCode], 'diagnostic code');
             // if (args.expectedOffset === void 0) {
-            //   assert.equal(token.diagnostics[0].offset, 0, 'diagnostic offset');
+            //   assert.strictEqual(token.diagnostics[0].offset, 0, 'diagnostic offset');
             // }
             break;
           }
@@ -218,7 +218,7 @@ export class Test {
         it(desc, () => {
           const tree = PhpSyntaxTree.fromText(text, '', options);
 
-          assert.equal(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
+          assert.strictEqual(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
 
           let n = 0;
           for (let d of tree.getDiagnostics()) {
@@ -231,13 +231,13 @@ export class Test {
               n++;
               continue;
             }
-            assert.equal(ErrorCode[d.code], ErrorCode[args.expectedCodes[n]], 'diagnostic code');
-            assert.equal(d.offset, args.expectedOffsets[n] + openTag.length, 'diagnostic offset');
+            assert.strictEqual(ErrorCode[d.code], ErrorCode[args.expectedCodes[n]], 'diagnostic code');
+            assert.strictEqual(d.offset, args.expectedOffsets[n] + openTag.length, 'diagnostic offset');
             n++;
           }
 
           // Finished early...
-          assert.equal(n, args.expectedCodes.length, 'diagnostic not found');
+          assert.strictEqual(n, args.expectedCodes.length, 'diagnostic not found');
         });
       }
       else {
@@ -260,9 +260,9 @@ export class Test {
         }
         it(desc, () => {
           const tree = PhpSyntaxTree.fromText(text, '', options);
-          assert.equal(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
+          assert.strictEqual(tree.root.fullSpan.length, text.length, 'syntax tree mismatch');
           const statements = tree.root.statements;
-          assert.equal(tree.root.hasError, false, 'has error');
+          assert.strictEqual(tree.root.hasError, false, 'has error');
           assert.notStrictEqual(statements, null, 'statements not found');
           if (!statements) {
             return;
