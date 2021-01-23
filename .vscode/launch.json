@@ -8,16 +8,16 @@
             "type": "node",
             "request": "launch",
             "name": "Quick Launch Mocha Tests",
-            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
-                "${workspaceRoot}/out/test",
+                "${workspaceFolder}/out/test",
                 "--colors",
                 "--recursive",
                 "--timeout=99999"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "outFiles": [
-                "${workspaceRoot}/out/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "skipFiles": [
                 "<node_internals>/**"
@@ -28,23 +28,23 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Code Generator",
-            "program": "${workspaceRoot}/out/tools/CodeGenerator/Program.js",
+            "program": "${workspaceFolder}/out/tools/CodeGenerator/Program.js",
             "preLaunchTask": "npm: build:codegen"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Launch Mocha Tests",
-            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
-                "${workspaceRoot}/out/test",
+                "${workspaceFolder}/out/test",
                 "--colors",
                 "--recursive",
                 "--timeout=99999"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "outFiles": [
-                "${workspaceRoot}/out/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "preLaunchTask": "pretest",
             "skipFiles": [
