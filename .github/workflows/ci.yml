@@ -1,4 +1,4 @@
-name: GitHub CI
+name: CI
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - name: Get NPM cache directory
@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "::set-output name=dir::$(npm config get cache)"
       - name: Cache NPM modules
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -74,10 +74,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 12.x
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Run eslint
         run: npm run eslint
