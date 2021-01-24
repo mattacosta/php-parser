@@ -491,6 +491,19 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
+   * Determines if the text is a type used by a cast token.
+   */
+  protected isCastToken(text: string): boolean {
+    if (PhpLexer.CastTokens.has(text)) {
+      if (text === 'real' || text === 'unset') {
+        return this.phpVersion < PhpVersion.PHP8_0;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Tokenizes a starting or ending heredoc label.
    */
   protected lexHeredocLabel(): PhpLexerState {
@@ -2379,7 +2392,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       // It's still not a cast until we get a closing parenthesis.
       if (this.peek(this.offset) === Character.CloseParen) {
         let type = this.text.substring(typeStart, length).toLowerCase();
-        if (PhpLexer.CastTokens.has(type)) {
+        if (this.isCastToken(type)) {
           this.offset++;  // ")"
           // Suppress TS2322: Result cannot be undefined due to if-condition.
           this.tokenKind = <TokenKind>PhpLexer.CastTokens.get(type);

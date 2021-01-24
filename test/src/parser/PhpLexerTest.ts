@@ -385,9 +385,7 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php (integer)', 'to integer (integer)', [TokenKind.IntegerCast]),
         new LexerTestArgs('<?php (float)', 'to float (float)', [TokenKind.FloatCast]),
         new LexerTestArgs('<?php (object)', 'to object (object)', [TokenKind.ObjectCast]),
-        new LexerTestArgs('<?php (real)', 'to float (real)', [TokenKind.RealCast]),
         new LexerTestArgs('<?php (string)', 'to string (string)', [TokenKind.StringCast]),
-        new LexerTestArgs('<?php (unset)', 'type unset', [TokenKind.UnsetCast]),
         new LexerTestArgs('<?php (  int)', 'should match with leading spaces', [TokenKind.IntCast]),
         new LexerTestArgs('<?php (int  )', 'should match with trailing spaces', [TokenKind.IntCast]),
         new LexerTestArgs('<?php (\tint)', 'should match with leading tab', [TokenKind.IntCast]),
@@ -395,6 +393,18 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php (\nint)', 'should not match with new lines', [TokenKind.OpenParen, TokenKind.Identifier, TokenKind.CloseParen]),
       ];
       Test.assertTokens(tests);
+
+      let tests8_0 = [
+        new LexerTestArgs('<?php (real)', 'should not match real type cast', [TokenKind.OpenParen, TokenKind.Identifier, TokenKind.CloseParen]),
+        new LexerTestArgs('<?php (unset)', 'should not match unset type cast', [TokenKind.OpenParen, TokenKind.Unset, TokenKind.CloseParen]),
+      ];
+      Test.assertTokens(tests8_0, PhpVersion.PHP8_0);
+
+      let regressionTests8_0 = [
+        new LexerTestArgs('<?php (real)', 'to float (real)', [TokenKind.RealCast]),
+        new LexerTestArgs('<?php (unset)', 'to null (unset)', [TokenKind.UnsetCast]),
+      ];
+      Test.assertTokens(regressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('variables', function() {
@@ -406,13 +416,11 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php $1', 'should not start with a number', [TokenKind.Dollar, TokenKind.LNumber], ['$', '1']),
       ];
       Test.assertTokens(tests);
-    });
 
-    describe('variables (7.0)', function() {
-      let tests = [
+      let regressionTests7_1 = [
         new LexerTestArgs('<?php $\x7F', 'variable (lowest extended character)', [TokenKind.Variable], ['$\x7F']),
       ];
-      Test.assertTokens(tests, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+      Test.assertTokens(regressionTests7_1, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('unexpected characters', function() {

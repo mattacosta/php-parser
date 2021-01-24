@@ -1333,20 +1333,24 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.ObjectCast, '(object)');
           assert.strictEqual(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
-        new ParserTestArgs('(real)$a;', 'should parse a real cast', (statements, text) => {
-          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-          let castNode = <UnarySyntaxNode>exprNode.expression;
-          assert.strictEqual(castNode instanceof UnarySyntaxNode, true);
-          Test.assertSyntaxToken(castNode.operator, text, TokenKind.RealCast, '(real)');
-          assert.strictEqual(castNode.operand instanceof LocalVariableSyntaxNode, true);
-        }),
         new ParserTestArgs('(string)$a;', 'should parse a string cast', (statements, text) => {
           let exprNode = <ExpressionStatementSyntaxNode>statements[0];
           assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
           let castNode = <UnarySyntaxNode>exprNode.expression;
           assert.strictEqual(castNode instanceof UnarySyntaxNode, true);
           Test.assertSyntaxToken(castNode.operator, text, TokenKind.StringCast, '(string)');
+          assert.strictEqual(castNode.operand instanceof LocalVariableSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxRegressionTests8_0 = [
+        new ParserTestArgs('(real)$a;', 'should parse a real cast', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let castNode = <UnarySyntaxNode>exprNode.expression;
+          assert.strictEqual(castNode instanceof UnarySyntaxNode, true);
+          Test.assertSyntaxToken(castNode.operator, text, TokenKind.RealCast, '(real)');
           assert.strictEqual(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('(unset)$a;', 'should parse an unset cast', (statements, text) => {
@@ -1358,7 +1362,7 @@ describe('PhpParser', function() {
           assert.strictEqual(castNode.operand instanceof LocalVariableSyntaxNode, true);
         }),
       ];
-      Test.assertSyntaxNodes(syntaxTests);
+      Test.assertSyntaxNodes(syntaxRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('(array)', 'missing expression (array)', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
@@ -1370,11 +1374,15 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('(int)', 'missing expression (int)', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
         new DiagnosticTestArgs('(integer)', 'missing expression (integer)', [ErrorCode.ERR_ExpressionExpectedEOF], [9]),
         new DiagnosticTestArgs('(object)', 'missing expression (object)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
-        new DiagnosticTestArgs('(real)', 'missing expression (real)', [ErrorCode.WRN_RealCast, ErrorCode.ERR_ExpressionExpectedEOF], [0, 6]),
         new DiagnosticTestArgs('(string)', 'missing expression (string)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
-        new DiagnosticTestArgs('(unset)', 'missing expression (unset)', [ErrorCode.WRN_UnsetCast, ErrorCode.ERR_ExpressionExpectedEOF], [0, 7]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('(real)', 'missing expression (real)', [ErrorCode.WRN_RealCast, ErrorCode.ERR_ExpressionExpectedEOF], [0, 6]),
+        new DiagnosticTestArgs('(unset)', 'missing expression (unset)', [ErrorCode.WRN_UnsetCast, ErrorCode.ERR_ExpressionExpectedEOF], [0, 7]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('logical-not-expression', function() {
