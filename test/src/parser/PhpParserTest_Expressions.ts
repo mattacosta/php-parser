@@ -36,6 +36,7 @@ import {
   CloneSyntaxNode,
   ClosureUseSyntaxNode,
   ConditionalSyntaxNode,
+  ElementAccessSyntaxNode,
   EmptyIntrinsicSyntaxNode,
   ErrorControlSyntaxNode,
   EvalIntrinsicSyntaxNode,
@@ -48,12 +49,14 @@ import {
   LexicalVariableSyntaxNode,
   LiteralSyntaxNode,
   LocalVariableSyntaxNode,
+  NamedMemberAccessSyntaxNode,
   NamedObjectCreationSyntaxNode,
   NamedTypeSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PrintIntrinsicSyntaxNode,
   RelativeNameSyntaxNode,
   ScriptInclusionSyntaxNode,
+  StaticPropertySyntaxNode,
   UnarySyntaxNode,
   YieldFromSyntaxNode,
   YieldSyntaxNode,
@@ -746,6 +749,30 @@ describe('PhpParser', function() {
         assert.strictEqual(newNode.classNameReference instanceof LocalVariableSyntaxNode, true);
         assert.strictEqual(newNode.argumentList, null);
       }),
+      new ParserTestArgs('new $a[0];', 'should parse an object creation expression with class reference using element access (bracket syntax)', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let newNode = <IndirectObjectCreationSyntaxNode>exprNode.expression;
+        assert.strictEqual(newNode instanceof IndirectObjectCreationSyntaxNode, true);
+        assert.strictEqual(newNode.classNameReference instanceof ElementAccessSyntaxNode, true, 'ElementAccessSyntaxNode');
+        assert.strictEqual(newNode.argumentList, null);
+      }),
+      new ParserTestArgs('new $a->b;', 'should parse an object creation expression with class reference using member access', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let newNode = <IndirectObjectCreationSyntaxNode>exprNode.expression;
+        assert.strictEqual(newNode instanceof IndirectObjectCreationSyntaxNode, true);
+        assert.strictEqual(newNode.classNameReference instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
+        assert.strictEqual(newNode.argumentList, null);
+      }),
+      new ParserTestArgs('new $a::$b;', 'should parse an object creation expression with class reference using scoped access (static property)', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let newNode = <IndirectObjectCreationSyntaxNode>exprNode.expression;
+        assert.strictEqual(newNode instanceof IndirectObjectCreationSyntaxNode, true);
+        assert.strictEqual(newNode.classNameReference instanceof StaticPropertySyntaxNode, true, 'StaticPropertySyntaxNode');
+        assert.strictEqual(newNode.argumentList, null);
+      }),
 
       new ParserTestArgs('new A();', 'should parse an object creation expression with an arguments', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -857,6 +884,18 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
+    let syntaxRegressionTests8_0 = [
+      new ParserTestArgs('new $a{0};', 'should parse an object creation expression with class reference using element access (brace syntax)', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let newNode = <IndirectObjectCreationSyntaxNode>exprNode.expression;
+        assert.strictEqual(newNode instanceof IndirectObjectCreationSyntaxNode, true);
+        assert.strictEqual(newNode.classNameReference instanceof ElementAccessSyntaxNode, true, 'ElementAccessSyntaxNode');
+        assert.strictEqual(newNode.argumentList, null);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+
     let diagnosticTests = [
       new DiagnosticTestArgs('new', 'missing class, name, static, or simple-variable', [ErrorCode.ERR_ClassNameOrReferenceExpected], [3]),
       // NOTE: This expression is valid, an improved message is optional.
@@ -870,10 +909,15 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests);
 
-    let deprecatedBraceSyntax = [
-      new DiagnosticTestArgs('new $a{0};', 'should warn if brace syntax is used for class name reference', [ErrorCode.WRN_ElementAccessBraceSyntax], [6]),
+    let diagnosticTests8_0 = [
+      new DiagnosticTestArgs('new $a{0};', 'should not parse class reference using element access (brace syntax)', [ErrorCode.ERR_SemicolonExpected], [6]),
     ];
-    Test.assertDiagnostics(deprecatedBraceSyntax, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+    let diagnosticRegressionTests8_0 = [
+      new DiagnosticTestArgs('new $a{0};', 'should warn if class reference using element access uses brace syntax', [ErrorCode.WRN_ElementAccessBraceSyntax], [6]),
+    ];
+    Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
 
   describe('array-creation-expression', function() {

@@ -845,10 +845,16 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * reference.
    */
   protected isClassNameReferenceExpressionStart(kind: TokenKind): boolean {
-    return kind === TokenKind.DoubleColon ||
-      kind === TokenKind.ObjectOperator ||
-      kind === TokenKind.OpenBrace ||
-      kind === TokenKind.OpenBracket;
+    switch (kind) {
+      case TokenKind.DoubleColon:
+      case TokenKind.ObjectOperator:
+      case TokenKind.OpenBracket:
+        return true;
+      case TokenKind.OpenBrace:
+        return this.isSupportedVersion(PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+      default:
+        return false;
+    }
   }
 
   /**
@@ -4385,6 +4391,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           node = this.parseMemberAccessOrInvocation(node, true);
           break;
         case TokenKind.OpenBrace:
+          if (!this.isSupportedVersion(PhpVersion.PHP7_0, PhpVersion.PHP7_4)) {
+            return new Expression(node, type);
+          }
+          // Fall-through.
         case TokenKind.OpenBracket:
           node = this.parseElementAccess(node);
           break;
@@ -4986,6 +4996,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
             : this.eat(TokenKind.CloseBracket);
 
           if (openKind === TokenKind.OpenBrace) {
+            // Should not be reachable in PHP 8.0 or later.
+            Debug.assert(this.isSupportedVersion(PhpVersion.PHP7_0, PhpVersion.PHP7_4));
             // No version check; deprecation warnings are retroactive.
             let diagnostic = this.createDiagnostic(
               reference.fullWidth + openBraceOrBracket.leadingTriviaWidth,
@@ -5140,6 +5152,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected parseElementAccess(dereferenceable: ExpressionNode): ElementAccessNode {
     if (this.currentToken.kind === TokenKind.OpenBrace) {
+      // Should not be reachable in PHP 8.0 or later.
+      Debug.assert(this.isSupportedVersion(PhpVersion.PHP7_0, PhpVersion.PHP7_4));
       let openBrace = this.eat(TokenKind.OpenBrace);
       let index = this.parseExpression();
       let closeBrace = this.eat(TokenKind.CloseBrace);

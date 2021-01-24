@@ -253,7 +253,7 @@ describe('PhpParser', function() {
     });
 
     describe('element-access-expression (alternate syntax)', function() {
-      let syntaxTests = [
+      let syntaxRegressionTests8_0 = [
         // Variables.
         new ParserTestArgs('$a{0};', 'element access of a variable', (statements) => {
           let accessNode = assertElementAccess(statements, true);
@@ -321,7 +321,7 @@ describe('PhpParser', function() {
           assert.strictEqual(accessNode.dereferencable instanceof ElementAccessSyntaxNode, true);
         }),
       ];
-      Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+      Test.assertSyntaxNodes(syntaxRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
 
       let diagnosticsTests = [
         new DiagnosticTestArgs('A{0};', 'should not parse element access of a constant', [ErrorCode.ERR_SemicolonExpected], [1]),
@@ -335,10 +335,15 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticsTests);
 
-      let deprecatedBraceSyntax = [
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('$a{0};', 'should not parse element access of an expression', [ErrorCode.ERR_SemicolonExpected], [2]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
         new DiagnosticTestArgs('$a{0};', 'should warn if brace syntax is used for element access', [ErrorCode.WRN_ElementAccessBraceSyntax], [2]),
       ];
-      Test.assertDiagnostics(deprecatedBraceSyntax, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('element-access-expression (without index)', function() {
