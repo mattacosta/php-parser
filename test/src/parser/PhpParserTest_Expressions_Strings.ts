@@ -150,7 +150,7 @@ describe('PhpParser', function() {
         assert.strictEqual(variable instanceof IndirectStringVariableSyntaxNode, true);
         let elementAccess = <ElementAccessSyntaxNode>variable.expression;
         assert.strictEqual(elementAccess instanceof ElementAccessSyntaxNode, true);
-        assert.strictEqual(elementAccess.dereferencable instanceof StringVariableSyntaxNode, true);
+        assert.strictEqual(elementAccess.dereferenceable instanceof StringVariableSyntaxNode, true);
         assert.strictEqual(elementAccess.index instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('"${$a}";', 'should parse a template using indirect variable name with expression', (statements) => {

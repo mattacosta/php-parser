@@ -163,83 +163,83 @@ describe('PhpParser', function() {
         // Variables.
         new ParserTestArgs('$a[0];', 'element access of a variable', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('$$a[0];', 'element access of a variable with variable name', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         new ParserTestArgs('${A}[0];', 'element access of a variable with expression name', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         // Arrays and strings (dereferenceable-scalar).
         // NOTE: An index expression is required.
         new ParserTestArgs('array("a","b")[0];', 'element access of an array literal', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('["a","b"][0];', 'element access of an array literal (short syntax)', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('"ab"[0];', 'element access of a string literal', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LiteralSyntaxNode, true);
         }),
         // Expression group.
         new ParserTestArgs('($a)[0];', 'element access of an expression group', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
         }),
         // Invocation.
         new ParserTestArgs('a()[0];', 'element access of a function invocation', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof FunctionInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('A::b()[0];', 'element access of a static method invocation', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a::b()[0];', 'element access of a static method invocation with class name reference', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a->b()[0];', 'element access of a method invocation', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMethodInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
         }),
         // Name.
         new ParserTestArgs('A[0];', 'element access of a constant', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ConstantSyntaxNode, true);
         }),
         new ParserTestArgs('\\A[0];', 'element access of a constant (fully qualified)', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ConstantSyntaxNode, true);
         }),
         new ParserTestArgs('namespace\\A[0];', 'element access of a constant (relative)', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ConstantSyntaxNode, true);
         }),
         // Object access.
         new ParserTestArgs('$a->b[0];', 'element access of a property', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMemberAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
         }),
         // Scoped access.
         new ParserTestArgs('A::$b[0];', 'element access of a static property', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof StaticPropertySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
         }),
         new ParserTestArgs('A::B[0];', 'element access of a class constant', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ClassConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ClassConstantSyntaxNode, true);
         }),
         // Self.
         new ParserTestArgs('$a[0][0];', 'element access of an element access expression', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ElementAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ElementAccessSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -257,68 +257,68 @@ describe('PhpParser', function() {
         // Variables.
         new ParserTestArgs('$a{0};', 'element access of a variable', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('$$a{0};', 'element access of a variable with variable name', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         new ParserTestArgs('${A}{0};', 'element access of a variable with expression name', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         // Arrays and strings (dereferenceable-scalar).
         // NOTE: An index expression is required.
         new ParserTestArgs('array("a","b"){0};', 'element access of an array literal', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('["a","b"]{0};', 'element access of an array literal (short syntax)', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('"ab"{0};', 'element access of a string literal', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LiteralSyntaxNode, true);
         }),
         // Expression group.
         new ParserTestArgs('($a){0};', 'element access of an expression group', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
         }),
         // Invocation.
         new ParserTestArgs('a(){0};', 'element access of a function invocation', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof FunctionInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('A::b(){0};', 'element access of a static method invocation', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a::b(){0};', 'element access of a static method invocation with class name reference', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a->b(){0};', 'element access of a method invocation', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMethodInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
         }),
         // Name.
         // - Alternate syntax cannot be used with names (constants).
         // Object access.
         new ParserTestArgs('$a->b{0};', 'element access of a property', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMemberAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
         }),
         // Scoped access.
         new ParserTestArgs('A::$b{0};', 'element access of a static property', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof StaticPropertySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
         }),
         // Self.
         new ParserTestArgs('$a{0}{0};', 'element access of an element access expression', (statements) => {
           let accessNode = assertElementAccess(statements, true);
-          assert.strictEqual(accessNode.dereferencable instanceof ElementAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ElementAccessSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
@@ -346,79 +346,79 @@ describe('PhpParser', function() {
         // Variables.
         new ParserTestArgs('$a[];', 'element access of a variable', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
         }),
         new ParserTestArgs('$$a[];', 'element access of a variable with variable name', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         new ParserTestArgs('${A}[];', 'element access of a variable with expression name', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         new ParserTestArgs('array("a","b")[];', 'element access of an array literal', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('["a","b"][];', 'element access of an array literal (short syntax)', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ArraySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ArraySyntaxNode, true);
         }),
         new ParserTestArgs('"ab"[];', 'element access of string literal', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof LiteralSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LiteralSyntaxNode, true);
         }),
         // Expression group.
         new ParserTestArgs('($a)[];', 'element access of an expression group', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
         }),
         // Invocation
         new ParserTestArgs('a()[];', 'element access of a function invocation', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof FunctionInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('A::b()[];', 'element access of a static method invocation', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a::b()[];', 'element access of a static method invocation with class name reference', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a->b()[];', 'element access of a method invocation', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMethodInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
         }),
         // Name.
         new ParserTestArgs('A[];', 'element access of a constant', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ConstantSyntaxNode, true);
         }),
         new ParserTestArgs('\\A[];', 'element access of a constant (fully qualified)', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ConstantSyntaxNode, true);
         }),
         new ParserTestArgs('namespace\\A[];', 'element access of a constant (relative)', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ConstantSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ConstantSyntaxNode, true);
         }),
         // Object access.
         new ParserTestArgs('$a->b[];', 'element access of a property', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMemberAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
         }),
         // Scoped access.
         new ParserTestArgs('A::$b[];', 'element access of a static property', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof StaticPropertySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
         }),
         // Self.
         // NOTE: An expression like this must be used in a write context in
         // order to be semantically correct.
         new ParserTestArgs('$a[][];', 'element access of an element access expression', (statements) => {
           let accessNode = assertElementAccess(statements, false);
-          assert.strictEqual(accessNode.dereferencable instanceof ElementAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ElementAccessSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -536,47 +536,47 @@ describe('PhpParser', function() {
         // Variables.
         new ParserTestArgs('$a->b;', 'object access of a variable', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferencable instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('$$a->b;', 'object access of a variable with variable name', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         new ParserTestArgs('${A}->b;', 'object access of a variable with expression name', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         // Expression group.
         new ParserTestArgs('($a)->b;', 'object access of an expression group', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferencable instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
         }),
         // Invocation.
         new ParserTestArgs('a()->b;', 'object access of a function invocation', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferencable instanceof FunctionInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('A::b()->c;', 'object access of a static method invocation', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a::b()->c;', 'object access of a static method invocation with class name reference', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a->b()->c;', 'object access of a method invocation', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMethodInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
         }),
         // Scoped access.
         new ParserTestArgs('A::$b->c;', 'object access of a scoped access expression', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferencable instanceof StaticPropertySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
         }),
         // Self.
         new ParserTestArgs('$a->b->c;', 'object access of an object access expression', (statements, text) => {
           let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMemberAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
         }),
 
         new ParserTestArgs('$a->class;', 'object access with keyword (class)', (statements, text) => {
@@ -585,7 +585,7 @@ describe('PhpParser', function() {
           let memberAccess = <NamedMemberAccessSyntaxNode>exprNode.expression;
           assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
           Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Class, 'class');
-          assert.strictEqual(memberAccess.dereferencable instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(memberAccess.dereferenceable instanceof LocalVariableSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
@@ -604,47 +604,47 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('$a->$b;', 'object access of a variable', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
         }),
         new ParserTestArgs('$$a->$b;', 'object access of a variable with variable name', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         new ParserTestArgs('${A}->$b;', 'object access of a variable with expression name', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof IndirectVariableSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
         }),
         // Expression group.
         new ParserTestArgs('($a)->$b;', 'object access of an expression group', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof ExpressionGroupSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
         }),
         // Invocation.
         new ParserTestArgs('a()->$b;', 'object access of a function invocation', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof FunctionInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('A::b()->$c;', 'object access of a static method invocation', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a::b()->$c;', 'object access of a static method invocation with class name reference', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedScopedInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
         }),
         new ParserTestArgs('$a->b()->$c;', 'object access of a method invocation', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMethodInvocationSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
         }),
         // Scoped access.
         new ParserTestArgs('A::$b->$c;', 'object access of a scoped access expression', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof StaticPropertySyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
         }),
         // Self.
         new ParserTestArgs('$a->b->$c;', 'object access of an object access expression', (statements) => {
           let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferencable instanceof NamedMemberAccessSyntaxNode, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);

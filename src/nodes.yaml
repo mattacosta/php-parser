@@ -41,7 +41,7 @@ nodes:
   extends: Expression
   abstract: true
   properties:
-  - name: dereferencable
+  - name: dereferenceable
     type: Expression
   - name: objectOperator
     type: TokenNode
@@ -272,7 +272,7 @@ nodes:
 - name: ElementAccess
   extends: Expression
   properties:
-  - name: dereferencable
+  - name: dereferenceable
     type: Expression
   - name: openBraceOrBracket
     type: TokenNode
@@ -411,7 +411,7 @@ nodes:
 - name: IndirectMemberAccess
   extends: MemberAccess
   properties:
-  - name: dereferencable
+  - name: dereferenceable
     type: Expression
     inherited: true
   - name: objectOperator
@@ -502,6 +502,7 @@ nodes:
     type: TokenNode
     optional: true
   visitorName: visitIndirectVariable
+# @todo Should not mix expression and name.
 - name: InstanceOf
   extends: Expression
   properties:
@@ -550,7 +551,7 @@ nodes:
 - name: NamedMemberAccess
   extends: MemberAccess
   properties:
-  - name: dereferencable
+  - name: dereferenceable
     type: Expression
     inherited: true
   - name: objectOperator
