@@ -417,7 +417,7 @@ describe('PhpParser', function() {
     Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_3);
 
     let diagnosticTests = [
-      new DiagnosticTestArgs('<<<LABEL\na\n  LABEL;', 'missing indent', [ErrorCode.ERR_IndentExpected], [9]),
+      new DiagnosticTestArgs('<<<LABEL\na\n  LABEL;', 'missing indent', [ErrorCode.ERR_HeredocIndentExpected], [9]),
 
       // @todo Lexer tests.
       new DiagnosticTestArgs('<<<LABEL\n\t\ta\n  LABEL;', 'should match indent of end label', [ErrorCode.ERR_HeredocIndentMismatch], [9]),

@@ -225,7 +225,7 @@ describe('PhpParser', function() {
     let diagnosticTests = [
       new DiagnosticTestArgs('class A extends', 'missing base type', [ErrorCode.ERR_TypeExpected], [15]),
       new DiagnosticTestArgs('class A extends \\', 'missing identifier in fully qualified base type', [ErrorCode.ERR_IdentifierExpected], [17]),
-      new DiagnosticTestArgs('class A extends B', 'missing implements or open brace', [ErrorCode.ERR_IncompleteClassDeclarationWithExtends], [17]),
+      new DiagnosticTestArgs('class A extends B', 'missing implements or open brace', [ErrorCode.ERR_IncompleteClassDeclarationExtended], [17]),
 
       new DiagnosticTestArgs('class A extends B, {}', 'should not parse multiple base types', [ErrorCode.ERR_MultipleInheritance], [17]),
       new DiagnosticTestArgs('class A implements B extends {}', 'should not parse base clause after implements', [ErrorCode.ERR_BaseClauseAfterImplements], [21]),
@@ -1202,7 +1202,7 @@ describe('PhpParser', function() {
 
         // @todo These should be recovery tests.
         new DiagnosticTestArgs('class A { use B { c d } }', 'should not parse trait adaptation if keyword is missing', [ErrorCode.ERR_IncompleteTraitAdaptation, ErrorCode.ERR_IncompleteTraitAdaptation], [18, 20]),  // Placed on node.
-        new DiagnosticTestArgs('class A { use B { c insteadof } }', 'should not parse trait adaptation if method name is ambiguous', [ErrorCode.ERR_MalformedMethodReference], [19]),
+        new DiagnosticTestArgs('class A { use B { c insteadof } }', 'should not parse trait adaptation if method name is ambiguous', [ErrorCode.ERR_IncompleteMethodReference], [19]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

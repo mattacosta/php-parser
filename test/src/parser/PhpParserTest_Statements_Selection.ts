@@ -444,7 +444,7 @@ describe('PhpParser', function() {
 
       let diagnosticTests = [
         new DiagnosticTestArgs('switch ($a) { default }', 'missing colon or semicolon', [ErrorCode.ERR_CaseLabelSeparatorExpected], [21]),
-        new DiagnosticTestArgs('switch ($a) { default: default: }', 'multiple default labels', [ErrorCode.ERR_MultipleDefaultSwitchLabels], [23]),
+        new DiagnosticTestArgs('switch ($a) { default: default: }', 'multiple default labels', [ErrorCode.ERR_DuplicateSwitchDefaultLabel], [23]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
@@ -484,7 +484,7 @@ describe('PhpParser', function() {
 
       let diagnosticTests = [
         new DiagnosticTestArgs('switch ($a): default endswitch;', 'missing colon or semicolon', [ErrorCode.ERR_CaseLabelSeparatorExpected], [20]),
-        new DiagnosticTestArgs('switch ($a): default: default: endswitch;', 'multiple default labels', [ErrorCode.ERR_MultipleDefaultSwitchLabels], [22]),
+        new DiagnosticTestArgs('switch ($a): default: default: endswitch;', 'multiple default labels', [ErrorCode.ERR_DuplicateSwitchDefaultLabel], [22]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

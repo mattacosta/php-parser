@@ -249,7 +249,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('try {}', 'missing catch or finally', [ErrorCode.ERR_CatchOrFinallyExpected], [6]),
       new DiagnosticTestArgs('try {} catch', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [12]),
       new DiagnosticTestArgs('try {} catch (', 'missing identifier', [ErrorCode.ERR_TypeExpected], [14]),
-      new DiagnosticTestArgs('try {} catch (A', 'missing vertical bar or variable', [ErrorCode.ERR_TryUnionOrVariableExpected], [15]),
+      new DiagnosticTestArgs('try {} catch (A', 'missing vertical bar or variable', [ErrorCode.ERR_TryCatchUnionOrVariableExpected], [15]),
       new DiagnosticTestArgs('try {} catch (A $e', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [18]),
       new DiagnosticTestArgs('try {} catch (A $e)', 'missing open brace (catch clause)', [ErrorCode.ERR_OpenBraceExpected], [19]),
       new DiagnosticTestArgs('try {} catch (A $e) {', 'missing close brace (catch clause)', [ErrorCode.ERR_CloseBraceExpected], [21]),
@@ -681,7 +681,7 @@ describe('PhpParser', function() {
 
     let diagnosticTests = [
       new DiagnosticTestArgs('static', 'missing double colon, function, or variable', [ErrorCode.ERR_StaticExpressionExpected], [6]),
-      new DiagnosticTestArgs('static $a', 'missing equals, comma or semicolon', [ErrorCode.ERR_IncompleteStaticDeclaration], [9]),
+      new DiagnosticTestArgs('static $a', 'missing equals, comma or semicolon', [ErrorCode.ERR_IncompleteStaticVariableDeclaration], [9]),
       new DiagnosticTestArgs('static $a=', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
       new DiagnosticTestArgs('static $a=1', 'missing comma or semicolon', [ErrorCode.ERR_CommaOrSemicolonExpected], [11]),
       new DiagnosticTestArgs('static $a,', 'missing variable in list', [ErrorCode.ERR_VariableExpected], [10]),
