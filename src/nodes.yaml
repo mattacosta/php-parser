@@ -187,7 +187,7 @@ nodes:
     optional: true
   - name: doubleArrow
     type: TokenNode
-  - name: expr
+  - name: expression
     type: Expression
   visitorName: visitArrowFunction
 - name: Assignment
