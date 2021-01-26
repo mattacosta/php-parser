@@ -3836,18 +3836,25 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       typeUnion = this.addError(typeUnion, ErrorCode.ERR_FeatureTryCatchUnionTypes);
     }
 
-    let variable: TokenNode;  // See also: parseParameter().
-    if (this.currentToken.kind === TokenKind.Dollar) {
-      variable = this.eat(TokenKind.Dollar);
-      variable = this.addError(variable, ErrorCode.ERR_VariableNameExpected);
-    }
-    else {
-      variable = this.currentToken.kind === TokenKind.Variable
-        ? this.eat(TokenKind.Variable)
-        : this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_TryCatchUnionOrVariableExpected);
+    let variable: TokenNode | null = null;
+    switch (this.currentToken.kind) {
+      case TokenKind.Dollar:
+        variable = this.eat(TokenKind.Dollar);
+        variable = this.addError(variable, ErrorCode.ERR_VariableNameExpected);
+        break;
+      case TokenKind.Variable:
+        variable = this.eat(TokenKind.Variable);
+        break;
+      default:
+        if (!this.isSupportedVersion(PhpVersion.PHP8_0)) {
+          variable = this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_TryCatchUnionOrVariableExpected);
+        }
+        break;
     }
 
-    let closeParen = this.eat(TokenKind.CloseParen);
+    let closeParen = this.currentToken.kind !== TokenKind.CloseParen && variable === null
+      ? this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_TryCatchUnionOrOptionalVariableExpected)
+      : this.eat(TokenKind.CloseParen);
     let statements = this.parseStatementBlock();
     return new TryCatchNode(
       catchKeyword,

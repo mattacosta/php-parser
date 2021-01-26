@@ -353,3 +353,7 @@ diagnostics:
 - name: WRN_UnsetCast
   text: "The '(unset)' type cast is deprecated, use 'null' instead"
   severity: 2
+
+# --- PHP 8.0 -----------------------------------------------------------------
+- name: ERR_TryCatchUnionOrOptionalVariableExpected
+  text: "Type union, variable, or ')' expected"

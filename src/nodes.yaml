@@ -1920,6 +1920,7 @@ nodes:
     type: NodeList
   - name: variable
     type: TokenNode
+    optional: true
   - name: closeParen
     type: TokenNode
   - name: statements

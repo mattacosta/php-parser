@@ -243,13 +243,31 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
+    let syntaxTests8_0 = [
+      new ParserTestArgs('try {} catch (A) {}', 'should parse a catch clause with no variable', (statements, text) => {
+        let tryNode = <TrySyntaxNode>statements[0];
+        assert.strictEqual(tryNode instanceof TrySyntaxNode, true, 'TrySyntaxNode');
+        let catchClauses = tryNode.catchClauses ? tryNode.catchClauses.childNodes() : [];
+        assert.strictEqual(catchClauses.length, 1);
+
+        let catchNode = <TryCatchSyntaxNode>catchClauses[0];
+        assert.strictEqual(catchNode instanceof TryCatchSyntaxNode, true);
+        let names = catchNode.typeNames ? catchNode.typeNames.childNodes() : [];
+        assert.strictEqual(names.length, 1);
+        assert.strictEqual(names[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
+        assert.strictEqual(catchNode.variable, null);
+
+        assert.strictEqual(tryNode.finallyClause, null);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
     let diagnosticTests = [
       new DiagnosticTestArgs('try', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [3]),
       new DiagnosticTestArgs('try {', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [5]),
       new DiagnosticTestArgs('try {}', 'missing catch or finally', [ErrorCode.ERR_CatchOrFinallyExpected], [6]),
       new DiagnosticTestArgs('try {} catch', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [12]),
       new DiagnosticTestArgs('try {} catch (', 'missing identifier', [ErrorCode.ERR_TypeExpected], [14]),
-      new DiagnosticTestArgs('try {} catch (A', 'missing vertical bar or variable', [ErrorCode.ERR_TryCatchUnionOrVariableExpected], [15]),
       new DiagnosticTestArgs('try {} catch (A $e', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [18]),
       new DiagnosticTestArgs('try {} catch (A $e)', 'missing open brace (catch clause)', [ErrorCode.ERR_OpenBraceExpected], [19]),
       new DiagnosticTestArgs('try {} catch (A $e) {', 'missing close brace (catch clause)', [ErrorCode.ERR_CloseBraceExpected], [21]),
@@ -270,10 +288,21 @@ describe('PhpParser', function() {
     ];
     Test.assertDiagnostics(diagnosticTests7_1, PhpVersion.PHP7_1);
 
-    let featureUnionTypes = [
+    let diagnosticRegressionTests7_1 = [
       new DiagnosticTestArgs('try {} catch (A | B $e) {}', 'should not parse a catch clause with union type', [ErrorCode.ERR_FeatureTryCatchUnionTypes], [14]),
     ];
-    Test.assertDiagnostics(featureUnionTypes, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+    Test.assertDiagnostics(diagnosticRegressionTests7_1, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+
+    let diagnosticTests8_0 = [
+      new DiagnosticTestArgs('try {} catch (A', 'missing vertical bar, variable, or close paren', [ErrorCode.ERR_TryCatchUnionOrOptionalVariableExpected], [15]),
+    ];
+    Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+    let diagnosticRegressionTests8_0 = [
+      // Existing diagnostics have precedence over new "feature" diagnostics.
+      new DiagnosticTestArgs('try {} catch (A', 'missing vertical bar or variable', [ErrorCode.ERR_TryCatchUnionOrVariableExpected], [15]),
+    ];
+    Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
 
   describe('declare-statement', function() {
