@@ -174,6 +174,8 @@ diagnostics:
   text: "'=>' or ')' expected"
 - name: ERR_DuplicateModifier
   text: "Duplicate '%s' modifier"
+- name: ERR_DuplicateSwitchDefaultLabel
+  text: "Switch statements may only contain one 'default' label"
 - name: ERR_EllipsisOrCloseParenExpected
   text: "'...' or ')' expected"
 - name: ERR_ExpressionExpected
@@ -190,6 +192,8 @@ diagnostics:
   text: "Expression or ';' expected"
 - name: ERR_HaltCompilerScope
   text: "__halt_compiler() must be used in outermost scope"
+- name: ERR_HeredocIndentExpected
+  text: "Indentation expected"
 - name: ERR_IdentifierExpected
   text: "Identifier expected"
 - name: ERR_IdentifierExpectedKeyword
@@ -207,7 +211,7 @@ diagnostics:
   text: "Closure parameters or '&' expected"
 - name: ERR_IncompleteClassDeclaration
   text: "Base clause, interface list, or '{' expected"
-- name: ERR_IncompleteClassDeclarationWithExtends
+- name: ERR_IncompleteClassDeclarationExtended
   text: "Interface list or '{' expected"
 - name: ERR_IncompleteClosure
   text: "Lexical variables, return type, or '{' expected"
@@ -215,6 +219,8 @@ diagnostics:
   text: "Function name, closure parameters, or '&' expected"
 - name: ERR_IncompleteInterfaceDeclaration
   text: "Base clause or '{' expected"
+- name: ERR_IncompleteMethodReference
+  text: "A method reference requires a '::' after a class name"
 - name: ERR_IncompleteNamespace
   text: "Expected a namespace declaration or relative name"
 - name: ERR_IncompleteParameter
@@ -223,7 +229,7 @@ diagnostics:
   text: "Parameter list, initializer, or ')' expected"
 - name: ERR_IncompletePropertyDeclaration
   text: "Property list, initializer, or ';' expected"
-- name: ERR_IncompleteStaticDeclaration
+- name: ERR_IncompleteStaticVariableDeclaration
   text: "Static variable list, initializer, or ';' expected"
 - name: ERR_IncompleteTraitAdaptation
   text: "Expected 'as' or '::' in trait adaptation"
@@ -239,9 +245,7 @@ diagnostics:
 # variable token, use `ERR_VariableNameExpected` instead.
 - name: ERR_IncompleteVariable
   text: "Expected a variable or indirect expression to evaluate as a variable name"
-- name: ERR_IndentExpected
-  text: "Indentation expected"
-- name: ERR_InterfaceImplementsList
+- name: ERR_InterfaceHasInterfaceClause
   text: "The keyword 'implements' cannot be used on an interface"
 - name: ERR_InterfaceMethodDefinition
   text: "Interfaces cannot contain method implementations"
@@ -259,14 +263,10 @@ diagnostics:
   text: "Invalid token '%s' in class, interface, or trait member declaration"
 - name: ERR_IterationDepthOrSemicolonExpected
   text: "Iteration depth or ';' expected"
-- name: ERR_MalformedMethodReference
-  text: "A method reference requires a '::' after a class name"
 - name: ERR_MethodNameExpected
   text: "Method name expected"
 - name: ERR_MethodNameOrAmpersandExpected
   text: "Method name or '&' expected"
-- name: ERR_MultipleDefaultSwitchLabels
-  text: "Switch statements may only contain one 'default' label"
 - name: ERR_MultipleInheritance
   text: "Classes may only inherit from one base class"
 - name: ERR_MultipleVisibilityModifiers
@@ -314,7 +314,7 @@ diagnostics:
   text: "Traits cannot contain constants"
 - name: ERR_TraitMemberExpected
   text: "Method or property declaration expected"
-- name: ERR_TryUnionOrVariableExpected
+- name: ERR_TryCatchUnionOrVariableExpected
   text: "Type union or variable expected"
 - name: ERR_TypeExpected
   text: "Type expected"

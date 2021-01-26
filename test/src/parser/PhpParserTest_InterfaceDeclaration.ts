@@ -94,7 +94,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('interface', 'missing identifier', [ErrorCode.ERR_IdentifierExpected], [9]),
       new DiagnosticTestArgs('interface A', 'missing base clause or open brace', [ErrorCode.ERR_IncompleteInterfaceDeclaration], [11]),
       new DiagnosticTestArgs('interface A {', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [13]),
-      new DiagnosticTestArgs('interface A implements {}', 'should not parse an implements list', [ErrorCode.ERR_InterfaceImplementsList], [12]),
+      new DiagnosticTestArgs('interface A implements {}', 'should not parse an implements list', [ErrorCode.ERR_InterfaceHasInterfaceClause], [12]),
     ];
     Test.assertDiagnostics(diagnosticTests);
   });

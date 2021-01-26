@@ -1721,7 +1721,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let openBrace: TokenNode;
     if (this.currentToken.kind !== TokenKind.OpenBrace) {
       if (implementsKeyword === null) {
-        let code = extendsKeyword ? ErrorCode.ERR_IncompleteClassDeclarationWithExtends : ErrorCode.ERR_IncompleteClassDeclaration;
+        let code = extendsKeyword ? ErrorCode.ERR_IncompleteClassDeclarationExtended : ErrorCode.ERR_IncompleteClassDeclaration;
         openBrace = this.createMissingTokenWithError(TokenKind.OpenBrace, code);
       }
       else {
@@ -2670,7 +2670,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     if (this.currentToken.kind === TokenKind.Implements) {
-      this.skipTokenWithError(ErrorCode.ERR_InterfaceImplementsList);
+      this.skipTokenWithError(ErrorCode.ERR_InterfaceHasInterfaceClause);
     }
 
     let openBrace: TokenNode;
@@ -3239,7 +3239,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
     else {
       let lastVariable = <StaticElementNode>variables[variables.length - 1];
-      let code = lastVariable.equal !== null ? ErrorCode.ERR_CommaOrSemicolonExpected : ErrorCode.ERR_IncompleteStaticDeclaration;
+      let code = lastVariable.equal !== null
+        ? ErrorCode.ERR_CommaOrSemicolonExpected
+        : ErrorCode.ERR_IncompleteStaticVariableDeclaration;
       semicolon = this.createMissingTokenWithError(TokenKind.Semicolon, code);
     }
 
@@ -3414,7 +3416,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           if (hasDefault) {
             // @todo Technically this check can be done later, which could
             //   allow this method to be merged with parseList().
-            label = this.addError(label, ErrorCode.ERR_MultipleDefaultSwitchLabels);
+            label = this.addError(label, ErrorCode.ERR_DuplicateSwitchDefaultLabel);
           }
           hasDefault = true;
         }
@@ -3548,7 +3550,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       // At this point, only a class name is being parsed.
       let doubleColon = this.currentToken.kind === TokenKind.DoubleColon
         ? this.eat(TokenKind.DoubleColon)
-        : this.createMissingTokenWithError(TokenKind.DoubleColon, ErrorCode.ERR_MalformedMethodReference);
+        : this.createMissingTokenWithError(TokenKind.DoubleColon, ErrorCode.ERR_IncompleteMethodReference);
 
       // Before parsing the method name however, consider if a user has gone
       // back to add a trait use clause:
@@ -3842,7 +3844,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     else {
       variable = this.currentToken.kind === TokenKind.Variable
         ? this.eat(TokenKind.Variable)
-        : this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_TryUnionOrVariableExpected);
+        : this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_TryCatchUnionOrVariableExpected);
     }
 
     let closeParen = this.eat(TokenKind.CloseParen);
@@ -5341,7 +5343,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected parseFlexdocTemplateLine(): FlexibleHeredocElementNode {
     let indent = this.currentToken.kind === TokenKind.StringIndent
       ? this.eat(TokenKind.StringIndent)
-      : this.createMissingTokenWithError(TokenKind.StringIndent, ErrorCode.ERR_IndentExpected);
+      : this.createMissingTokenWithError(TokenKind.StringIndent, ErrorCode.ERR_HeredocIndentExpected);
 
     if (this.currentToken.kind !== TokenKind.StringTemplateLiteral && !this.isStringTemplateElementStart(this.currentToken.kind)) {
       return new FlexibleHeredocElementNode(indent, null);

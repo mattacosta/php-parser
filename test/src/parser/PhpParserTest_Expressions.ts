@@ -657,7 +657,7 @@ describe('PhpParser', function() {
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
         assert.strictEqual(closure.returnType, null);
-        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(closure.expression instanceof LocalVariableSyntaxNode, true);
       }),
       new ParserTestArgs('fn(): A => $a;', 'should parse an arrow function with return type', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -668,7 +668,7 @@ describe('PhpParser', function() {
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
         assert.notStrictEqual(closure.returnType, null);
-        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(closure.expression instanceof LocalVariableSyntaxNode, true);
       }),
       new ParserTestArgs('fn &() => $a;', 'should parse a byref arrow function', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -679,7 +679,7 @@ describe('PhpParser', function() {
         assert.notStrictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
         assert.strictEqual(closure.returnType, null);
-        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(closure.expression instanceof LocalVariableSyntaxNode, true);
       }),
       new ParserTestArgs('static fn() => $a;', 'should parse a static arrow function', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
@@ -690,7 +690,7 @@ describe('PhpParser', function() {
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
         assert.strictEqual(closure.returnType, null);
-        assert.strictEqual(closure.expr instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(closure.expression instanceof LocalVariableSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_4);

@@ -150,7 +150,7 @@ describe('PhpParser', function() {
         assert.strictEqual(variable instanceof IndirectStringVariableSyntaxNode, true);
         let elementAccess = <ElementAccessSyntaxNode>variable.expression;
         assert.strictEqual(elementAccess instanceof ElementAccessSyntaxNode, true);
-        assert.strictEqual(elementAccess.dereferencable instanceof StringVariableSyntaxNode, true);
+        assert.strictEqual(elementAccess.dereferenceable instanceof StringVariableSyntaxNode, true);
         assert.strictEqual(elementAccess.index instanceof LiteralSyntaxNode, true);
       }),
       new ParserTestArgs('"${$a}";', 'should parse a template using indirect variable name with expression', (statements) => {
@@ -417,7 +417,7 @@ describe('PhpParser', function() {
     Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_3);
 
     let diagnosticTests = [
-      new DiagnosticTestArgs('<<<LABEL\na\n  LABEL;', 'missing indent', [ErrorCode.ERR_IndentExpected], [9]),
+      new DiagnosticTestArgs('<<<LABEL\na\n  LABEL;', 'missing indent', [ErrorCode.ERR_HeredocIndentExpected], [9]),
 
       // @todo Lexer tests.
       new DiagnosticTestArgs('<<<LABEL\n\t\ta\n  LABEL;', 'should match indent of end label', [ErrorCode.ERR_HeredocIndentMismatch], [9]),

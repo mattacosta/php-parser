@@ -1018,7 +1018,7 @@ describe('PhpParser', function() {
 
         // @todo These should be recovery tests.
         new DiagnosticTestArgs('trait A { use B { c d } }', 'should not parse trait adaptation if keyword is missing', [ErrorCode.ERR_IncompleteTraitAdaptation, ErrorCode.ERR_IncompleteTraitAdaptation], [18, 20]),  // Placed on node.
-        new DiagnosticTestArgs('trait A { use B { c insteadof } }', 'should not parse trait adaptation if method name is ambiguous', [ErrorCode.ERR_MalformedMethodReference], [19]),
+        new DiagnosticTestArgs('trait A { use B { c insteadof } }', 'should not parse trait adaptation if method name is ambiguous', [ErrorCode.ERR_IncompleteMethodReference], [19]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
