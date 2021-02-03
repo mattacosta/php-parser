@@ -1065,6 +1065,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Determines if a token starts a property declaration.
    */
   protected isPropertyStart(kind: TokenKind): boolean {
+    // The '$' token is also allowed for error recovery purposes.
     return kind === TokenKind.Dollar || kind === TokenKind.Variable || this.isTypeStart(kind);
   }
 
@@ -5545,9 +5546,19 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected parseLexicalVariable(): LexicalVariableNode {
     let ampersand = this.eatOptional(TokenKind.Ampersand);
-    let variable = this.currentToken.kind === TokenKind.Variable
-      ? this.eat(TokenKind.Variable)
-      : this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_VariableExpected);
+    let variable: TokenNode;
+    if (this.currentToken.kind === TokenKind.Variable) {
+      variable = this.eat(TokenKind.Variable);
+    }
+    else if (this.currentToken.kind === TokenKind.Dollar) {
+      variable = this.eat(TokenKind.Dollar);
+      variable = this.addError(variable, ErrorCode.ERR_VariableNameExpected);
+    }
+    else {
+      variable = ampersand === null
+        ? this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_VariableOrAmpersandExpected)
+        : this.createMissingTokenWithError(TokenKind.Variable, ErrorCode.ERR_VariableExpected);
+    }
     return new LexicalVariableNode(ampersand, variable);
   }
 
