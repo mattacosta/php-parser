@@ -330,6 +330,8 @@ diagnostics:
   text: "Variable expected"
 - name: ERR_VariableNameExpected
   text: "Variable name expected after '$'"
+- name: ERR_VariableOrAmpersandExpected
+  text: "Variable or '&' expected"
 - name: ERR_VariableOrEllipsisExpected
   text: "Variable or '...' expected"
 - name: ERR_VariadicHasDefaultValue

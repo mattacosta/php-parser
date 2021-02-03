@@ -543,7 +543,7 @@ describe('PhpParser', function() {
         assert.strictEqual(closure.useClause, null);
         assert.notStrictEqual(closure.returnType, null);
       }),
-      new ParserTestArgs('function() use($a) {};', 'should parse a closure with lexical variables', (statements) => {
+      new ParserTestArgs('function() use($a) {};', 'should parse a closure with lexical variable', (statements, text) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
@@ -555,10 +555,31 @@ describe('PhpParser', function() {
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
         let variables = useClause.variables ? useClause.variables.childNodes() : [];
         assert.strictEqual(variables.length, 1);
-        assert.strictEqual(variables[0] instanceof LexicalVariableSyntaxNode, true);
+        let firstVariable = <LexicalVariableSyntaxNode>variables[0];
+        assert.strictEqual(firstVariable instanceof LexicalVariableSyntaxNode, true);
+        assert.strictEqual(firstVariable.ampersand, null);
+        Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
         assert.strictEqual(closure.returnType, null);
       }),
-      new ParserTestArgs('function() use($a, $b) {};', 'should parse a closure with multiple lexical variables', (statements) => {
+      new ParserTestArgs('function() use(&$a) {};', 'should parse a closure with lexical variable (by reference)', (statements, text) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
+        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        let useClause = <ClosureUseSyntaxNode>closure.useClause;
+        assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
+        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        assert.strictEqual(variables.length, 1);
+        let firstVariable = <LexicalVariableSyntaxNode>variables[0];
+        assert.strictEqual(firstVariable instanceof LexicalVariableSyntaxNode, true);
+        assert.notStrictEqual(firstVariable.ampersand, null);
+        Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
+        assert.strictEqual(closure.returnType, null);
+      }),
+      new ParserTestArgs('function() use($a, $b) {};', 'should parse a closure with multiple lexical variables', (statements, text) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
@@ -570,8 +591,12 @@ describe('PhpParser', function() {
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
         let variables = useClause.variables ? useClause.variables.childNodes() : [];
         assert.strictEqual(variables.length, 2);
-        assert.strictEqual(variables[0] instanceof LexicalVariableSyntaxNode, true);
-        assert.strictEqual(variables[1] instanceof LexicalVariableSyntaxNode, true);
+        let firstVariable = <LexicalVariableSyntaxNode>variables[0];
+        assert.strictEqual(firstVariable instanceof LexicalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
+        let secondVariable = <LexicalVariableSyntaxNode>variables[1];
+        assert.strictEqual(secondVariable instanceof LexicalVariableSyntaxNode, true);
+        Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
         assert.strictEqual(closure.returnType, null);
       }),
       new ParserTestArgs('function() use($a): A {};', 'should parse a closure with lexical variable and return type', (statements) => {
@@ -638,7 +663,9 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function()', 'missing colon, open brace, or use', [ErrorCode.ERR_IncompleteClosure], [10]),
       new DiagnosticTestArgs('function():', 'missing type', [ErrorCode.ERR_TypeExpected], [11]),
       new DiagnosticTestArgs('function() use', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [14]),
-      new DiagnosticTestArgs('function() use(', 'missing variable', [ErrorCode.ERR_VariableExpected], [15]),
+      new DiagnosticTestArgs('function() use(', 'missing ampersand or variable', [ErrorCode.ERR_VariableOrAmpersandExpected], [15]),
+      new DiagnosticTestArgs('function() use($', 'missing variable name', [ErrorCode.ERR_VariableNameExpected], [15]),
+      new DiagnosticTestArgs('function() use(&', 'missing variable', [ErrorCode.ERR_VariableExpected], [16]),
       new DiagnosticTestArgs('function() use($a', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [17]),
       new DiagnosticTestArgs('function() use($a)', 'missing colon or open brace', [ErrorCode.ERR_OpenBraceOrColonExpected], [18]),
       new DiagnosticTestArgs('function() use($a):', 'missing type (after lexical variables)', [ErrorCode.ERR_TypeExpected], [19]),
