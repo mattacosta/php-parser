@@ -491,7 +491,8 @@ describe('PhpParser', function() {
     Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
 
     let featureTrailingCommas = [
-      new DiagnosticTestArgs('unset($a,);', 'should not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
+      new DiagnosticTestArgs('unset($a,', 'should not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
+      new DiagnosticTestArgs('unset($a,);', 'should not parse trailing comma in argument list (completed)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
       new DiagnosticTestArgs('unset($a, $b,);', 'should not parse trailing comma in argument list (multiple arguments)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [12]),
     ];
     Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);

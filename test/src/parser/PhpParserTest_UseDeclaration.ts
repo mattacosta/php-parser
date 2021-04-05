@@ -305,8 +305,10 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticTests7_2, PhpVersion.PHP7_2);
 
       let featureTrailingCommas = [
-        new DiagnosticTestArgs('use function A\\{ B, };', 'should not parse trailing comma in function import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [18]),
-        new DiagnosticTestArgs('use const A\\{ B, };', 'should not parse trailing comma in constant import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [15]),
+        new DiagnosticTestArgs('use function A\\{ B,', 'should not parse trailing comma in function import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_IdentifierOrCloseBraceExpected], [18, 19]),
+        new DiagnosticTestArgs('use function A\\{ B, };', 'should not parse trailing comma in function import (completed)', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [18]),
+        new DiagnosticTestArgs('use const A\\{ B,', 'should not parse trailing comma in constant import', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations, ErrorCode.ERR_IdentifierOrCloseBraceExpected], [15, 16]),
+        new DiagnosticTestArgs('use const A\\{ B, };', 'should not parse trailing comma in constant import (completed)', [ErrorCode.ERR_FeatureTrailingCommasInUseDeclarations], [15]),
       ];
       Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_1);
     });

@@ -492,7 +492,8 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
 
       let featureTrailingCommas = [
-        new DiagnosticTestArgs('isset($a,);', 'should not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
+        new DiagnosticTestArgs('isset($a,', 'should not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [8, 9]),
+        new DiagnosticTestArgs('isset($a,);', 'should not parse trailing comma in argument list (completed)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
         new DiagnosticTestArgs('isset($a, $b,);', 'should not parse trailing comma in argument list (multiple arguments)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [12]),
       ];
       Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
@@ -697,8 +698,8 @@ describe('PhpParser', function() {
     Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
 
     let diagnosticRegressionTests8_0 = [
-      new DiagnosticTestArgs('function() use($a,', 'should not parse trailing comma in closure use list (incomplete)', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists, ErrorCode.ERR_IncompleteClosureUseList], [17, 18]),
-      new DiagnosticTestArgs('function() use($a,)', 'should not parse trailing comma in closure use list', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists], [17]),
+      new DiagnosticTestArgs('function() use($a,', 'should not parse trailing comma in closure use list', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists, ErrorCode.ERR_IncompleteClosureUseList], [17, 18]),
+      new DiagnosticTestArgs('function() use($a,)', 'should not parse trailing comma in closure use list (completed)', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists], [17]),
     ];
     Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
