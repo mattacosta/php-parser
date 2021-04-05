@@ -988,6 +988,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Determines if a token starts a variable in a closure use clause.
+   */
+  protected isLexicalVariableStart(kind: TokenKind): boolean {
+    // The '$' token is also allowed for error recovery purposes.
+    return kind === TokenKind.Ampersand || kind === TokenKind.Dollar || kind === TokenKind.Variable;
+  }
+
+  /**
    * Determines if a token starts an expression or nested list deconstruction.
    */
   protected isListIntrinsicElementStart(kind: TokenKind): boolean {
@@ -5117,13 +5125,25 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     vars.push(this.parseLexicalVariable());
 
     while (this.currentToken.kind === TokenKind.Comma) {
-      vars.push(this.eat(TokenKind.Comma));
-      vars.push(this.parseLexicalVariable());
+      let comma = this.eat(TokenKind.Comma);
+      if (!this.isLexicalVariableStart(this.currentToken.kind)) {
+        if (!this.isSupportedVersion(PhpVersion.PHP8_0)) {
+          comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists);
+        }
+        vars.push(comma);
+        break;
+      }
+      else {
+        vars.push(comma);
+        vars.push(this.parseLexicalVariable());
+      }
     }
 
     let closeParen = this.currentToken.kind === TokenKind.CloseParen
       ? this.eat(TokenKind.CloseParen)
-      : this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_CommaOrCloseParenExpected);
+      : vars.length & 1
+        ? this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_CommaOrCloseParenExpected)
+        : this.createMissingTokenWithError(TokenKind.CloseParen, ErrorCode.ERR_IncompleteClosureUseList);
     return new ClosureUseNode(useKeyword, openParen, this.factory.createList(vars), closeParen);
   }
 

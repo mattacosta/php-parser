@@ -657,6 +657,25 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
+    let syntaxTests8_0 = [
+      new ParserTestArgs('function() use($a,) {};', 'should parse a closure with lexical variable and trailing comma', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
+        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        let useClause = <ClosureUseSyntaxNode>closure.useClause;
+        assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
+        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        assert.strictEqual(variables.length, 1);
+        assert.strictEqual(variables[0] instanceof LexicalVariableSyntaxNode, true);
+        assert.strictEqual(closure.returnType, null);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
     // NOTE: See function-declaration for 'function' and 'function &' diagnostics.
     // NOTE: See static-declaration for 'static' diagnostics.
     let diagnosticTests = [
@@ -671,6 +690,17 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function() use($a):', 'missing type (after lexical variables)', [ErrorCode.ERR_TypeExpected], [19]),
     ];
     Test.assertDiagnostics(diagnosticTests);
+
+    let diagnosticTests8_0 = [
+      new DiagnosticTestArgs('function() use($a,', 'missing ampersand, variable, or close paren', [ErrorCode.ERR_IncompleteClosureUseList], [18]),
+    ];
+    Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+    let diagnosticRegressionTests8_0 = [
+      new DiagnosticTestArgs('function() use($a,', 'should not parse trailing comma in closure use list (incomplete)', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists, ErrorCode.ERR_IncompleteClosureUseList], [17, 18]),
+      new DiagnosticTestArgs('function() use($a,)', 'should not parse trailing comma in closure use list', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists], [17]),
+    ];
+    Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
 
   describe('arrow-function-creation', function() {

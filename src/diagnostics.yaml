@@ -64,6 +64,10 @@ diagnostics:
 - name: ERR_FeatureTypedProperties
   text: "The feature 'typed properties' requires PHP 7.4 or later"
 
+# --- PHP 8.0 -----------------------------------------------------------------
+- name: ERR_FeatureTrailingCommasInClosureUseLists
+  text: "The feature 'trailing commas in closure use lists' requires PHP 8.0 or later"
+
 # -----------------------------------------------------------------------------
 # Lexer diagnostics
 # -----------------------------------------------------------------------------
@@ -357,5 +361,7 @@ diagnostics:
   severity: 2
 
 # --- PHP 8.0 -----------------------------------------------------------------
+- name: ERR_IncompleteClosureUseList
+  text: "Variable, '&' or ')' expected"
 - name: ERR_TryCatchUnionOrOptionalVariableExpected
   text: "Type union, variable, or ')' expected"
