@@ -373,6 +373,11 @@ describe('PhpLexer', function() {
       ];
       Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
 
+      let regressionTests7_4 = [
+        new LexerTestArgs('<?php ??=', 'should not match coalesce equal', [TokenKind.Coalesce, TokenKind.Equal]),
+      ];
+      Test.assertTokens(regressionTests7_4, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+
       let tests8_0 = [
         new LexerTestArgs('<?php ?->', 'null-safe object operator', [TokenKind.NullSafeObjectOperator]),
       ];
