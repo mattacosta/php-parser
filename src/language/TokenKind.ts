@@ -158,6 +158,7 @@ export enum TokenKind {
   MinusEqual,
   ModEqual,
   MultiplyEqual,
+  NullSafeObjectOperator,
   ObjectOperator,
   OpenBraceDollar,          // Not used.
   OrEqual,
@@ -502,6 +503,8 @@ export class TokenKindInfo {
         return '%=';
       case TokenKind.MultiplyEqual:
         return '*=';
+      case TokenKind.NullSafeObjectOperator:
+        return '?->';
       case TokenKind.ObjectOperator:
         return '->';
       case TokenKind.OpenBraceDollar:

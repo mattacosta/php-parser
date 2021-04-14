@@ -165,6 +165,50 @@ describe('PhpLexer', function() {
       assertRescannedTokens(lexerTests, TokenKind.StringTemplate);
     });
 
+    describe('looking for property (null-safe operator)', function() {
+      let lexerTests = [
+        new LexerTestArgs('"$a?->b"', 'null-safe object operator with identifier',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.NullSafeObjectOperator, TokenKind.Identifier, TokenKind.DoubleQuote],
+          ['"', '$a', '?->', 'b', '"']
+        ),
+        new LexerTestArgs('" $a?->b"', 'null-safe object operator with identifier in string with leading text',
+          [TokenKind.DoubleQuote, TokenKind.StringTemplateLiteral, TokenKind.Variable, TokenKind.NullSafeObjectOperator, TokenKind.Identifier, TokenKind.DoubleQuote],
+          ['"', ' ', '$a', '?->', 'b', '"']
+        ),
+
+        new LexerTestArgs('"$a?->"', 'should not start if identifier is missing',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '?->', '"']
+        ),
+        new LexerTestArgs('"$a ?->b"', 'should not start if whitespace is before null-safe object operator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', ' ?->b', '"']
+        ),
+        new LexerTestArgs('"$a\n\t?->b"', 'should not start if whitespace is before null-safe object operator (multiple)',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '\n\t?->b', '"']
+        ),
+        new LexerTestArgs('"$a?-> b"', 'should not start if whitespace is after null-safe object operator',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '?-> b', '"']
+        ),
+        new LexerTestArgs('"$a?->\n\tb"', 'should not start if whitespace is after null-safe object operator (multiple)',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '?->\n\tb', '"']
+        ),
+
+        new LexerTestArgs('"$a?->b', 'should end at EOF',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.NullSafeObjectOperator, TokenKind.Identifier],
+          ['"', '$a', '?->', 'b']
+        ),
+        new LexerTestArgs('"$a?->b?->c"', 'should end after first property',
+          [TokenKind.DoubleQuote, TokenKind.Variable, TokenKind.NullSafeObjectOperator, TokenKind.Identifier, TokenKind.StringTemplateLiteral, TokenKind.DoubleQuote],
+          ['"', '$a', '?->', 'b', '?->c', '"']
+        ),
+      ];
+      assertRescannedTokens(lexerTests, TokenKind.StringTemplate, PhpVersion.PHP8_0);
+    });
+
     describe('looking for variable name', function() {
       let lexerTests = [
         new LexerTestArgs('"${a}"', 'indirect variable name',

@@ -372,6 +372,16 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php ??=', 'coalesce equal', [TokenKind.CoalesceEqual]),
       ];
       Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
+
+      let tests8_0 = [
+        new LexerTestArgs('<?php ?->', 'null-safe object operator', [TokenKind.NullSafeObjectOperator]),
+      ];
+      Test.assertTokens(tests8_0, PhpVersion.PHP8_0);
+
+      let regressionTests8_0 = [
+        new LexerTestArgs('<?php ?->', 'should not match null-safe object operator', [TokenKind.Question, TokenKind.ObjectOperator]),
+      ];
+      Test.assertTokens(regressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('type casts', function() {

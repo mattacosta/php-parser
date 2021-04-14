@@ -244,6 +244,14 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
+      let syntaxTests8_0 = [
+        new ParserTestArgs('$a?->b[0];', 'element access of a property (null-safe)', (statements) => {
+          let accessNode = assertElementAccess(statements, true);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
       let diagnosticsTests = [
         new DiagnosticTestArgs('<<<LABEL\nLABEL\n[0];', 'should not parse element access of heredoc template', [ErrorCode.ERR_SemicolonExpected], [14]),
         new DiagnosticTestArgs('`$a`[0];', 'should not parse element access of shell command template', [ErrorCode.ERR_SemicolonExpected], [4]),
@@ -427,6 +435,15 @@ describe('PhpParser', function() {
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests8_0 = [
+        // NOTE: Not semantically valid as the null-safe operator can't be used in a write context.
+        new ParserTestArgs('$a?->b[];', 'element access of a property (null-safe)', (statements) => {
+          let accessNode = assertElementAccess(statements, false);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
     });
 
     describe('invocation-expression', function() {
@@ -602,6 +619,74 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('A->', 'should not parse object access of a name', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [1, 1]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('object-access-expression (null-safe)', function() {
+      let syntaxTests = [
+        // Variables.
+        new ParserTestArgs('$a?->b;', 'object access of a variable', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a?->b;', 'object access of a variable with variable name', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}?->b;', 'object access of a variable with expression name', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a)?->b;', 'object access of an expression group', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a()?->b;', 'object access of a function invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b()?->c;', 'object access of a static method invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b()?->c;', 'object access of a static method invocation with class name reference', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b()?->c;', 'object access of a method invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Scoped access.
+        new ParserTestArgs('A::$b?->c;', 'object access of a scoped access expression', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('$a?->b?->c;', 'object access of an object access expression', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+
+        new ParserTestArgs('$a?->class;', 'object access with keyword (class)', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let memberAccess = <NamedMemberAccessSyntaxNode>exprNode.expression;
+          assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
+          Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Class, 'class');
+          assert.strictEqual(memberAccess.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('array()?->', 'should not parse object access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
+        new DiagnosticTestArgs('[]?->', 'should not parse object access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
+        new DiagnosticTestArgs('"A"?->', 'should not parse object access of a string literal', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [3, 3]),
+        new DiagnosticTestArgs('A?->', 'should not parse object access of a name', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [1, 1]),
+      ];
+      Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP8_0);
     });
 
     // NOTE: Technically this should include "$a->{$b}" syntax as well.

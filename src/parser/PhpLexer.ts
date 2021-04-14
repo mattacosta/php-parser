@@ -1073,6 +1073,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.tokenKind = TokenKind.Coalesce;
           }
         }
+        else if (next === Character.Minus && this.peek(this.offset + 2) === Character.GreaterThan && this.phpVersion >= PhpVersion.PHP8_0) {
+          this.offset = this.offset + 3;  // "?->"
+          this.tokenKind = TokenKind.NullSafeObjectOperator;
+        }
         else {
           this.offset++;
           this.tokenKind = TokenKind.Question;
@@ -1724,9 +1728,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.offset = this.offset + 2;  // "$a"
             this.scanIdentifierPart();
 
-            if (this.startsWithObjectProperty()) {
-              this.offset = this.offset + 3;
-              this.scanIdentifierPart();
+            if (this.tryScanInterpolatedObjectProperty()) {
               spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
             }
             else if (this.peek(this.offset) === Character.OpenBracket) {
@@ -2212,19 +2214,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Determines if an object operator and property name are present at the
-   * scanner's current location.
-   */
-  protected startsWithObjectProperty(): boolean {
-    if (this.offset + 3 > this.end) {
-      return false;
-    }
-    return this.text.charCodeAt(this.offset) === Character.Minus &&
-      this.text.charCodeAt(this.offset + 1) === Character.GreaterThan &&
-      CharacterInfo.isIdentifierStart(this.text.charCodeAt(this.offset + 2), this.phpVersion);
-  }
-
-  /**
    * Returns a keyword or identifier token for the scanned text.
    */
   protected textToIdentifierToken(): TokenKind {
@@ -2294,6 +2283,28 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     return this.offset - start;
+  }
+
+  /**
+   * Attempts to scan for an object operator and a property name in a string
+   * template. If not found, nothing is scanned.
+   */
+  protected tryScanInterpolatedObjectProperty(): number {
+    const start = this.offset;
+
+    let ch = this.peek(this.offset);
+    if (ch === Character.Question && this.phpVersion >= PhpVersion.PHP8_0) {
+      this.offset++;
+      ch = this.peek(this.offset);
+    }
+    if (ch === Character.Minus && this.peek(this.offset + 1) === Character.GreaterThan && CharacterInfo.isIdentifierStart(this.peek(this.offset + 2), this.phpVersion)) {
+      this.offset = this.offset + 3;
+      this.scanIdentifierPart();
+      return this.offset - start;
+    }
+
+    this.offset = start;
+    return 0;
   }
 
   /**

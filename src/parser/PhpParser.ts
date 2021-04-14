@@ -847,6 +847,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   protected isClassNameReferenceExpressionStart(kind: TokenKind): boolean {
     switch (kind) {
       case TokenKind.DoubleColon:
+      case TokenKind.NullSafeObjectOperator:
       case TokenKind.ObjectOperator:
       case TokenKind.OpenBracket:
         return true;
@@ -864,6 +865,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected isDereferenceStart(kind: TokenKind): boolean {
     return kind === TokenKind.DoubleColon ||
+      kind === TokenKind.NullSafeObjectOperator ||
       kind === TokenKind.ObjectOperator ||
       kind === TokenKind.OpenBrace ||
       kind === TokenKind.OpenBracket ||
@@ -4405,6 +4407,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           node = <ExpressionNode>expr.node;
           type = expr.type;
           break;
+        case TokenKind.NullSafeObjectOperator:
         case TokenKind.ObjectOperator:
           node = this.parseMemberAccessOrInvocation(node, true);
           break;
@@ -4997,6 +5000,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           let variable = this.parseSimpleVariable();
           reference = new StaticPropertyNode(reference, doubleColon, variable);
           break;
+        case TokenKind.NullSafeObjectOperator:
         case TokenKind.ObjectOperator:
           reference = this.parseMemberAccessOrInvocation(reference, false);
           break;
@@ -5727,6 +5731,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Syntax:
    * - `dereferenceable -> property-name`
    * - `dereferenceable -> property-name ( argument-list )`
+   * - `dereferenceable ?-> property-name`
+   * - `dereferenceable ?-> property-name ( argument-list )`
    *
    * Where `property-name` is:
    * - `member-name`
@@ -5739,7 +5745,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *   If `true`, parse an invocation expression when possible.
    */
   protected parseMemberAccessOrInvocation(dereferenceable: ExpressionNode, allowInvocation: boolean): MemberAccessNode | MemberInvocationNode {
-    let objOperator = this.eat(TokenKind.ObjectOperator);
+    Debug.assert(this.currentToken.kind === TokenKind.ObjectOperator || this.currentToken.kind === TokenKind.NullSafeObjectOperator);
+    let objOperator = this.eat(this.currentToken.kind);
 
     let memberName: TokenNode | null = null;
 
@@ -6355,6 +6362,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * - `VARIABLE`
    * - `VARIABLE [ string-offset ]`
    * - `VARIABLE -> member-name`
+   * - `VARIABLE ?-> member-name`
    *
    * Where `string-offset` is:
    * - `IDENTIFIER`
@@ -6385,9 +6393,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       let closeBracket = this.eat(TokenKind.CloseBracket);
       return new StringElementAccessNode(variable, openBracket, minus, offset, closeBracket);
     }
-    else if (this.currentToken.kind === TokenKind.ObjectOperator) {
+    else if (this.currentToken.kind === TokenKind.ObjectOperator || this.currentToken.kind === TokenKind.NullSafeObjectOperator) {
       let dereferenceable = new LocalVariableNode(variable);
-      let objOperator = this.eat(TokenKind.ObjectOperator);
+      let objOperator = this.eat(this.currentToken.kind);
       let identifier = this.isClassMemberIdentifier(this.currentToken.kind)
         ? this.eat(this.currentToken.kind)
         : this.createMissingToken(TokenKind.Identifier, this.currentToken.kind, true);

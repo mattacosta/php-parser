@@ -942,6 +942,18 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
+    let syntaxTests8_0 = [
+      new ParserTestArgs('new $a?->b;', 'should parse an object creation expression with class reference using null-safe member access', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let newNode = <IndirectObjectCreationSyntaxNode>exprNode.expression;
+        assert.strictEqual(newNode instanceof IndirectObjectCreationSyntaxNode, true);
+        assert.strictEqual(newNode.classNameReference instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
+        assert.strictEqual(newNode.argumentList, null);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
     let syntaxRegressionTests8_0 = [
       new ParserTestArgs('new $a{0};', 'should parse an object creation expression with class reference using element access (brace syntax)', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
