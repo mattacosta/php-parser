@@ -19,7 +19,7 @@
 /**
  * The "value categories" of an expression.
  *
- * For those familiar with C++, this is similar its `lvalue` and `rvalue`
+ * For those familiar with C++, this is similar to its `lvalue` and `rvalue`
  * categories (which are actually much more complicated), but instead of
  * being used to handle temporary objects, it is used to determine which
  * action the parser should take.
