@@ -874,15 +874,6 @@ nodes:
   - name: semicolon
     type: TokenNode
   visitorName: visitContinue
-- name: ExpressionStatement
-  extends: Statement
-  properties:
-  - name: expression
-    type: Expression
-    optional: true
-  - name: semicolon
-    type: TokenNode
-  visitorName: visitExpressionStatement
 - name: Declare
   extends: Statement
   properties:
@@ -949,6 +940,15 @@ nodes:
     type: TokenNode
     optional: true
   visitorName: visitEcho
+- name: ExpressionStatement
+  extends: Statement
+  properties:
+  - name: expression
+    type: Expression
+    optional: true
+  - name: semicolon
+    type: TokenNode
+  visitorName: visitExpressionStatement
 - name: For
   extends: Iteration
   properties:
