@@ -242,20 +242,6 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(featureClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
-    describe('property-declaration', function() {
-      let diagnosticTests = [
-        new DiagnosticTestArgs('interface A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 23]),
-        new DiagnosticTestArgs('interface A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 20]),
-        new DiagnosticTestArgs('interface A { public $b; }', 'should not parse a public property', [ErrorCode.ERR_InterfaceProperty], [21]),
-        new DiagnosticTestArgs('interface A { protected $b; }', 'should not parse a protected property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 24]),
-        new DiagnosticTestArgs('interface A { private $b; }', 'should not parse a private property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 22]),
-        new DiagnosticTestArgs('interface A { static $b; }', 'should not parse a static property', [ErrorCode.ERR_InterfaceProperty], [21]),
-        // For consistency, defer this error to the variable instead of 'var'.
-        new DiagnosticTestArgs('interface A { var $b; }', 'should not parse a var property', [ErrorCode.ERR_InterfaceProperty], [18]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
     // Everything except for the parameter list and statement block needs full
     // testing since it uses a different implementation than `function-declaration`.
     describe('method-declaration', function() {
@@ -418,6 +404,20 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { static final function b(); }', 'should not expect static and final modifiers', [ErrorCode.ERR_BadInterfaceModifier], [21]),
         new DiagnosticTestArgs('interface A { static protected function b(); }', 'should not expect static and protected modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic], [21]),
         new DiagnosticTestArgs('interface A { static private function b(); }', 'should not expect static and private modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic], [21]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('property-declaration', function() {
+      let diagnosticTests = [
+        new DiagnosticTestArgs('interface A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 23]),
+        new DiagnosticTestArgs('interface A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 20]),
+        new DiagnosticTestArgs('interface A { public $b; }', 'should not parse a public property', [ErrorCode.ERR_InterfaceProperty], [21]),
+        new DiagnosticTestArgs('interface A { protected $b; }', 'should not parse a protected property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 24]),
+        new DiagnosticTestArgs('interface A { private $b; }', 'should not parse a private property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 22]),
+        new DiagnosticTestArgs('interface A { static $b; }', 'should not parse a static property', [ErrorCode.ERR_InterfaceProperty], [21]),
+        // For consistency, defer this error to the variable instead of 'var'.
+        new DiagnosticTestArgs('interface A { var $b; }', 'should not parse a var property', [ErrorCode.ERR_InterfaceProperty], [18]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

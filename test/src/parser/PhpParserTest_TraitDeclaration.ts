@@ -153,6 +153,237 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticTests);
     });
 
+    // Everything except for the parameter list and statement block needs full
+    // testing since it uses a different implementation than `function-declaration`.
+    describe('method-declaration', function() {
+      let syntaxTests = [
+        new ParserTestArgs('trait A { function b() {} }', 'should parse a method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { function list() {} }', 'should parse a method declaration with semi-reserved keyword', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.List, 'list');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { function &b() {} }', 'should parse a method declaration with ampersand', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.notStrictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+
+        // Modifiers.
+        new ParserTestArgs('trait A { abstract function b(); }', 'should parse an abstract method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { final function b() {} }', 'should parse a final method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Final, 'final');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { private function b() {} }', 'should parse a private method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { protected function b() {} }', 'should parse a protected method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { public function b() {} }', 'should parse a public method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { static function b() {} }', 'should parse a static method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+
+        // Modifiers (mixed).
+        new ParserTestArgs('trait A { abstract protected function b(); }', 'should parse an abstract and protected method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Protected, 'protected');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { abstract public function b(); }', 'should parse an abstract and public method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { abstract static function b(); }', 'should parse an abstract and static method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { static final function b() {} }', 'should parse a static and final method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Final, 'final');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { static private function b() {} }', 'should parse a static and private method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Private, 'private');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { static protected function b() {} }', 'should parse a static and protected method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Protected, 'protected');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+        new ParserTestArgs('trait A { static public function b() {} }', 'should parse a static and public method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+        }),
+
+        // Return types.
+        new ParserTestArgs('trait A { function b(): C {} }', 'should parse a method declaration with return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
+        new ParserTestArgs('trait A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <NamedTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.notStrictEqual(returnType.question, null);
+          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
+        new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
+        new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
+        new DiagnosticTestArgs('trait A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('trait A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+
+        new DiagnosticTestArgs('trait A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
+        new DiagnosticTestArgs('trait A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
+        new DiagnosticTestArgs('trait A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
+        new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+
+        new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
+        new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
+        new DiagnosticTestArgs('trait A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
+        new DiagnosticTestArgs('trait A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
+
+        // @todo These should be recovery tests.
+        new DiagnosticTestArgs('trait A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
+        new DiagnosticTestArgs('trait A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
     describe('property-declaration', function() {
       let syntaxTests = [
         new ParserTestArgs('trait A { public $b; }', 'should parse a property declaration', (statements, text) => {
@@ -386,237 +617,6 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('trait A { public B $c; }', 'should not parse a typed property', [ErrorCode.ERR_FeatureTypedProperties], [17]),
       ];
       Test.assertDiagnostics(featureTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
-    });
-
-    // Everything except for the parameter list and statement block needs full
-    // testing since it uses a different implementation than `function-declaration`.
-    describe('method-declaration', function() {
-      let syntaxTests = [
-        new ParserTestArgs('trait A { function b() {} }', 'should parse a method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { function list() {} }', 'should parse a method declaration with semi-reserved keyword', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.List, 'list');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { function &b() {} }', 'should parse a method declaration with ampersand', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.notStrictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-
-        // Modifiers.
-        new ParserTestArgs('trait A { abstract function b(); }', 'should parse an abstract method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { final function b() {} }', 'should parse a final method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Final, 'final');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { private function b() {} }', 'should parse a private method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { protected function b() {} }', 'should parse a protected method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { public function b() {} }', 'should parse a public method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { static function b() {} }', 'should parse a static method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-
-        // Modifiers (mixed).
-        new ParserTestArgs('trait A { abstract protected function b(); }', 'should parse an abstract and protected method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Protected, 'protected');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { abstract public function b(); }', 'should parse an abstract and public method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { abstract static function b(); }', 'should parse an abstract and static method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Abstract, 'abstract');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { static final function b() {} }', 'should parse a static and final method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Final, 'final');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { static private function b() {} }', 'should parse a static and private method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Private, 'private');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { static protected function b() {} }', 'should parse a static and protected method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Protected, 'protected');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-        new ParserTestArgs('trait A { static public function b() {} }', 'should parse a static and public method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-        }),
-
-        // Return types.
-        new ParserTestArgs('trait A { function b(): C {} }', 'should parse a method declaration with return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let syntaxTests7_1 = [
-        new ParserTestArgs('trait A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          let returnType = <NamedTypeSyntaxNode>method.returnType;
-          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
-          assert.notStrictEqual(returnType.question, null);
-          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
-        new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
-        new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
-        new DiagnosticTestArgs('trait A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
-        new DiagnosticTestArgs('trait A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-
-        new DiagnosticTestArgs('trait A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
-        new DiagnosticTestArgs('trait A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
-        new DiagnosticTestArgs('trait A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
-        new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-
-        new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
-        new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
-        new DiagnosticTestArgs('trait A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
-        new DiagnosticTestArgs('trait A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
-
-        // @todo These should be recovery tests.
-        new DiagnosticTestArgs('trait A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
-        new DiagnosticTestArgs('trait A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
     });
 
     describe('trait-use-clause', function() {

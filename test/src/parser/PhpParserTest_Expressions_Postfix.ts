@@ -553,349 +553,7 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(syntaxTests);
     });
 
-    describe('object-access-expression', function() {
-      let syntaxTests = [
-        // Variables.
-        new ParserTestArgs('$a->b;', 'object access of a variable', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('$$a->b;', 'object access of a variable with variable name', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('${A}->b;', 'object access of a variable with expression name', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
-        }),
-        // Expression group.
-        new ParserTestArgs('($a)->b;', 'object access of an expression group', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
-        }),
-        // Invocation.
-        new ParserTestArgs('a()->b;', 'object access of a function invocation', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('A::b()->c;', 'object access of a static method invocation', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a::b()->c;', 'object access of a static method invocation with class name reference', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a->b()->c;', 'object access of a method invocation', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
-        }),
-        // Scoped access.
-        new ParserTestArgs('A::$b->c;', 'object access of a scoped access expression', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
-        }),
-        // Self.
-        new ParserTestArgs('$a->b->c;', 'object access of an object access expression', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
-        }),
-
-        new ParserTestArgs('$a->class;', 'object access with keyword (class)', (statements, text) => {
-          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-          let memberAccess = <NamedMemberAccessSyntaxNode>exprNode.expression;
-          assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
-          Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Class, 'class');
-          assert.strictEqual(memberAccess.dereferenceable instanceof LocalVariableSyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('array()->', 'should not parse object access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
-        new DiagnosticTestArgs('[]->', 'should not parse object access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
-        new DiagnosticTestArgs('"A"->', 'should not parse object access of a string literal', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [3, 3]),
-        new DiagnosticTestArgs('A->', 'should not parse object access of a name', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [1, 1]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
-    describe('object-access-expression (null-safe)', function() {
-      let syntaxTests = [
-        // Variables.
-        new ParserTestArgs('$a?->b;', 'object access of a variable', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('$$a?->b;', 'object access of a variable with variable name', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('${A}?->b;', 'object access of a variable with expression name', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
-        }),
-        // Expression group.
-        new ParserTestArgs('($a)?->b;', 'object access of an expression group', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
-        }),
-        // Invocation.
-        new ParserTestArgs('a()?->b;', 'object access of a function invocation', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'b');
-          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('A::b()?->c;', 'object access of a static method invocation', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a::b()?->c;', 'object access of a static method invocation with class name reference', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a->b()?->c;', 'object access of a method invocation', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
-        }),
-        // Scoped access.
-        new ParserTestArgs('A::$b?->c;', 'object access of a scoped access expression', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
-        }),
-        // Self.
-        new ParserTestArgs('$a?->b?->c;', 'object access of an object access expression', (statements, text) => {
-          let accessNode = assertNamedMemberAccess(statements, text, 'c');
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
-        }),
-
-        new ParserTestArgs('$a?->class;', 'object access with keyword (class)', (statements, text) => {
-          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-          let memberAccess = <NamedMemberAccessSyntaxNode>exprNode.expression;
-          assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
-          Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Class, 'class');
-          assert.strictEqual(memberAccess.dereferenceable instanceof LocalVariableSyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('array()?->', 'should not parse object access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
-        new DiagnosticTestArgs('[]?->', 'should not parse object access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
-        new DiagnosticTestArgs('"A"?->', 'should not parse object access of a string literal', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [3, 3]),
-        new DiagnosticTestArgs('A?->', 'should not parse object access of a name', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [1, 1]),
-      ];
-      Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP8_0);
-    });
-
-    // NOTE: Technically this should include "$a->{$b}" syntax as well.
-    describe('object-access-expression (indirect)', function() {
-      let syntaxTests = [
-        new ParserTestArgs('$a->$b;', 'object access of a variable', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('$$a->$b;', 'object access of a variable with variable name', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('${A}->$b;', 'object access of a variable with expression name', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
-        }),
-        // Expression group.
-        new ParserTestArgs('($a)->$b;', 'object access of an expression group', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
-        }),
-        // Invocation.
-        new ParserTestArgs('a()->$b;', 'object access of a function invocation', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('A::b()->$c;', 'object access of a static method invocation', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a::b()->$c;', 'object access of a static method invocation with class name reference', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a->b()->$c;', 'object access of a method invocation', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
-        }),
-        // Scoped access.
-        new ParserTestArgs('A::$b->$c;', 'object access of a scoped access expression', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
-        }),
-        // Self.
-        new ParserTestArgs('$a->b->$c;', 'object access of an object access expression', (statements) => {
-          let accessNode = assertIndirectMemberAccess(statements);
-          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-    });
-
-    // NOTE: Does not include additional syntax variations for the member.
-    describe('scoped-access-expression (static property)', function() {
-      let syntaxTests = [
-        new ParserTestArgs('$a::$b;', 'scoped access of a variable', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof LocalVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('$$a::$b;', 'scoped access of a variable with variable name', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('${A}::$b;', 'scoped access of a variable with expression name', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('"a"::$b;', 'scoped access of a string literal', (statements) => {
-          let constant = assertStaticProperty(statements);
-          assert.strictEqual(constant.qualifier instanceof LiteralSyntaxNode, true);
-        }),
-        // Expression group.
-        new ParserTestArgs('($a)::$b;', 'scoped access of an expression group', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof ExpressionGroupSyntaxNode, true);
-        }),
-        // Invocation.
-        new ParserTestArgs('a()::$b;', 'scoped access of a function invocation', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof FunctionInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('A::b()::$c;', 'scoped access of a static method invocation', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a::b()::$c;', 'scoped access of a static method invocation with class name reference', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a->b()::$c;', 'scoped access of a method invocation', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof NamedMethodInvocationSyntaxNode, true);
-        }),
-        // Names.
-        new ParserTestArgs('A::$b;', 'scoped access of a class name', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
-        }),
-        new ParserTestArgs('\\A::$b;', 'scoped access of a class name (fully qualified)', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof FullyQualifiedNameSyntaxNode, true);
-        }),
-        new ParserTestArgs('namespace\\A::$b;', 'scoped access of a class name (relative)', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof RelativeNameSyntaxNode, true);
-        }),
-        new ParserTestArgs('static::$b;', 'scoped access of a class name (static keyword)', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
-        }),
-        // Object access.
-        new ParserTestArgs('$a->b::$c;', 'scoped access of an object access expression', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof NamedMemberAccessSyntaxNode, true);
-        }),
-        // Self.
-        new ParserTestArgs('A::$b::$c;', 'scoped access of a scoped access expression', (statements) => {
-          let property = assertStaticProperty(statements);
-          assert.strictEqual(property.qualifier instanceof StaticPropertySyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('array()::$b;', 'should not parse scoped access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
-        new DiagnosticTestArgs('[]::$b;', 'should not parse scoped access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
-    describe('scoped-access-expression (class constant)', function() {
-      let syntaxTests = [
-        new ParserTestArgs('$a::B;', 'scoped access of a variable', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof LocalVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('$$a::B;', 'scoped access of a variable with variable name', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('${A}::B;', 'scoped access of a variable with expression name', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof IndirectVariableSyntaxNode, true);
-        }),
-        new ParserTestArgs('"a"::B;', 'scoped access of a string literal', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof LiteralSyntaxNode, true);
-        }),
-        // Expression group.
-        new ParserTestArgs('($a)::B;', 'scoped access of an expression group', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof ExpressionGroupSyntaxNode, true);
-        }),
-        // Invocation.
-        new ParserTestArgs('a()::B;', 'scoped access of a function invocation', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof FunctionInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('A::b()::C;', 'scoped access of a static method invocation', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'C');
-          assert.strictEqual(constant.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a::b()::C;', 'scoped access of a static method invocation with class name reference', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'C');
-          assert.strictEqual(constant.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
-        }),
-        new ParserTestArgs('$a->b()::C;', 'scoped access of a method invocation', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'C');
-          assert.strictEqual(constant.qualifier instanceof NamedMethodInvocationSyntaxNode, true);
-        }),
-        // Names.
-        new ParserTestArgs('A::B;', 'scoped access of a class name', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
-        }),
-        new ParserTestArgs('\\A::B;', 'scoped access of a class name (fully qualified)', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof FullyQualifiedNameSyntaxNode, true);
-        }),
-        new ParserTestArgs('namespace\\A::B;', 'scoped access of a class name (relative)', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof RelativeNameSyntaxNode, true);
-        }),
-        new ParserTestArgs('static::B;', 'scoped access of a class name (static keyword)', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'B');
-          assert.strictEqual(constant.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
-        }),
-        // Object access.
-        new ParserTestArgs('$a->b::C;', 'scoped access of an object access expression', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'C');
-          assert.strictEqual(constant.qualifier instanceof NamedMemberAccessSyntaxNode, true);
-        }),
-        // Self.
-        new ParserTestArgs('A::$b::C;', 'scoped access of a scoped access expression', (statements, text) => {
-          let constant = assertClassConstant(statements, text, 'C');
-          assert.strictEqual(constant.qualifier instanceof StaticPropertySyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('array()::B;', 'should not parse scoped access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
-        new DiagnosticTestArgs('[]::B;', 'should not parse scoped access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
-    describe('argument-list', function() {
+    describe('invocation-expression (argument-list)', function() {
       // NOTE: Empty argument lists are tested above.
       let syntaxTests = [
         new ParserTestArgs('a($b);', 'should parse an argument', (statements, text) => {
@@ -1014,6 +672,348 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('a(...$b,);', 'shoud not parse trailing comma in argument list (after unpacked argument)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [7]),
       ];
       Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
+    });
+
+    describe('object-access-expression', function() {
+      let syntaxTests = [
+        // Variables.
+        new ParserTestArgs('$a->b;', 'object access of a variable', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a->b;', 'object access of a variable with variable name', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}->b;', 'object access of a variable with expression name', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a)->b;', 'object access of an expression group', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a()->b;', 'object access of a function invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b()->c;', 'object access of a static method invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b()->c;', 'object access of a static method invocation with class name reference', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b()->c;', 'object access of a method invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Scoped access.
+        new ParserTestArgs('A::$b->c;', 'object access of a scoped access expression', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('$a->b->c;', 'object access of an object access expression', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+
+        new ParserTestArgs('$a->class;', 'object access with keyword (class)', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let memberAccess = <NamedMemberAccessSyntaxNode>exprNode.expression;
+          assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
+          Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Class, 'class');
+          assert.strictEqual(memberAccess.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('array()->', 'should not parse object access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
+        new DiagnosticTestArgs('[]->', 'should not parse object access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
+        new DiagnosticTestArgs('"A"->', 'should not parse object access of a string literal', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [3, 3]),
+        new DiagnosticTestArgs('A->', 'should not parse object access of a name', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [1, 1]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    // NOTE: Technically this should include "$a->{$b}" syntax as well.
+    describe('object-access-expression (indirect)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('$a->$b;', 'object access of a variable', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a->$b;', 'object access of a variable with variable name', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}->$b;', 'object access of a variable with expression name', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a)->$b;', 'object access of an expression group', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a()->$b;', 'object access of a function invocation', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b()->$c;', 'object access of a static method invocation', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b()->$c;', 'object access of a static method invocation with class name reference', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b()->$c;', 'object access of a method invocation', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Scoped access.
+        new ParserTestArgs('A::$b->$c;', 'object access of a scoped access expression', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('$a->b->$c;', 'object access of an object access expression', (statements) => {
+          let accessNode = assertIndirectMemberAccess(statements);
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+    });
+
+    describe('object-access-expression (null-safe)', function() {
+      let syntaxTests = [
+        // Variables.
+        new ParserTestArgs('$a?->b;', 'object access of a variable', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a?->b;', 'object access of a variable with variable name', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}?->b;', 'object access of a variable with expression name', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof IndirectVariableSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a)?->b;', 'object access of an expression group', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a()?->b;', 'object access of a function invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'b');
+          assert.strictEqual(accessNode.dereferenceable instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b()?->c;', 'object access of a static method invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b()?->c;', 'object access of a static method invocation with class name reference', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b()?->c;', 'object access of a method invocation', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Scoped access.
+        new ParserTestArgs('A::$b?->c;', 'object access of a scoped access expression', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof StaticPropertySyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('$a?->b?->c;', 'object access of an object access expression', (statements, text) => {
+          let accessNode = assertNamedMemberAccess(statements, text, 'c');
+          assert.strictEqual(accessNode.dereferenceable instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+
+        new ParserTestArgs('$a?->class;', 'object access with keyword (class)', (statements, text) => {
+          let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+          assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+          let memberAccess = <NamedMemberAccessSyntaxNode>exprNode.expression;
+          assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
+          Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Class, 'class');
+          assert.strictEqual(memberAccess.dereferenceable instanceof LocalVariableSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('array()?->', 'should not parse object access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
+        new DiagnosticTestArgs('[]?->', 'should not parse object access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
+        new DiagnosticTestArgs('"A"?->', 'should not parse object access of a string literal', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [3, 3]),
+        new DiagnosticTestArgs('A?->', 'should not parse object access of a name', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [1, 1]),
+      ];
+      Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP8_0);
+    });
+
+    describe('scoped-access-expression (class constant)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('$a::B;', 'scoped access of a variable', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a::B;', 'scoped access of a variable with variable name', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}::B;', 'scoped access of a variable with expression name', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('"a"::B;', 'scoped access of a string literal', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof LiteralSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a)::B;', 'scoped access of an expression group', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a()::B;', 'scoped access of a function invocation', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b()::C;', 'scoped access of a static method invocation', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'C');
+          assert.strictEqual(constant.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b()::C;', 'scoped access of a static method invocation with class name reference', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'C');
+          assert.strictEqual(constant.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b()::C;', 'scoped access of a method invocation', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'C');
+          assert.strictEqual(constant.qualifier instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Names.
+        new ParserTestArgs('A::B;', 'scoped access of a class name', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('\\A::B;', 'scoped access of a class name (fully qualified)', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof FullyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A::B;', 'scoped access of a class name (relative)', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof RelativeNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('static::B;', 'scoped access of a class name (static keyword)', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'B');
+          assert.strictEqual(constant.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+        // Object access.
+        new ParserTestArgs('$a->b::C;', 'scoped access of an object access expression', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'C');
+          assert.strictEqual(constant.qualifier instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('A::$b::C;', 'scoped access of a scoped access expression', (statements, text) => {
+          let constant = assertClassConstant(statements, text, 'C');
+          assert.strictEqual(constant.qualifier instanceof StaticPropertySyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('array()::B;', 'should not parse scoped access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
+        new DiagnosticTestArgs('[]::B;', 'should not parse scoped access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    // NOTE: Does not include additional syntax variations for the member.
+    describe('scoped-access-expression (static property)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('$a::$b;', 'scoped access of a variable', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof LocalVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('$$a::$b;', 'scoped access of a variable with variable name', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('${A}::$b;', 'scoped access of a variable with expression name', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof IndirectVariableSyntaxNode, true);
+        }),
+        new ParserTestArgs('"a"::$b;', 'scoped access of a string literal', (statements) => {
+          let constant = assertStaticProperty(statements);
+          assert.strictEqual(constant.qualifier instanceof LiteralSyntaxNode, true);
+        }),
+        // Expression group.
+        new ParserTestArgs('($a)::$b;', 'scoped access of an expression group', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof ExpressionGroupSyntaxNode, true);
+        }),
+        // Invocation.
+        new ParserTestArgs('a()::$b;', 'scoped access of a function invocation', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof FunctionInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('A::b()::$c;', 'scoped access of a static method invocation', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a::b()::$c;', 'scoped access of a static method invocation with class name reference', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof NamedScopedInvocationSyntaxNode, true);
+        }),
+        new ParserTestArgs('$a->b()::$c;', 'scoped access of a method invocation', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof NamedMethodInvocationSyntaxNode, true);
+        }),
+        // Names.
+        new ParserTestArgs('A::$b;', 'scoped access of a class name', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('\\A::$b;', 'scoped access of a class name (fully qualified)', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof FullyQualifiedNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('namespace\\A::$b;', 'scoped access of a class name (relative)', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof RelativeNameSyntaxNode, true);
+        }),
+        new ParserTestArgs('static::$b;', 'scoped access of a class name (static keyword)', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+        // Object access.
+        new ParserTestArgs('$a->b::$c;', 'scoped access of an object access expression', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof NamedMemberAccessSyntaxNode, true);
+        }),
+        // Self.
+        new ParserTestArgs('A::$b::$c;', 'scoped access of a scoped access expression', (statements) => {
+          let property = assertStaticProperty(statements);
+          assert.strictEqual(property.qualifier instanceof StaticPropertySyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('array()::$b;', 'should not parse scoped access of an array', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [7, 7]),
+        new DiagnosticTestArgs('[]::$b;', 'should not parse scoped access of an array (short syntax)', [ErrorCode.ERR_SemicolonExpected, ErrorCode.ERR_UnexpectedToken], [2, 2]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
     });
 
   });

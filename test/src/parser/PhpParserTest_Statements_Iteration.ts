@@ -66,42 +66,6 @@ describe('PhpParser', function() {
 
   describe('iteration-statement', function() {
 
-    describe('while-statement', function() {
-      let syntaxTests = [
-        new ParserTestArgs('while ($a) 1;', 'should parse a while statement', (statements) => {
-          let whileNode = <WhileSyntaxNode>statements[0];
-          assert.strictEqual(whileNode instanceof WhileSyntaxNode, true, 'is a WhileSyntaxNode');
-          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.strictEqual(whileNode.statement instanceof ExpressionStatementSyntaxNode, true);
-        }),
-        new ParserTestArgs('while ($a): endwhile;', 'should parse a while statement (alternate syntax)', (statements) => {
-          let whileNode = <WhileBlockSyntaxNode>statements[0];
-          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
-          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.strictEqual(whileNode.statements, null);
-        }),
-        new ParserTestArgs('while ($a): 1; endwhile;', 'should parse a while statement (alternate syntax; with child statement)', (statements) => {
-          let whileNode = <WhileBlockSyntaxNode>statements[0];
-          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
-          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.strictEqual(whileNode.statements instanceof SyntaxList, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('while', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
-        new DiagnosticTestArgs('while (', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
-        new DiagnosticTestArgs('while ($a', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [9]),
-        // NOTE: An open brace is NOT required, only an embedded statement.
-        new DiagnosticTestArgs('while ($a)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [10]),
-        new DiagnosticTestArgs('while ($a):', 'missing statement or endwhile', [ErrorCode.ERR_Syntax], [11]),
-        new DiagnosticTestArgs('while ($a): endwhile', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [20]),
-        new DiagnosticTestArgs('while ($a);', 'should warn if empty statement', [ErrorCode.WRN_PossibleMistakenEmptyStatement], [10]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
     describe('do-while-statement', function() {
       let syntaxTests = [
         new ParserTestArgs('do ; while ($a);', 'should parse a do-while statement', (statements) => {
@@ -307,6 +271,42 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('foreach ($a as list($k) =>', 'should not parse key-value pair with list key', [ErrorCode.ERR_CloseParenExpected], [23]),
         new DiagnosticTestArgs('foreach ($a as [$k] =>', 'should not parse key-value pair with list key (short syntax)', [ErrorCode.ERR_CloseParenExpected], [19]),
         new DiagnosticTestArgs('foreach ($a as $v);', 'should warn if empty statement', [ErrorCode.WRN_PossibleMistakenEmptyStatement], [18]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('while-statement', function() {
+      let syntaxTests = [
+        new ParserTestArgs('while ($a) 1;', 'should parse a while statement', (statements) => {
+          let whileNode = <WhileSyntaxNode>statements[0];
+          assert.strictEqual(whileNode instanceof WhileSyntaxNode, true, 'is a WhileSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statement instanceof ExpressionStatementSyntaxNode, true);
+        }),
+        new ParserTestArgs('while ($a): endwhile;', 'should parse a while statement (alternate syntax)', (statements) => {
+          let whileNode = <WhileBlockSyntaxNode>statements[0];
+          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statements, null);
+        }),
+        new ParserTestArgs('while ($a): 1; endwhile;', 'should parse a while statement (alternate syntax; with child statement)', (statements) => {
+          let whileNode = <WhileBlockSyntaxNode>statements[0];
+          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statements instanceof SyntaxList, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('while', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
+        new DiagnosticTestArgs('while (', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
+        new DiagnosticTestArgs('while ($a', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [9]),
+        // NOTE: An open brace is NOT required, only an embedded statement.
+        new DiagnosticTestArgs('while ($a)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [10]),
+        new DiagnosticTestArgs('while ($a):', 'missing statement or endwhile', [ErrorCode.ERR_Syntax], [11]),
+        new DiagnosticTestArgs('while ($a): endwhile', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [20]),
+        new DiagnosticTestArgs('while ($a);', 'should warn if empty statement', [ErrorCode.WRN_PossibleMistakenEmptyStatement], [10]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
