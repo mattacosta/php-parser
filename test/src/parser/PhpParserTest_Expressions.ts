@@ -36,11 +36,13 @@ import {
   CloneSyntaxNode,
   ClosureUseSyntaxNode,
   ConditionalSyntaxNode,
+  DefaultPatternSyntaxNode,
   ElementAccessSyntaxNode,
   EmptyIntrinsicSyntaxNode,
   ErrorControlSyntaxNode,
   EvalIntrinsicSyntaxNode,
   ExitIntrinsicSyntaxNode,
+  ExpressionPatternSyntaxNode,
   ExpressionStatementSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   IndirectObjectCreationSyntaxNode,
@@ -49,10 +51,13 @@ import {
   LexicalVariableSyntaxNode,
   LiteralSyntaxNode,
   LocalVariableSyntaxNode,
+  MatchArmSyntaxNode,
+  MatchSyntaxNode,
   NamedMemberAccessSyntaxNode,
   NamedObjectCreationSyntaxNode,
   NamedTypeSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
+  PatternSyntaxNode,
   PrintIntrinsicSyntaxNode,
   RelativeNameSyntaxNode,
   ScriptInclusionSyntaxNode,
@@ -111,6 +116,27 @@ function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenK
     assert.strictEqual(element.valueOperator, null);
   }
   assert.strictEqual(element.value instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+}
+
+function assertMatchExpression(statements: ISyntaxNode[]): MatchSyntaxNode {
+  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  let match = <MatchSyntaxNode>exprNode.expression;
+  assert.strictEqual(match instanceof MatchSyntaxNode, true, 'MatchSyntaxNode');
+  assert.strictEqual(match.expression instanceof LocalVariableSyntaxNode, true);
+  return match;
+}
+
+function assertMatchArmPattern(statements: ISyntaxNode[]): PatternSyntaxNode {
+  let match = assertMatchExpression(statements);
+  let arms = match.arms ? match.arms.childNodes() : [];
+  assert.strictEqual(arms.length, 1);
+  assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+  let arm = <MatchArmSyntaxNode>arms[0];
+  let armPatterns = arm.patterns.childNodes();
+  assert.strictEqual(armPatterns.length, 1);
+  assert.strictEqual(armPatterns[0] instanceof PatternSyntaxNode, true, 'PatternSyntaxNode');
+  return <PatternSyntaxNode>armPatterns[0];
 }
 
 function assertPrecedence(statements: ISyntaxNode[], text: string, kind: TokenKind, operator: string, rightKind: TokenKind, rightOperator: string): void {
@@ -1659,6 +1685,128 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticTests);
     });
 
+  });
+
+  describe('match-expression', function() {
+    let syntaxTests = [
+      new ParserTestArgs('match ($a) {};', 'should parse a match expression', (statements) => {
+        let match = assertMatchExpression(statements);
+        assert.strictEqual(match.arms, null);
+      }),
+      new ParserTestArgs('match ($a) { default => $b };', 'should parse a match expression with arm', (statements) => {
+        let match = assertMatchExpression(statements);
+        let arms = match.arms ? match.arms.childNodes() : [];
+        assert.strictEqual(arms.length, 1);
+        assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+        let arm = <MatchArmSyntaxNode>arms[0];
+        let armPatterns = arm.patterns.childNodes();
+        assert.strictEqual(armPatterns.length, 1);
+        assert.strictEqual(armPatterns[0] instanceof DefaultPatternSyntaxNode, true);
+        assert.strictEqual(arm.expression instanceof LocalVariableSyntaxNode, true);
+      }),
+      new ParserTestArgs('match ($a) { 1 => $b, };', 'should parse a match expression with arm and trailing comma', (statements) => {
+        let match = assertMatchExpression(statements);
+        let arms = match.arms ? match.arms.childNodes() : [];
+        assert.strictEqual(arms.length, 1);
+        assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+        let arm = <MatchArmSyntaxNode>arms[0];
+        let armPatterns = arm.patterns.childNodes();
+        assert.strictEqual(armPatterns.length, 1);
+        assert.strictEqual(armPatterns[0] instanceof ExpressionPatternSyntaxNode, true);
+        assert.strictEqual(arm.expression instanceof LocalVariableSyntaxNode, true);
+      }),
+      new ParserTestArgs('match ($a) { 1 => $b, $c => 2 };', 'should parse a match expression with multiple arms', (statements) => {
+        let match = assertMatchExpression(statements);
+        let arms = match.arms ? match.arms.childNodes() : [];
+        assert.strictEqual(arms.length, 2);
+        assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+        assert.strictEqual(arms[1] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+
+        let firstArm = <MatchArmSyntaxNode>arms[0];
+        let firstArmPatterns = firstArm.patterns.childNodes();
+        assert.strictEqual(firstArmPatterns.length, 1);
+        assert.strictEqual(firstArmPatterns[0] instanceof ExpressionPatternSyntaxNode, true);
+        assert.strictEqual(firstArm.expression instanceof LocalVariableSyntaxNode, true);
+
+        let secondArm = <MatchArmSyntaxNode>arms[1];
+        let secondArmPatterns = secondArm.patterns.childNodes();
+        assert.strictEqual(secondArmPatterns.length, 1);
+        assert.strictEqual(secondArmPatterns[0] instanceof ExpressionPatternSyntaxNode, true);
+        assert.strictEqual(secondArm.expression instanceof LiteralSyntaxNode, true);
+      }),
+      new ParserTestArgs('match ($a) { 1, $b => 2 };', 'should parse a list of patterns', (statements) => {
+        let match = assertMatchExpression(statements);
+        let arms = match.arms ? match.arms.childNodes() : [];
+        assert.strictEqual(arms.length, 1);
+        assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+        let arm = <MatchArmSyntaxNode>arms[0];
+        let armPatterns = arm.patterns.childNodes();
+        assert.strictEqual(armPatterns.length, 2);
+        assert.strictEqual(armPatterns[0] instanceof ExpressionPatternSyntaxNode, true);
+        assert.strictEqual((<ExpressionPatternSyntaxNode>armPatterns[0]).expression instanceof LiteralSyntaxNode, true);
+        assert.strictEqual(armPatterns[1] instanceof ExpressionPatternSyntaxNode, true);
+        assert.strictEqual((<ExpressionPatternSyntaxNode>armPatterns[1]).expression instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(arm.expression instanceof LiteralSyntaxNode, true);
+      }),
+      new ParserTestArgs('match ($a) { $b, => 2 };', 'should parse a pattern with trailing comma', (statements) => {
+        let match = assertMatchExpression(statements);
+        let arms = match.arms ? match.arms.childNodes() : [];
+        assert.strictEqual(arms.length, 1);
+        assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+        let arm = <MatchArmSyntaxNode>arms[0];
+        let armPatterns = arm.patterns.childNodes();
+        assert.strictEqual(armPatterns.length, 1);
+        assert.strictEqual(armPatterns[0] instanceof ExpressionPatternSyntaxNode, true);
+        assert.strictEqual(arm.expression instanceof LiteralSyntaxNode, true);
+      }),
+
+      // This is an intentional deviation from PHP's grammer that should also
+      // improve error recovery. A compiler may add a semantic diagnostic or
+      // simplify it to just the default pattern later.
+      new ParserTestArgs('match ($a) { $b, default => 2 };', 'should parse a list of patterns with default', (statements) => {
+        let match = assertMatchExpression(statements);
+        let arms = match.arms ? match.arms.childNodes() : [];
+        assert.strictEqual(arms.length, 1);
+        assert.strictEqual(arms[0] instanceof MatchArmSyntaxNode, true, 'MatchArmSyntaxNode');
+        let arm = <MatchArmSyntaxNode>arms[0];
+        let armPatterns = arm.patterns.childNodes();
+        assert.strictEqual(armPatterns.length, 2);
+        assert.strictEqual(armPatterns[0] instanceof ExpressionPatternSyntaxNode, true, 'ExpressionPatternSyntaxNode');
+        assert.strictEqual((<ExpressionPatternSyntaxNode>armPatterns[0]).expression instanceof LocalVariableSyntaxNode, true);
+        assert.strictEqual(armPatterns[1] instanceof DefaultPatternSyntaxNode, true, 'DefaultPatternSyntaxNode');
+        assert.strictEqual(arm.expression instanceof LiteralSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('match', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
+      new DiagnosticTestArgs('match (', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
+      new DiagnosticTestArgs('match ($a', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [9]),
+      new DiagnosticTestArgs('match ($a)', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [10]),
+      new DiagnosticTestArgs('match ($a) {', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [12]),
+      new DiagnosticTestArgs('match ($a) { 1 => $b', 'missing close brace (after match arm)', [ErrorCode.ERR_CloseBraceExpected], [20]),
+
+      new DiagnosticTestArgs('match ($a) { 1', 'missing double arrow', [ErrorCode.ERR_Syntax], [14]),
+      new DiagnosticTestArgs('match ($a) { 1 =>', 'missing expression (match arm)', [ErrorCode.ERR_ExpressionExpectedEOF], [17]),
+    ];
+    Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP8_0);
+  });
+
+  describe('pattern', function() {
+    let syntaxTests = [
+      new ParserTestArgs('match ($a) { 1 => $b };', 'should parse an expression pattern', (statements) => {
+        let pattern = assertMatchArmPattern(statements) as ExpressionPatternSyntaxNode;
+        assert.strictEqual(pattern instanceof ExpressionPatternSyntaxNode, true, 'ExpressionPatternSyntaxNode');
+        assert.strictEqual(pattern.expression instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+      }),
+      new ParserTestArgs('match ($a) { default => $b };', 'should parse a default pattern', (statements, text) => {
+        let pattern = assertMatchArmPattern(statements) as DefaultPatternSyntaxNode;
+        assert.strictEqual(pattern instanceof DefaultPatternSyntaxNode, true, 'DefaultPatternSyntaxNode');
+        Test.assertSyntaxToken(pattern.defaultKeyword, text, TokenKind.Default, 'default');
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
   });
 
 });

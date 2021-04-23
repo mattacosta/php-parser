@@ -548,6 +548,25 @@ nodes:
   - name: variable
     type: TokenNode
   visitorName: visitLocalVariable
+- name: Match
+  extends: Expression
+  properties:
+  - name: matchKeyword
+    type: TokenNode
+  - name: openParen
+    type: TokenNode
+  - name: expression
+    type: Expression
+  - name: closeParen
+    type: TokenNode
+  - name: openBrace
+    type: TokenNode
+  - name: arms
+    type: NodeList
+    optional: true
+  - name: closeBrace
+    type: TokenNode
+  visitorName: visitMatch
 - name: NamedMemberAccess
   extends: MemberAccess
   properties:
@@ -1532,6 +1551,8 @@ nodes:
   properties:
   - name: namespaceName
     type: NodeList
+- name: Pattern
+  abstract: true
 # Used by named and referenced trait aliases.
 - name: TraitAlias
   abstract: true
@@ -1641,6 +1662,16 @@ nodes:
   - name: expression
     type: Expression
   visitorName: visitConstantElement
+# This is also known as the discard pattern in other languages. Only time will
+# tell if PHP's maintainers consistently use the default keyword or adopt the
+# underscore token like those languages in future use-cases.
+- name: DefaultPattern
+  extends: Pattern
+  properties:
+  - name: defaultKeyword
+    type: TokenNode
+  visitorName: visitPattern
+  visitorType: Pattern
 - name: Else
   properties:
   - name: elseKeyword
@@ -1687,6 +1718,13 @@ nodes:
     type: NodeList
     optional: true
   visitorName: visitElseIfBlock
+- name: ExpressionPattern
+  extends: Pattern
+  properties:
+  - name: expression
+    type: Expression
+  visitorName: visitPattern
+  visitorType: Pattern
 - name: FlexibleHeredocElement
   properties:
   - name: indent
@@ -1742,6 +1780,15 @@ nodes:
     - Expression
     - ListDestructure
   visitorName: visitListDestructureElement
+- name: MatchArm
+  properties:
+  - name: patterns
+    type: NodeList
+  - name: doubleArrow
+    type: TokenNode
+  - name: expression
+    type: Expression
+  visitorName: visitMatchArm
 # See also: TraitAlias, TraitPrecedence
 - name: MethodReference
   properties:

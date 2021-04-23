@@ -123,6 +123,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     ['interface', TokenKind.Interface],
     ['isset', TokenKind.IsSet],
     ['list', TokenKind.List],
+    ['match', TokenKind.Match],
     ['namespace', TokenKind.Namespace],
     ['new', TokenKind.New],
     ['or', TokenKind.LogicalOr],
@@ -2221,10 +2222,15 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const keyword = PhpLexer.KeywordTokens.get(tokenText);
     if (keyword !== undefined) {
       // Backward compatibility: Am I a joke to you?
-      if (tokenText === 'fn' && this.phpVersion < PhpVersion.PHP7_4) {
+      if (this.phpVersion < PhpVersion.PHP7_4 && tokenText === 'fn') {
         return TokenKind.Identifier;
       }
-      return keyword;
+      else if (this.phpVersion < PhpVersion.PHP8_0 && tokenText === 'match') {
+        return TokenKind.Identifier;
+      }
+      else {
+        return keyword;
+      }
     }
     return TokenKind.Identifier;
   }

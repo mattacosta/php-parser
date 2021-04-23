@@ -42,6 +42,7 @@ import {
   ContinueNode,
   DeclareBlockNode,
   DeclareNode,
+  DefaultPatternNode,
   DestructuringAssignmentNode,
   DoWhileNode,
   EchoNode,
@@ -56,6 +57,7 @@ import {
   ExitIntrinsicNode,
   ExpressionGroupNode,
   ExpressionNode,
+  ExpressionPatternNode,
   ExpressionStatementNode,
   FlexibleHeredocElementNode,
   FlexibleHeredocTemplateNode,
@@ -90,6 +92,8 @@ import {
   ListDestructureNode,
   LiteralNode,
   LocalVariableNode,
+  MatchArmNode,
+  MatchNode,
   MemberAccessNode,
   MemberInvocationNode,
   MethodDeclarationNode,
@@ -106,6 +110,7 @@ import {
   ObjectCreationNode,
   ParameterNode,
   PartiallyQualifiedNameNode,
+  PatternNode,
   PostfixUnaryNode,
   PredefinedTypeNode,
   PrintIntrinsicNode,
@@ -895,6 +900,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Clone:
       case TokenKind.Include:
       case TokenKind.IncludeOnce:
+      case TokenKind.Match:
       case TokenKind.New:
       case TokenKind.List:
       case TokenKind.Require:
@@ -1075,6 +1081,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       default:
         return this.isTypeStart(kind);
     }
+  }
+
+  /**
+   * Determines if a token starts a pattern.
+   */
+  protected isPatternStart(kind: TokenKind): boolean {
+    return kind === TokenKind.Default || this.isExpressionStart(kind);
   }
 
   /**
@@ -4501,6 +4514,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         expr = new LiteralNode(this.eat(this.currentToken.kind));
         type = ExpressionType.Implicit;
         break;
+      case TokenKind.Match:
+        expr = this.parseMatch();
+        type = ExpressionType.Implicit;
+        break;
       case TokenKind.New:
         expr = this.parseObjectCreationExpression();
         type = ExpressionType.Implicit;
@@ -5726,6 +5743,77 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Parses a match expression.
+   *
+   * Syntax:
+   * - `MATCH ( expr ) { }`
+   * - `MATCH ( expr ) { match-arms }`
+   */
+  protected parseMatch(): MatchNode {
+    let matchKeyword = this.eat(TokenKind.Match);
+    let openParen = this.eat(TokenKind.OpenParen);
+    let expr = this.parseExpression();
+    let closeParen = this.eat(TokenKind.CloseParen);
+    let openBrace = this.eat(TokenKind.OpenBrace);
+    let arms = !openBrace.isMissing ? this.parseMatchArmList() : null;
+    let closeBrace = !openBrace.isMissing
+      ? this.eat(TokenKind.CloseBrace)
+      : this.createMissingToken(TokenKind.CloseBrace, this.currentToken.kind, false);
+    return new MatchNode(matchKeyword, openParen, expr, closeParen, openBrace, arms, closeBrace);
+  }
+
+  /**
+   * Parses a match expression arm.
+   *
+   * Syntax:
+   * - `pattern-list => expr`
+   * - `pattern-list , => expr`
+   *
+   * Where `pattern-list` is:
+   * - `pattern-list , pattern`
+   * - `pattern`
+   */
+  protected parseMatchArm(): MatchArmNode {
+    // PHP does not allow `default` patterns within a pattern list. However,
+    // that should not result in a parse error.
+    let patterns: Array<PatternNode | TokenNode> = [];
+    patterns.push(this.parsePattern());
+    while (this.currentToken.kind === TokenKind.Comma) {
+      patterns.push(this.eat(TokenKind.Comma));
+      if (!this.isPatternStart(this.currentToken.kind)) {
+        break;
+      }
+      patterns.push(this.parsePattern());
+    }
+    let doubleArrow = this.eat(TokenKind.DoubleArrow);
+    let expr = this.parseExpression();
+    return new MatchArmNode(this.factory.createList(patterns), doubleArrow, expr);
+  }
+
+  /**
+   * Parses a comma-separated list of match expression arms.
+   *
+   * Syntax:
+   * - `match-arm-list , match-arm`
+   * - `match-arm`
+   */
+  protected parseMatchArmList(): NodeList | null {
+    if (!this.isPatternStart(this.currentToken.kind)) {
+      return null;
+    }
+    let arms: Array<MatchArmNode | TokenNode> = [];
+    arms.push(this.parseMatchArm());
+    while (this.currentToken.kind === TokenKind.Comma) {
+      arms.push(this.eat(TokenKind.Comma));
+      if (!this.isPatternStart(this.currentToken.kind)) {
+        break;
+      }
+      arms.push(this.parseMatchArm());
+    }
+    return this.factory.createList(arms);
+  }
+
+  /**
    * Parses a member access expression.
    *
    * Syntax:
@@ -5933,6 +6021,23 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     return reference instanceof NameNode
       ? new NamedObjectCreationNode(newKeyword, reference, openParen, argumentList, closeParen)
       : new IndirectObjectCreationNode(newKeyword, reference, openParen, argumentList, closeParen);
+  }
+
+  /**
+   * Parses a pattern.
+   *
+   * Syntax:
+   * - `expr`
+   * - `DEFAULT`
+   */
+   protected parsePattern(): PatternNode {
+    if (this.currentToken.kind === TokenKind.Default) {
+      let defaultKeyword = this.eat(TokenKind.Default);
+      return new DefaultPatternNode(defaultKeyword);
+    }
+    Debug.assert(this.isExpressionStart(this.currentToken.kind));
+    let expr = this.parseExpression();
+    return new ExpressionPatternNode(expr);
   }
 
   /**

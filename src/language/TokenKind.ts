@@ -82,6 +82,7 @@ export enum TokenKind {
   MagicMethod,              // T_METHOD_C
   MagicNamespace,           // T_NS_C
   MagicTrait,               // T_TRAIT_C
+  Match,
   Namespace,
   New,
   Print,
@@ -357,6 +358,8 @@ export class TokenKindInfo {
         return '__namespace__';
       case TokenKind.MagicTrait:
         return '__trait__';
+      case TokenKind.Match:
+        return 'match';
       case TokenKind.Namespace:
         return 'namespace';
       case TokenKind.New:

@@ -168,9 +168,19 @@ describe('PhpLexer', function() {
       Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
 
       let regressionTests7_4 = [
-        new LexerTestArgs('<?php fn', 'fn', [TokenKind.Identifier]),
+        new LexerTestArgs('<?php fn', 'fn (identifier)', [TokenKind.Identifier]),
       ];
       Test.assertTokens(regressionTests7_4, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+
+      let tests8_0 = [
+        new LexerTestArgs('<?php match', 'match', [TokenKind.Match]),
+      ];
+      Test.assertTokens(tests8_0, PhpVersion.PHP8_0);
+
+      let regressionTests8_0 = [
+        new LexerTestArgs('<?php match', 'match (identifier)', [TokenKind.Identifier]),
+      ];
+      Test.assertTokens(regressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('numbers', function() {
