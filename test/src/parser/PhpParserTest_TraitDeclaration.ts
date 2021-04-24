@@ -140,7 +140,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('{ trait A {} }', 'should parse a trait declaration in statement block', (statements) => {
         let block = <StatementBlockSyntaxNode>statements[0];
-        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
         let innerStatements = block.childNodes();
         assert.strictEqual(innerStatements.length, 1);
         assert.strictEqual(innerStatements[0] instanceof TraitDeclarationSyntaxNode, true);

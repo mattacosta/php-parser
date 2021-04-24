@@ -55,7 +55,7 @@ import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstantDeclarationSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let classConstant = <ClassConstantDeclarationSyntaxNode>members[0];
@@ -65,7 +65,7 @@ function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstan
 
 function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let method = <MethodDeclarationSyntaxNode>members[0];
@@ -112,7 +112,7 @@ function assertMethodParameter(node: ISyntaxNode, hasModifiers: boolean, hasType
 
 function assertPropertyDeclaration(statements: ISyntaxNode[]): PropertyDeclarationSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let property = <PropertyDeclarationSyntaxNode>members[0];
@@ -122,7 +122,7 @@ function assertPropertyDeclaration(statements: ISyntaxNode[]): PropertyDeclarati
 
 function assertTraitUse(statements: ISyntaxNode[]): TraitUseSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let traitUse = <TraitUseSyntaxNode>members[0];
@@ -132,7 +132,7 @@ function assertTraitUse(statements: ISyntaxNode[]): TraitUseSyntaxNode {
 
 function assertTraitUseGroup(statements: ISyntaxNode[]): TraitUseGroupSyntaxNode {
   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+  assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
   let members = classNode.members ? classNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let traitUseGroup = <TraitUseGroupSyntaxNode>members[0];
@@ -146,7 +146,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('class A {}', 'should parse a class declaration', (statements, text) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         Test.assertSyntaxToken(classNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(classNode.baseType, null);
         assert.strictEqual(classNode.interfaces, null);
@@ -157,14 +157,14 @@ describe('PhpParser', function() {
       // @todo Should parse, but also cause an error during analysis?
       // new ParserTestArgs('class int {}', 'should parse a class with a reserved name', (statements) => {
       //   let classNode = <ClassDeclarationSyntaxNode>statements[0];
-      //   assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+      //   assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
       //   assert.strictEqual(classNode.baseType, null);
       //   assert.strictEqual(classNode.interfaces, null);
       //   assert.strictEqual(classNode.members, null);
       // }),
       new ParserTestArgs('{ class A {} }', 'should parse a class declaration in statement block', (statements) => {
         let block = <StatementBlockSyntaxNode>statements[0];
-        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
         let innerStatements = block.childNodes();
         assert.strictEqual(innerStatements.length, 1);
         assert.strictEqual(innerStatements[0] instanceof ClassDeclarationSyntaxNode, true);
@@ -191,7 +191,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('abstract class A {}', 'should parse an abstract class declaration', (statements, text) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         let modifiers = classNode.modifiers ? classNode.modifiers.childTokens() : [];
         assert.strictEqual(modifiers.length, 1);
         Test.assertSyntaxToken(classNode.identifier, text, TokenKind.Identifier, 'A');
@@ -201,7 +201,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('final class A {}', 'should parse a final class declaration', (statements, text) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         let modifiers = classNode.modifiers ? classNode.modifiers.childTokens() : [];
         assert.strictEqual(modifiers.length, 1);
         Test.assertSyntaxToken(classNode.identifier, text, TokenKind.Identifier, 'A');
@@ -237,21 +237,21 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('class A extends B {}', 'should parse a class declaration with a base type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType instanceof PartiallyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.interfaces, null);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A extends \\B {}', 'should parse a class declaration with fully qualified base type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType instanceof FullyQualifiedNameSyntaxNode, true);
         assert.strictEqual(classNode.interfaces, null);
         assert.strictEqual(classNode.members, null);
       }),
       new ParserTestArgs('class A extends namespace\\B {}', 'should parse a class declaration with relative base type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType instanceof RelativeNameSyntaxNode, true);
         assert.strictEqual(classNode.interfaces, null);
         assert.strictEqual(classNode.members, null);
@@ -276,7 +276,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('class A implements B {}', 'should parse a class declaration with single interface type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 1);
@@ -285,7 +285,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('class A implements B, C {}', 'should parse a class declaration with multiple interface types', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 2);
@@ -295,7 +295,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('class A implements \\B {}', 'should parse a class declaration with fully qualified interface type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 1);
@@ -304,7 +304,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('class A implements namespace\\B {}', 'should parse a class declaration with relative interface type', (statements) => {
         let classNode = <ClassDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'is a ClassDeclarationSyntaxNode');
+        assert.strictEqual(classNode instanceof ClassDeclarationSyntaxNode, true, 'ClassDeclarationSyntaxNode');
         assert.strictEqual(classNode.baseType, null);
         let interfaces = classNode.interfaces ? classNode.interfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 1);
