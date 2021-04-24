@@ -1835,6 +1835,9 @@ nodes:
   visitorType: Type
 - name: Parameter
   properties:
+  - name: modifiers
+    type: NodeList
+    optional: true
   - name: type
     type:
     - NamedType

@@ -34,6 +34,7 @@ import {
   MethodReferenceSyntaxNode,
   NamedTraitAliasSyntaxNode,
   NamedTypeSyntaxNode,
+  ParameterSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   PropertyDeclarationSyntaxNode,
@@ -70,6 +71,43 @@ function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSy
   let method = <MethodDeclarationSyntaxNode>members[0];
   assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true);
   return method;
+}
+
+function assertMethodDeclarationWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let method = assertMethodDeclaration(statements);
+  assert.strictEqual(method.modifiers, null);
+  assert.strictEqual(method.ampersand, null);
+  assert.strictEqual(method.returnType, null);
+  let parameters = method.parameters ? method.parameters.childNodes() : [];
+  return parameters;
+}
+
+function assertMethodParameter(node: ISyntaxNode, hasModifiers: boolean, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
+  let parameter = <ParameterSyntaxNode>node;
+  assert.strictEqual(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  if (!hasModifiers) {
+    assert.strictEqual(parameter.modifiers, null);
+  }
+  if (!hasType) {
+    assert.strictEqual(parameter.type, null);
+  }
+  if (hasAmpersand) {
+    assert.notStrictEqual(parameter.ampersand, null);
+  }
+  else {
+    assert.strictEqual(parameter.ampersand, null);
+  }
+  if (hasEllipsis) {
+    assert.notStrictEqual(parameter.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(parameter.ellipsis, null);
+  }
+  if (!hasDefaultValue) {
+    assert.strictEqual(parameter.equal, null);
+    assert.strictEqual(parameter.expression, null);
+  }
+  return parameter;
 }
 
 function assertPropertyDeclaration(statements: ISyntaxNode[]): PropertyDeclarationSyntaxNode {
@@ -405,8 +443,6 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(featureClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
-    // Everything except for the parameter list and statement block needs full
-    // testing since it uses a different implementation than `function-declaration`.
     describe('method-declaration', function() {
       let syntaxTests = [
         new ParserTestArgs('class A { function b() {} }', 'should parse a method declaration', (statements, text) => {
@@ -431,6 +467,82 @@ describe('PhpParser', function() {
           assert.strictEqual(method.returnType, null);
         }),
 
+        // See modifier tests below.
+
+        // See parameter tests below.
+
+        // Return types.
+        new ParserTestArgs('class A { function b(): C {} }', 'should parse a method declaration with return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('class A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('class A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('class A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('class A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
+        new ParserTestArgs('class A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <NamedTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.notStrictEqual(returnType.question, null);
+          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('class A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
+        new DiagnosticTestArgs('class A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
+        new DiagnosticTestArgs('class A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
+        new DiagnosticTestArgs('class A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('class A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+        new DiagnosticTestArgs('class A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
+        new DiagnosticTestArgs('class A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
+
+        new DiagnosticTestArgs('class A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
+        new DiagnosticTestArgs('class A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
+        new DiagnosticTestArgs('class A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
+        new DiagnosticTestArgs('class A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('method-declaration (modifiers)', function() {
+      let syntaxTests = [
         // Modifiers.
         new ParserTestArgs('class A { abstract function b(); }', 'should parse an abstract method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
@@ -558,80 +670,61 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
         }),
-
-        // Return types.
-        new ParserTestArgs('class A { function b(): C {} }', 'should parse a method declaration with return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('class A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('class A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('class A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('class A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
-        }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
-      let syntaxTests7_1 = [
-        new ParserTestArgs('class A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          let returnType = <NamedTypeSyntaxNode>method.returnType;
-          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
-          assert.notStrictEqual(returnType.question, null);
-          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
-
       let diagnosticTests = [
-        new DiagnosticTestArgs('class A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
-        new DiagnosticTestArgs('class A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
-        new DiagnosticTestArgs('class A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
-        new DiagnosticTestArgs('class A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
-        new DiagnosticTestArgs('class A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-        new DiagnosticTestArgs('class A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
-        new DiagnosticTestArgs('class A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
-
-        new DiagnosticTestArgs('class A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
-        new DiagnosticTestArgs('class A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
-        new DiagnosticTestArgs('class A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
-        new DiagnosticTestArgs('class A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-
         new DiagnosticTestArgs('class A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
         new DiagnosticTestArgs('class A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
         new DiagnosticTestArgs('class A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
         new DiagnosticTestArgs('class A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('method-declaration (parameters)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('class A { function b($c) {} }', 'should parse a method parameter', (statements) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          assertMethodParameter(parameters[0], false, false, false, false, false);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests8_0 = [
+        // NOTE: Promoted parameters are allowed on all methods, not just constructors.
+        new ParserTestArgs('class A { function __construct(public $c) {} }', 'should parse a method parameter with modifier', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+        }),
+        new ParserTestArgs('class A { function b(public static $c) {} }', 'should parse a method parameter with multiple modifiers', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('class A { function b(', 'missing ampersand, ellipsis, question, modifier, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('class A { function b(public', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterExpected], [27]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('class A { function b(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('class A { function b(public', 'should not parse a modifier', [ErrorCode.ERR_FeatureConstructorParameterPromotion, ErrorCode.ERR_ParameterExpected], [21, 27]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('property-declaration', function() {

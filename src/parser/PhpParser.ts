@@ -1070,7 +1070,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * Determines if a token starts a parameter in a function or method declaration.
    */
-  protected isParameterStart(kind: TokenKind): boolean {
+  protected isParameterStart(kind: TokenKind, allowModifiers: boolean): boolean {
     switch (kind) {
       case TokenKind.Ampersand:
       case TokenKind.Ellipsis:
@@ -1079,6 +1079,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Dollar:
         return true;
       default:
+        // Promoted parameters.
+        if (this.isModifier(kind)) {
+          return allowModifiers;
+        }
         return this.isTypeStart(kind);
     }
   }
@@ -2746,7 +2750,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let functionKeyword = this.eat(TokenKind.Function);
     let ampersand = this.eatOptional(TokenKind.Ampersand);
     let identifier = this.parseClassMemberName(ampersand !== null ? ErrorCode.ERR_MethodNameExpected : ErrorCode.ERR_MethodNameOrAmpersandExpected);
-    let parameters = this.parseParameterList();
+    let parameters = this.parseParameterList(true);
     let colon = this.eatOptional(TokenKind.Colon);
     let returnType = colon ? this.parseType() : null;
 
@@ -2808,10 +2812,43 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Parses a list of modifiers.
+   *
+   * Syntax:
+   * - `modifier-list modifier`
+   * - `modifier`
+   *
+   * Where `modifier` is:
+   * - `ABSTRACT`
+   * - `FINAL`
+   * - `PRIVATE`
+   * - `PROTECTED`
+   * - `PUBLIC`
+   * - `STATIC`
+   *
+   * @see parseClassMemberModifiers()
+   */
+  protected parseModifierList(isPromotedParameter: boolean): NodeList {
+    Debug.assert(this.isModifier(this.currentToken.kind));
+    let modifier = this.eat(this.currentToken.kind);
+
+    if (isPromotedParameter && !this.isSupportedVersion(PhpVersion.PHP8_0)) {
+      modifier = this.addError(modifier, ErrorCode.ERR_FeatureConstructorParameterPromotion);
+    }
+
+    let modifiers: TokenNode[] = [];
+    modifiers.push(modifier);
+    while (this.isModifier(this.currentToken.kind)) {
+      modifiers.push(this.eat(this.currentToken.kind));
+    }
+    return this.factory.createList(modifiers);
+  }
+
+  /**
    * Parses a namespace declaration.
    *
    * Syntax:
-   * - `NAMESPACE name;`
+   * - `NAMESPACE name ;`
    * - `NAMESPACE name { namespaced-statement-list }`
    * - `NAMESPACE { namespaced-statement-list }`
    */
@@ -2894,13 +2931,25 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
-   * Parses a single parameter within a function or method's parameter list.
+   * Parses a single parameter within a parameter list.
    *
-   * Syntax:
+   * Syntax (functions only):
    * - `type & ELLIPSIS VARIABLE`
    * - `type & ELLIPSIS VARIABLE = expr`
+   *
+   * Syntax (methods only):
+   * - `modifier-list type & ELLIPSIS VARIABLE`
+   * - `modifier-list type & ELLIPSIS VARIABLE = expr`
+   *
+   * @param {boolean} isMethodParameter
+   *   Determines if the parameter is in a method declaration's parameter list.
    */
-  protected parseParameter(): ParameterNode {
+  protected parseParameter(isMethodParameter: boolean): ParameterNode {
+    let modifiers: NodeList | null = null;
+    if (isMethodParameter && this.isModifier(this.currentToken.kind)) {
+      modifiers = this.parseModifierList(true);
+    }
+
     let type: NamedTypeNode | PredefinedTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
       type = this.parseType();
@@ -2938,7 +2987,15 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
     let defaultValue = equal !== null ? this.parseExpression() : null;
 
-    return new ParameterNode(type, ampersand, variadic, variable, equal, defaultValue);
+    return new ParameterNode(
+      modifiers,
+      type,
+      ampersand,
+      variadic,
+      variable,
+      equal,
+      defaultValue
+    );
   }
 
   /**
@@ -2949,8 +3006,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Where `parameter-list` is:
    * - `parameter-list , parameter`
    * - `parameter`
+   *
+   * @param {boolean} allowModifiers
+   *   If `true`, parse parameters with possible modifiers.
    */
-  protected parseParameterList(): Parameters {
+  protected parseParameterList(allowModifiers = false): Parameters {
     let parameters: Array<ParameterNode | TokenNode> = [];
     let variadicIndex = -1;
 
@@ -2959,8 +3019,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // const savedContext = this.currentContext;
     // this.addParseContext(ParseContext.ParameterListElements);
 
-    if (this.isParameterStart(this.currentToken.kind) || this.currentToken.kind === TokenKind.Comma) {
-      let parameter = this.parseParameter();
+    if (this.isParameterStart(this.currentToken.kind, allowModifiers) || this.currentToken.kind === TokenKind.Comma) {
+      let parameter = this.parseParameter(allowModifiers);
       parameters.push(parameter);
       if (parameter.ellipsis) {
         variadicIndex = 0;
@@ -2969,10 +3029,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     // @todo Replace with tokenEndsContext()?
     while (this.currentToken.kind !== TokenKind.CloseParen && this.currentToken.kind !== TokenKind.EOF) {
-      if (this.isParameterStart(this.currentToken.kind) || this.currentToken.kind === TokenKind.Comma) {
+      if (this.isParameterStart(this.currentToken.kind, allowModifiers) || this.currentToken.kind === TokenKind.Comma) {
         parameters.push(this.eat(TokenKind.Comma));
 
-        let parameter = this.parseParameter();
+        let parameter = this.parseParameter(allowModifiers);
         parameters.push(parameter);
         if (parameter.ellipsis !== null && variadicIndex === -1) {
           variadicIndex = parameters.length - 1;
@@ -2985,7 +3045,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         break;
       }
 
-      this.skipBadParameterListTokens();
+      this.skipBadParameterListTokens(allowModifiers);
     }
 
     if (variadicIndex !== -1 && variadicIndex < parameters.length - 1) {
@@ -6809,11 +6869,11 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * @todo Document skipBadParameterListTokens().
    */
-  protected skipBadParameterListTokens(): void {
+  protected skipBadParameterListTokens(allowModifiers: boolean): void {
     this.skipToken(); // @todo Invalid token '%s' in parameter list
 
     while (this.currentToken.kind !== TokenKind.EOF) {
-      if (this.isParameterStart(this.currentToken.kind) || this.currentToken.kind === TokenKind.Comma) {
+      if (this.isParameterStart(this.currentToken.kind, allowModifiers) || this.currentToken.kind === TokenKind.Comma) {
         break;  // @todo continue
       }
       if (this.currentToken.kind === TokenKind.CloseParen) {

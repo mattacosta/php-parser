@@ -52,6 +52,7 @@ function assertFunctionWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] 
 function assertParameter(node: ISyntaxNode, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
   let parameter = <ParameterSyntaxNode>node;
   assert.strictEqual(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  assert.strictEqual(parameter.modifiers, null);
   if (!hasType) {
     assert.strictEqual(parameter.type, null);
   }
@@ -284,6 +285,9 @@ describe('PhpParser', function() {
 
       // @todo Recovery tests.
       new DiagnosticTestArgs('function a($', 'missing variable name', [ErrorCode.ERR_VariableNameExpected], [11]),
+      // @todo It may be worth allowing this for error recovery purposes in the
+      //   future. A user may be refactoring a method into a regular function.
+      new DiagnosticTestArgs('function a(public $b) {}', 'should not parse a parameter with modifier', [ErrorCode.ERR_ParameterOrCloseParenExpected], [11]),
     ];
     Test.assertDiagnostics(diagnosticTests);
 

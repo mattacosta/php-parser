@@ -32,6 +32,7 @@ import {
   LiteralSyntaxNode,
   MethodDeclarationSyntaxNode,
   NamedTypeSyntaxNode,
+  ParameterSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   RelativeNameSyntaxNode,
@@ -62,6 +63,43 @@ function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSy
   let method = <MethodDeclarationSyntaxNode>members[0];
   assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true);
   return method;
+}
+
+function assertMethodDeclarationWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let method = assertMethodDeclaration(statements);
+  assert.strictEqual(method.modifiers, null);
+  assert.strictEqual(method.ampersand, null);
+  assert.strictEqual(method.returnType, null);
+  let parameters = method.parameters ? method.parameters.childNodes() : [];
+  return parameters;
+}
+
+function assertMethodParameter(node: ISyntaxNode, hasModifiers: boolean, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
+  let parameter = <ParameterSyntaxNode>node;
+  assert.strictEqual(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  if (!hasModifiers) {
+    assert.strictEqual(parameter.modifiers, null);
+  }
+  if (!hasType) {
+    assert.strictEqual(parameter.type, null);
+  }
+  if (hasAmpersand) {
+    assert.notStrictEqual(parameter.ampersand, null);
+  }
+  else {
+    assert.strictEqual(parameter.ampersand, null);
+  }
+  if (hasEllipsis) {
+    assert.notStrictEqual(parameter.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(parameter.ellipsis, null);
+  }
+  if (!hasDefaultValue) {
+    assert.strictEqual(parameter.equal, null);
+    assert.strictEqual(parameter.expression, null);
+  }
+  return parameter;
 }
 
 describe('PhpParser', function() {
@@ -242,8 +280,6 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(featureClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
-    // Everything except for the parameter list and statement block needs full
-    // testing since it uses a different implementation than `function-declaration`.
     describe('method-declaration', function() {
       let syntaxTests = [
         new ParserTestArgs('interface A { function b(); }', 'should parse a method declaration', (statements, text) => {
@@ -271,40 +307,9 @@ describe('PhpParser', function() {
           assert.strictEqual(method.statements, null);
         }),
 
-        // Modifiers.
-        new ParserTestArgs('interface A { public function b(); }', 'should parse a public method declaration without body', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-          assert.strictEqual(method.statements, null);
-        }),
-        new ParserTestArgs('interface A { static function b(); }', 'should parse a static method declaration without body', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-          assert.strictEqual(method.statements, null);
-        }),
+        // See modifier tests below.
 
-        // Modifiers (mixed).
-        new ParserTestArgs('interface A { static public function b(); }', 'should parse a static and public method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-          assert.strictEqual(method.statements, null);
-        }),
+        // See parameter tests below.
 
         // Return types.
         new ParserTestArgs('interface A { function b(): C; }', 'should parse a method declaration with return type', (statements, text) => {
@@ -382,7 +387,49 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { function b() {} }', 'should not expect a method body', [ErrorCode.ERR_InterfaceMethodDefinition], [27]),
         new DiagnosticTestArgs('interface A { public function b() {} }', 'should not expect a method body on public method', [ErrorCode.ERR_InterfaceMethodDefinition], [34]),
         new DiagnosticTestArgs('interface A { static function b() {} }', 'should not expect a method body on static method', [ErrorCode.ERR_InterfaceMethodDefinition], [34]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
 
+    describe('method-declaration (modifiers)', function() {
+      let syntaxTests = [
+        // Modifiers.
+        new ParserTestArgs('interface A { public function b(); }', 'should parse a public method declaration without body', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+          assert.strictEqual(method.statements, null);
+        }),
+        new ParserTestArgs('interface A { static function b(); }', 'should parse a static method declaration without body', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+          assert.strictEqual(method.statements, null);
+        }),
+        // Modifiers (mixed).
+        new ParserTestArgs('interface A { static public function b(); }', 'should parse a static and public method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+          assert.strictEqual(method.statements, null);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
         new DiagnosticTestArgs('interface A { protected function b(); }', 'should not parse a protected method declaration', [ErrorCode.ERR_InterfaceMemberNotPublic], [14]),
         new DiagnosticTestArgs('interface A { private function b(); }', 'should not parse a private method declaration', [ErrorCode.ERR_InterfaceMemberNotPublic], [14]),
 
@@ -406,6 +453,51 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { static private function b(); }', 'should not expect static and private modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic], [21]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('method-declaration (parameters)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('interface A { function b($c); }', 'should parse a method parameter', (statements) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          assertMethodParameter(parameters[0], false, false, false, false, false);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests8_0 = [
+        // NOTE: Promoted parameters are allowed on all methods, not just constructors.
+        new ParserTestArgs('interface A { function __construct(public $c); }', 'should parse a method parameter with modifier', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+        }),
+        new ParserTestArgs('interface A { function b(public static $c); }', 'should parse a method parameter with multiple modifiers', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(', 'missing ampersand, ellipsis, question, modifier, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
+        new DiagnosticTestArgs('interface A { function b(public', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterExpected], [31]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
+        new DiagnosticTestArgs('interface A { function b(public', 'should not parse a modifier', [ErrorCode.ERR_FeatureConstructorParameterPromotion, ErrorCode.ERR_ParameterExpected], [25, 31]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('property-declaration', function() {
