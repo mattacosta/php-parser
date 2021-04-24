@@ -64,7 +64,7 @@ function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent
   }
   else {
     // Interpolations.
-    assert.notEqual(template.length, 0);
+    assert.notStrictEqual(template.length, 0);
   }
   return template;
 }
