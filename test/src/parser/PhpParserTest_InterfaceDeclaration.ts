@@ -51,7 +51,7 @@ function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstan
   let members = interfaceNode.members ? interfaceNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let classConstant = <ClassConstantDeclarationSyntaxNode>members[0];
-  assert.strictEqual(classConstant instanceof ClassConstantDeclarationSyntaxNode, true);
+  assert.strictEqual(classConstant instanceof ClassConstantDeclarationSyntaxNode, true, 'ClassConstantDeclarationSyntaxNode');
   return classConstant;
 }
 
@@ -61,7 +61,7 @@ function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSy
   let members = interfaceNode.members ? interfaceNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let method = <MethodDeclarationSyntaxNode>members[0];
-  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true);
+  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true, 'MethodDeclarationSyntaxNode');
   return method;
 }
 
