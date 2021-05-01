@@ -67,6 +67,8 @@ diagnostics:
 # --- PHP 8.0 -----------------------------------------------------------------
 - name: ERR_FeatureConstructorParameterPromotion
   text: "The feature 'constructor parameter promotion' requires PHP 8.0 or later"
+- name: ERR_FeatureStaticReturnType
+  text: "The feature 'static return type' requires PHP 8.0 or later"
 - name: ERR_FeatureTrailingCommasInClosureUseLists
   text: "The feature 'trailing commas in closure use lists' requires PHP 8.0 or later"
 - name: ERR_FeatureUnionTypes

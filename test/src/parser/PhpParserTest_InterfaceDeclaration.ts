@@ -370,6 +370,13 @@ describe('PhpParser', function() {
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
       let syntaxTests8_0 = [
+        new ParserTestArgs('interface A { function b(): static; }', 'should parse a method declaration with static return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        }),
         new ParserTestArgs('interface A { function b(): array | C; }', 'should parse a method declaration with type union', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
@@ -416,6 +423,7 @@ describe('PhpParser', function() {
       let diagnosticRegressionTests8_0 = [
         new DiagnosticTestArgs('interface A { function b(): C }', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [29]),
         new DiagnosticTestArgs('interface A { function b(): C | D; }', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [28]),
+        new DiagnosticTestArgs('interface A { function b(): static; }', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [28]),
       ];
       Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });

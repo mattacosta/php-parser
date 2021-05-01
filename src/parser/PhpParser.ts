@@ -2514,7 +2514,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let identifier = this.eat(this.currentToken.kind);
     let parameters = this.parseParameterList();
     let colon = this.eatOptional(TokenKind.Colon);
-    let returnType = colon ? this.parseType() : null;
+    let returnType = colon ? this.parseType(true) : null;
 
     let openBrace = this.currentToken.kind !== TokenKind.OpenBrace && colon === null
       ? this.createMissingTokenWithError(TokenKind.OpenBrace, ErrorCode.ERR_OpenBraceOrColonExpected)
@@ -2753,7 +2753,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let identifier = this.parseClassMemberName(ampersand !== null ? ErrorCode.ERR_MethodNameExpected : ErrorCode.ERR_MethodNameOrAmpersandExpected);
     let parameters = this.parseParameterList(true);
     let colon = this.eatOptional(TokenKind.Colon);
-    let returnType = colon ? this.parseType() : null;
+    let returnType = colon ? this.parseType(true) : null;
 
     let statements: StatementBlockNode | null = null;
     let semicolon: TokenNode | null = null;
@@ -2954,7 +2954,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
 
     let type: NamedTypeNode | PredefinedTypeNode | CompositeTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
-      type = this.parseType();
+      type = this.parseType(false);
     }
 
     let ampersand = this.eatOptional(TokenKind.Ampersand);
@@ -3141,7 +3141,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // Even though 'callable' is semantically invalid, it is not a parse error.
     let type: NamedTypeNode | PredefinedTypeNode | CompositeTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
-      type = this.parseType();
+      type = this.parseType(false);
       if (!this.isSupportedVersion(PhpVersion.PHP7_4)) {
         type = this.addError(type, ErrorCode.ERR_FeatureTypedProperties);
       }
@@ -3306,7 +3306,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    *
    * Syntax: `? type`
    */
-   protected parseSimpleType(/* isNullable = true */): NamedTypeNode | PredefinedTypeNode {
+   protected parseSimpleType(allowStaticType: boolean): NamedTypeNode | PredefinedTypeNode {
     let question = this.eatOptional(TokenKind.Question);
     if (question !== null && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
       question = this.addError(question, ErrorCode.ERR_FeatureNullableTypes);
@@ -3314,6 +3314,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     if (this.currentToken.kind === TokenKind.Array || this.currentToken.kind === TokenKind.Callable) {
       let typeKeyword = this.eat(this.currentToken.kind);
       return new PredefinedTypeNode(question, typeKeyword);
+    }
+    if (allowStaticType && this.currentToken.kind === TokenKind.Static) {
+      let staticKeyword = this.eat(TokenKind.Static);
+      if (!this.isSupportedVersion(PhpVersion.PHP8_0)) {
+        staticKeyword = this.addError(staticKeyword, ErrorCode.ERR_FeatureStaticReturnType);
+      }
+      return new PredefinedTypeNode(question, staticKeyword);
     }
     let name = this.parseTypeName();
     return new NamedTypeNode(question, name);
@@ -3991,8 +3998,8 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Where `composite-type` is:
    * - `type-union`
    */
-  protected parseType(/* allowCompositeTypes = true */): NamedTypeNode | PredefinedTypeNode | CompositeTypeNode {
-    let type = this.parseSimpleType();
+  protected parseType(isReturnType: boolean): NamedTypeNode | PredefinedTypeNode | CompositeTypeNode {
+    let type = this.parseSimpleType(isReturnType);
     if (this.currentToken.kind !== TokenKind.VerticalBar) {
       return type;
     }
@@ -4004,7 +4011,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     types.push(type);
     while (this.currentToken.kind === TokenKind.VerticalBar) {
       types.push(this.eat(TokenKind.VerticalBar));
-      type = this.parseSimpleType();
+      type = this.parseSimpleType(isReturnType);
       if (type.question !== null) {
         type = this.addError(type, ErrorCode.ERR_TypeUnionHasNullableType);
       }
@@ -5038,7 +5045,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let colon = this.eatOptional(TokenKind.Colon);
-    let returnType = colon !== null ? this.parseType() : null;
+    let returnType = colon !== null ? this.parseType(true) : null;
 
     let doubleArrow: TokenNode;
     if (this.currentToken.kind === TokenKind.DoubleArrow || colon !== null) {
@@ -5200,7 +5207,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     let colon = this.eatOptional(TokenKind.Colon);
-    let returnType = colon !== null ? this.parseType() : null;
+    let returnType = colon !== null ? this.parseType(true) : null;
 
     let code = useClause === null && colon === null
       ? ErrorCode.ERR_IncompleteClosure

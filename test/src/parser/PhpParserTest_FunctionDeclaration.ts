@@ -154,6 +154,13 @@ describe('PhpParser', function() {
     Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
     let syntaxTests8_0 = [
+      new ParserTestArgs('function a(): static {}', 'should parse a function with static return type', (statements) => {
+        let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
+        assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
+        assert.strictEqual(funcDecl.ampersand, null);
+        assert.strictEqual(funcDecl.parameters, null);
+        assert.strictEqual(funcDecl.returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+      }),
       new ParserTestArgs('function a(): B | callable {}', 'should parse a function with type union', (statements) => {
         let funcDecl = <FunctionDeclarationSyntaxNode>statements[0];
         assert.strictEqual(funcDecl instanceof FunctionDeclarationSyntaxNode, true, 'FunctionDeclarationSyntaxNode');
@@ -191,6 +198,7 @@ describe('PhpParser', function() {
     let diagnosticRegressionTests8_0 = [
       new DiagnosticTestArgs('function a(): B', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [15]),
       new DiagnosticTestArgs('function a(): B | C {}', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [14]),
+      new DiagnosticTestArgs('function a(): static {}', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [14]),
     ];
     Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });

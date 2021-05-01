@@ -659,6 +659,10 @@ describe('PhpParser', function() {
         assert.strictEqual(variables.length, 1);
         assert.strictEqual(variables[0] instanceof LexicalVariableSyntaxNode, true);
       }),
+      new ParserTestArgs('function(): static {};', 'should parse a closure with static return type', (statements) => {
+        let closure = assertAnonymousFunction(statements, false, false, false, false, true);
+        assert.strictEqual(closure.returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+      }),
       new ParserTestArgs('function(): A | callable {};', 'should parse a closure with type union', (statements) => {
         let closure = assertAnonymousFunction(statements, false, false, false, false, true);
         let returnType = <CompositeTypeSyntaxNode>closure.returnType;
@@ -697,6 +701,7 @@ describe('PhpParser', function() {
     let diagnosticRegressionTests8_0 = [
       new DiagnosticTestArgs('function(): A', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [13]),
       new DiagnosticTestArgs('function(): A | B {};', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [12]),
+      new DiagnosticTestArgs('function(): static {};', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [12]),
       new DiagnosticTestArgs('function() use($a,', 'should not parse trailing comma in closure use list', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists, ErrorCode.ERR_IncompleteClosureUseList], [17, 18]),
       new DiagnosticTestArgs('function() use($a,)', 'should not parse trailing comma in closure use list (completed)', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists], [17]),
     ];
@@ -724,7 +729,7 @@ describe('PhpParser', function() {
         assert.strictEqual(closure.staticKeyword, null);
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
-        assert.notStrictEqual(closure.returnType, null);
+        assert.strictEqual(closure.returnType instanceof NamedTypeSyntaxNode, true);
         assert.strictEqual(closure.expression instanceof LocalVariableSyntaxNode, true);
       }),
       new ParserTestArgs('fn &() => $a;', 'should parse a byref arrow function', (statements) => {
@@ -753,6 +758,16 @@ describe('PhpParser', function() {
     Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_4);
 
     let syntaxTests8_0 = [
+      new ParserTestArgs('fn(): static => $a;', 'should parse an arrow function with static return type', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
+        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true, 'ArrowFunctionSyntaxNode');
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.strictEqual(closure.returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+      }),
       new ParserTestArgs('fn(): A | callable => $a;', 'should parse an arrow function with type union', (statements) => {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
@@ -790,6 +805,7 @@ describe('PhpParser', function() {
     let diagnosticRegressionTests8_0 = [
       new DiagnosticTestArgs('fn(): A', 'missing double arrow', [ErrorCode.ERR_Syntax], [7]),
       new DiagnosticTestArgs('fn(): A | B => $c;', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [6]),
+      new DiagnosticTestArgs('fn(): static => $a;', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [6]),
     ];
     Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
