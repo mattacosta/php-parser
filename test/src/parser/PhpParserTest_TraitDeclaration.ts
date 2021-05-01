@@ -25,6 +25,7 @@ import {
 } from '../Test';
 
 import {
+  CompositeTypeSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   LiteralSyntaxNode,
   MethodDeclarationSyntaxNode,
@@ -43,7 +44,6 @@ import {
   TraitPrecedenceSyntaxNode,
   TraitUseGroupSyntaxNode,
   TraitUseSyntaxNode,
-  TypeSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
@@ -236,21 +236,21 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
         }),
         new ParserTestArgs('trait A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
         }),
         new ParserTestArgs('trait A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
           let method = assertMethodDeclaration(statements);
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
         }),
         new ParserTestArgs('trait A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
           let method = assertMethodDeclaration(statements);
@@ -283,26 +283,53 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
+      let syntaxTests8_0 = [
+        new ParserTestArgs('trait A { function b(): array | C {} }', 'should parse a method declaration with type union', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <CompositeTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof CompositeTypeSyntaxNode, true, 'CompositeTypeSyntaxNode');
+          let types = returnType.types.childNodes();
+          assert.strictEqual(types.length, 2);
+          assert.strictEqual(types[0] instanceof PredefinedTypeSyntaxNode, true);
+          assert.strictEqual(types[1] instanceof NamedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
       let diagnosticTests = [
         new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
         new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
         new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
         new DiagnosticTestArgs('trait A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
         new DiagnosticTestArgs('trait A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-
         new DiagnosticTestArgs('trait A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
-        new DiagnosticTestArgs('trait A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
-        new DiagnosticTestArgs('trait A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
-        new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-
         new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
-        new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
 
-        // @todo These should be recovery tests.
-        new DiagnosticTestArgs('trait A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
-        new DiagnosticTestArgs('trait A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
+        new DiagnosticTestArgs('trait A { function b() { public $c; }', 'should not parse trailing class member as method statement', [ErrorCode.ERR_CloseBraceExpected], [24]),
+        new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('trait A { function b(): C }', 'missing open brace or vertical bar', [ErrorCode.ERR_OpenBraceExpected], [25]),
+        new DiagnosticTestArgs('trait A { function b(): C | }', 'missing type', [ErrorCode.ERR_TypeExpected], [27]),
+        new DiagnosticTestArgs('trait A { function b(): C | D }', 'missing open brace or vertical bar (after multiple types)', [ErrorCode.ERR_OpenBraceExpected], [29]),
+        new DiagnosticTestArgs('trait A { abstract function b(): C }', 'missing semicolon or vertical bar', [ErrorCode.ERR_SemicolonExpected], [34]),
+
+        new DiagnosticTestArgs('trait A { function b(): ?C | D {} }', 'should not parse nullable type in type union', [ErrorCode.ERR_TypeUnionHasNullableType], [24]),
+        new DiagnosticTestArgs('trait A { function b(): ?C | ?D {} }', 'should not parse nullable type in type union (multiple)', [ErrorCode.ERR_TypeUnionHasNullableType, ErrorCode.ERR_TypeUnionHasNullableType], [24, 29]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('trait A { function b(): C }', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [25]),
+        new DiagnosticTestArgs('trait A { function b(): C | D {} }', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [24]),
+        new DiagnosticTestArgs('trait A { abstract function b(): C }', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [34]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('method-declaration (modifiers)', function() {
@@ -440,6 +467,7 @@ describe('PhpParser', function() {
       let diagnosticTests = [
         new DiagnosticTestArgs('trait A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
         new DiagnosticTestArgs('trait A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
+        new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

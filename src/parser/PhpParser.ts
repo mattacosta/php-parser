@@ -35,6 +35,7 @@ import {
   ClassDeclarationNode,
   CloneNode,
   ClosureUseNode,
+  CompositeTypeNode,
   ConditionalNode,
   ConstantDeclarationNode,
   ConstantElementNode,
@@ -2763,9 +2764,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // and prevent the parser from getting too far off track.
     let isInterfaceOrAbstract = context === ParseContext.InterfaceMembers || modifierFlags & ModifierFlags.Abstract;
     if (this.currentToken.kind !== TokenKind.OpenBrace && isInterfaceOrAbstract) {
+      let code = colon === null ? ErrorCode.ERR_ColonOrSemicolonExpected : ErrorCode.ERR_SemicolonExpected;
       semicolon = this.isStatementEnd(this.currentToken.kind)
         ? this.parseStatementEnd()
-        : this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_ColonOrSemicolonExpected);
+        : this.createMissingTokenWithError(TokenKind.Semicolon, code);
     }
     else {
       let openBrace: TokenNode;
@@ -2950,7 +2952,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       modifiers = this.parseModifierList(true);
     }
 
-    let type: NamedTypeNode | PredefinedTypeNode | null = null;
+    let type: NamedTypeNode | PredefinedTypeNode | CompositeTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
       type = this.parseType();
     }
@@ -3137,7 +3139,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     }
 
     // Even though 'callable' is semantically invalid, it is not a parse error.
-    let type: NamedTypeNode | PredefinedTypeNode | null = null;
+    let type: NamedTypeNode | PredefinedTypeNode | CompositeTypeNode | null = null;
     if (this.isTypeStart(this.currentToken.kind)) {
       type = this.parseType();
       if (!this.isSupportedVersion(PhpVersion.PHP7_4)) {
@@ -3297,6 +3299,24 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       ? this.createMissingTokenWithError(TokenKind.Semicolon, ErrorCode.ERR_ExpressionOrSemicolonExpected)
       : this.parseStatementEnd();
     return new ReturnNode(returnKeyword, expression, semicolon);
+  }
+
+  /**
+   * Parses a simple type.
+   *
+   * Syntax: `? type`
+   */
+   protected parseSimpleType(/* isNullable = true */): NamedTypeNode | PredefinedTypeNode {
+    let question = this.eatOptional(TokenKind.Question);
+    if (question !== null && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
+      question = this.addError(question, ErrorCode.ERR_FeatureNullableTypes);
+    }
+    if (this.currentToken.kind === TokenKind.Array || this.currentToken.kind === TokenKind.Callable) {
+      let typeKeyword = this.eat(this.currentToken.kind);
+      return new PredefinedTypeNode(question, typeKeyword);
+    }
+    let name = this.parseTypeName();
+    return new NamedTypeNode(question, name);
   }
 
   /**
@@ -3962,21 +3982,40 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
-   * Parses a (nullable) type.
+   * Parses a simple or composite type.
    *
-   * Syntax: `? type`
+   * Syntax:
+   * - `simple-type`
+   * - `composite-type`
+   *
+   * Where `composite-type` is:
+   * - `type-union`
    */
-  protected parseType(/* isNullable = true */): NamedTypeNode | PredefinedTypeNode {
-    let question = this.eatOptional(TokenKind.Question);
-    if (question !== null && !this.isSupportedVersion(PhpVersion.PHP7_1)) {
-      question = this.addError(question, ErrorCode.ERR_FeatureNullableTypes);
+  protected parseType(/* allowCompositeTypes = true */): NamedTypeNode | PredefinedTypeNode | CompositeTypeNode {
+    let type = this.parseSimpleType();
+    if (this.currentToken.kind !== TokenKind.VerticalBar) {
+      return type;
     }
-    if (this.currentToken.kind === TokenKind.Array || this.currentToken.kind === TokenKind.Callable) {
-      let typeKeyword = this.eat(this.currentToken.kind);
-      return new PredefinedTypeNode(question, typeKeyword);
+    if (type.question !== null) {
+      type = this.addError(type, ErrorCode.ERR_TypeUnionHasNullableType);
     }
-    let name = this.parseTypeName();
-    return new NamedTypeNode(question, name);
+
+    let types: Array<NamedTypeNode | PredefinedTypeNode | TokenNode> = [];
+    types.push(type);
+    while (this.currentToken.kind === TokenKind.VerticalBar) {
+      types.push(this.eat(TokenKind.VerticalBar));
+      type = this.parseSimpleType();
+      if (type.question !== null) {
+        type = this.addError(type, ErrorCode.ERR_TypeUnionHasNullableType);
+      }
+      types.push(type);
+    }
+
+    let compositeType = new CompositeTypeNode(this.factory.createList(types));
+    if (!this.isSupportedVersion(PhpVersion.PHP8_0)) {
+      compositeType = this.addError(compositeType, ErrorCode.ERR_FeatureUnionTypes);
+    }
+    return compositeType;
   }
 
   /**

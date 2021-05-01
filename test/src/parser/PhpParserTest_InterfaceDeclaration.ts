@@ -27,6 +27,7 @@ import {
 import {
   ClassConstantDeclarationSyntaxNode,
   ClassConstantElementSyntaxNode,
+  CompositeTypeSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   InterfaceDeclarationSyntaxNode,
   LiteralSyntaxNode,
@@ -37,7 +38,6 @@ import {
   PredefinedTypeSyntaxNode,
   RelativeNameSyntaxNode,
   StatementBlockSyntaxNode,
-  TypeSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
@@ -317,7 +317,7 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
           assert.strictEqual(method.statements, null);
         }),
         new ParserTestArgs('interface A { function b(): \\C; }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
@@ -325,7 +325,7 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
           assert.strictEqual(method.statements, null);
         }),
         new ParserTestArgs('interface A { function b(): namespace\\C; }', 'should parse a method declaration with relative return type', (statements, text) => {
@@ -333,7 +333,7 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
           assert.strictEqual(method.statements, null);
         }),
         new ParserTestArgs('interface A { function b(): array; }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
@@ -369,6 +369,22 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
+      let syntaxTests8_0 = [
+        new ParserTestArgs('interface A { function b(): array | C; }', 'should parse a method declaration with type union', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <CompositeTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof CompositeTypeSyntaxNode, true, 'CompositeTypeSyntaxNode');
+          let types = returnType.types.childNodes();
+          assert.strictEqual(types.length, 2);
+          assert.strictEqual(types[0] instanceof PredefinedTypeSyntaxNode, true);
+          assert.strictEqual(types[1] instanceof NamedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
       // @todo Recovery tests:
       //   'interface A { function b() { }'
       //   'interface A { function b() { public $c; }'
@@ -379,16 +395,29 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [24]),
         new DiagnosticTestArgs('interface A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
         new DiagnosticTestArgs('interface A { function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [26]),
-
         new DiagnosticTestArgs('interface A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [27]),
-        new DiagnosticTestArgs('interface A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [30]),
-        new DiagnosticTestArgs('interface A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [29]),
 
         new DiagnosticTestArgs('interface A { function b() {} }', 'should not expect a method body', [ErrorCode.ERR_InterfaceMethodDefinition], [27]),
         new DiagnosticTestArgs('interface A { public function b() {} }', 'should not expect a method body on public method', [ErrorCode.ERR_InterfaceMethodDefinition], [34]),
         new DiagnosticTestArgs('interface A { static function b() {} }', 'should not expect a method body on static method', [ErrorCode.ERR_InterfaceMethodDefinition], [34]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(): C }', 'missing semicolon or vertical bar', [ErrorCode.ERR_SemicolonExpected], [29]),
+        new DiagnosticTestArgs('interface A { function b(): C | }', 'missing type', [ErrorCode.ERR_TypeExpected], [31]),
+        new DiagnosticTestArgs('interface A { function b(): C | D }', 'missing semicolon or vertical bar (after multiple types)', [ErrorCode.ERR_SemicolonExpected], [33]),
+
+        new DiagnosticTestArgs('interface A { function b(): ?C | D {} }', 'should not parse nullable type in type union', [ErrorCode.ERR_TypeUnionHasNullableType], [28]),
+        new DiagnosticTestArgs('interface A { function b(): ?C | ?D {} }', 'should not parse nullable type in type union (multiple)', [ErrorCode.ERR_TypeUnionHasNullableType, ErrorCode.ERR_TypeUnionHasNullableType], [28, 33]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(): C }', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [29]),
+        new DiagnosticTestArgs('interface A { function b(): C | D; }', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [28]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('method-declaration (modifiers)', function() {

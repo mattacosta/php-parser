@@ -132,6 +132,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: statements
     type: StatementBlock
@@ -184,6 +185,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: doubleArrow
     type: TokenNode
@@ -1114,6 +1116,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: statements
     type: StatementBlock
@@ -1263,6 +1266,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: statements
     type: StatementBlock
@@ -1307,6 +1311,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: properties
     type: NodeList
@@ -1551,6 +1556,14 @@ nodes:
   properties:
   - name: namespaceName
     type: NodeList
+# Used by named and predefined types.
+- name: NullableType
+  abstract: true
+  extends: Type
+  properties:
+  - name: question
+    type: TokenNode
+    optional: true
 - name: Pattern
   abstract: true
 # Used by named and referenced trait aliases.
@@ -1569,10 +1582,6 @@ nodes:
     type: TokenNode
 - name: Type
   abstract: true
-  properties:
-  - name: question
-    type: TokenNode
-    optional: true
 
 # -----------------------------------------------------------------------------
 
@@ -1652,6 +1661,13 @@ nodes:
   - name: closeParen
     type: TokenNode
   visitorName: visitClosureUse
+- name: CompositeType
+  extends: Type
+  properties:
+  - name: types
+    type: NodeList
+  visitorName: visitType
+  visitorType: Type
 # Unlike ClassConstantElement, the name cannot be a semi-reserved keyword.
 - name: ConstantElement
   properties:
@@ -1823,7 +1839,7 @@ nodes:
   visitorType: TraitAlias
 # See also: PredefinedType
 - name: NamedType
-  extends: Type
+  extends: NullableType
   properties:
   - name: question
     type: TokenNode
@@ -1842,6 +1858,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: ampersand
     type: TokenNode
@@ -1868,7 +1885,7 @@ nodes:
   visitorName: visitPartiallyQualifiedName
 # See also: NamedType
 - name: PredefinedType
-  extends: Type
+  extends: NullableType
   properties:
   - name: question
     type: TokenNode

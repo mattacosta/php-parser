@@ -69,6 +69,8 @@ diagnostics:
   text: "The feature 'constructor parameter promotion' requires PHP 8.0 or later"
 - name: ERR_FeatureTrailingCommasInClosureUseLists
   text: "The feature 'trailing commas in closure use lists' requires PHP 8.0 or later"
+- name: ERR_FeatureUnionTypes
+  text: "The feature 'union types' requires PHP 8.0 or later"
 
 # -----------------------------------------------------------------------------
 # Lexer diagnostics
@@ -367,3 +369,5 @@ diagnostics:
   text: "Variable, '&' or ')' expected"
 - name: ERR_TryCatchUnionOrOptionalVariableExpected
   text: "Type union, variable, or ')' expected"
+- name: ERR_TypeUnionHasNullableType
+  text: "Nullable types cannot be used in a type union"

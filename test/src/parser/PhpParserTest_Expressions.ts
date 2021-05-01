@@ -35,6 +35,7 @@ import {
   BinarySyntaxNode,
   CloneSyntaxNode,
   ClosureUseSyntaxNode,
+  CompositeTypeSyntaxNode,
   ConditionalSyntaxNode,
   DefaultPatternSyntaxNode,
   ElementAccessSyntaxNode,
@@ -58,6 +59,7 @@ import {
   NamedTypeSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PatternSyntaxNode,
+  PredefinedTypeSyntaxNode,
   PrintIntrinsicSyntaxNode,
   RelativeNameSyntaxNode,
   ScriptInclusionSyntaxNode,
@@ -97,6 +99,35 @@ function assertAnonymousClassDeclaration(statements: ISyntaxNode[], hasArgumentL
   }
 
   return classDecl;
+}
+
+function assertAnonymousFunction(statements: ISyntaxNode[], isStatic: boolean, isByRef: boolean, hasParameters: boolean, hasLexicalVariables: boolean, hasReturnType: boolean): AnonymousFunctionSyntaxNode {
+  let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+  assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+  let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
+  assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true, 'AnonymousFunctionSyntaxNode');
+  if (isStatic) {
+    assert.notStrictEqual(closure.staticKeyword, null);
+  }
+  else {
+    assert.strictEqual(closure.staticKeyword, null);
+  }
+  if (isByRef) {
+    assert.notStrictEqual(closure.ampersand, null);
+  }
+  else {
+    assert.strictEqual(closure.ampersand, null);
+  }
+  if (!hasParameters) {
+    assert.strictEqual(closure.parameters, null);
+  }
+  if (!hasLexicalVariables) {
+    assert.strictEqual(closure.useClause, null);
+  }
+  if (!hasReturnType) {
+    assert.strictEqual(closure.returnType, null);
+  }
+  return closure;
 }
 
 function assertArrayElement(node: ISyntaxNode, hasKey: boolean, operator: TokenKind | null): void {
@@ -549,74 +580,39 @@ describe('PhpParser', function() {
     // NOTE: See function-declaration for parameter list and return type tests.
     let syntaxTests = [
       new ParserTestArgs('function() {};', 'should parse a closure', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
-        assert.strictEqual(closure.useClause, null);
-        assert.strictEqual(closure.returnType, null);
+        assertAnonymousFunction(statements, false, false, false, false, false);
       }),
       new ParserTestArgs('function(): A {};', 'should parse a closure with return type', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
-        assert.strictEqual(closure.useClause, null);
-        assert.notStrictEqual(closure.returnType, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, false, true);
+        assert.strictEqual(closure.returnType instanceof NamedTypeSyntaxNode, true);
       }),
       new ParserTestArgs('function() use($a) {};', 'should parse a closure with lexical variable', (statements, text) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, true, false);
         let useClause = <ClosureUseSyntaxNode>closure.useClause;
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
-        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        let variables = useClause.variables.childNodes();
         assert.strictEqual(variables.length, 1);
         let firstVariable = <LexicalVariableSyntaxNode>variables[0];
         assert.strictEqual(firstVariable instanceof LexicalVariableSyntaxNode, true);
         assert.strictEqual(firstVariable.ampersand, null);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
-        assert.strictEqual(closure.returnType, null);
       }),
       new ParserTestArgs('function() use(&$a) {};', 'should parse a closure with lexical variable (by reference)', (statements, text) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, true, false);
         let useClause = <ClosureUseSyntaxNode>closure.useClause;
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
-        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        let variables = useClause.variables.childNodes();
         assert.strictEqual(variables.length, 1);
         let firstVariable = <LexicalVariableSyntaxNode>variables[0];
         assert.strictEqual(firstVariable instanceof LexicalVariableSyntaxNode, true);
         assert.notStrictEqual(firstVariable.ampersand, null);
         Test.assertSyntaxToken(firstVariable.variable, text, TokenKind.Variable, '$a');
-        assert.strictEqual(closure.returnType, null);
       }),
       new ParserTestArgs('function() use($a, $b) {};', 'should parse a closure with multiple lexical variables', (statements, text) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, true, false);
         let useClause = <ClosureUseSyntaxNode>closure.useClause;
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
-        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        let variables = useClause.variables.childNodes();
         assert.strictEqual(variables.length, 2);
         let firstVariable = <LexicalVariableSyntaxNode>variables[0];
         assert.strictEqual(firstVariable instanceof LexicalVariableSyntaxNode, true);
@@ -624,58 +620,28 @@ describe('PhpParser', function() {
         let secondVariable = <LexicalVariableSyntaxNode>variables[1];
         assert.strictEqual(secondVariable instanceof LexicalVariableSyntaxNode, true);
         Test.assertSyntaxToken(secondVariable.variable, text, TokenKind.Variable, '$b');
-        assert.strictEqual(closure.returnType, null);
       }),
       new ParserTestArgs('function() use($a): A {};', 'should parse a closure with lexical variable and return type', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, true, true);
         let useClause = <ClosureUseSyntaxNode>closure.useClause;
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
-        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        let variables = useClause.variables.childNodes();
         assert.strictEqual(variables.length, 1);
         assert.strictEqual(variables[0] instanceof LexicalVariableSyntaxNode, true);
-        assert.notStrictEqual(closure.returnType, null);
+        assert.strictEqual(closure.returnType instanceof NamedTypeSyntaxNode, true);
       }),
       new ParserTestArgs('function &() {};', 'should parse a byref closure', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.notStrictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
-        assert.strictEqual(closure.useClause, null);
-        assert.strictEqual(closure.returnType, null);
+        assertAnonymousFunction(statements, false, true, false, false, false);
       }),
       new ParserTestArgs('static function() {};', 'should parse a static closure', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.notStrictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
-        assert.strictEqual(closure.useClause, null);
-        assert.strictEqual(closure.returnType, null);
+        assertAnonymousFunction(statements, true, false, false, false, false);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
 
     let syntaxTests7_1 = [
       new ParserTestArgs('function(): ? A {};', 'should parse a closure with nullable return type', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
-        assert.strictEqual(closure.useClause, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, false, true);
         let returnType = <NamedTypeSyntaxNode>closure.returnType;
         assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
         assert.notStrictEqual(returnType.question, null);
@@ -686,19 +652,21 @@ describe('PhpParser', function() {
 
     let syntaxTests8_0 = [
       new ParserTestArgs('function() use($a,) {};', 'should parse a closure with lexical variable and trailing comma', (statements) => {
-        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
-        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
-        let closure = <AnonymousFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof AnonymousFunctionSyntaxNode, true);
-        assert.strictEqual(closure.staticKeyword, null);
-        assert.strictEqual(closure.ampersand, null);
-        assert.strictEqual(closure.parameters, null);
+        let closure = assertAnonymousFunction(statements, false, false, false, true, false);
         let useClause = <ClosureUseSyntaxNode>closure.useClause;
         assert.strictEqual(useClause instanceof ClosureUseSyntaxNode, true);
-        let variables = useClause.variables ? useClause.variables.childNodes() : [];
+        let variables = useClause.variables.childNodes();
         assert.strictEqual(variables.length, 1);
         assert.strictEqual(variables[0] instanceof LexicalVariableSyntaxNode, true);
-        assert.strictEqual(closure.returnType, null);
+      }),
+      new ParserTestArgs('function(): A | callable {};', 'should parse a closure with type union', (statements) => {
+        let closure = assertAnonymousFunction(statements, false, false, false, false, true);
+        let returnType = <CompositeTypeSyntaxNode>closure.returnType;
+        assert.strictEqual(returnType instanceof CompositeTypeSyntaxNode, true, 'CompositeTypeSyntaxNode');
+        let types = returnType.types.childNodes();
+        assert.strictEqual(types.length, 2);
+        assert.strictEqual(types[0] instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(types[1] instanceof PredefinedTypeSyntaxNode, true);
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
@@ -719,11 +687,16 @@ describe('PhpParser', function() {
     Test.assertDiagnostics(diagnosticTests);
 
     let diagnosticTests8_0 = [
+      new DiagnosticTestArgs('function(): A', 'missing open brace or vertical bar', [ErrorCode.ERR_OpenBraceExpected], [13]),
+      new DiagnosticTestArgs('function(): A |', 'missing type', [ErrorCode.ERR_TypeExpected], [15]),
+      new DiagnosticTestArgs('function(): A | B', 'missing open brace or vertical bar (multiple types)', [ErrorCode.ERR_OpenBraceExpected], [17]),
       new DiagnosticTestArgs('function() use($a,', 'missing ampersand, variable, or close paren', [ErrorCode.ERR_IncompleteClosureUseList], [18]),
     ];
     Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
 
     let diagnosticRegressionTests8_0 = [
+      new DiagnosticTestArgs('function(): A', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [13]),
+      new DiagnosticTestArgs('function(): A | B {};', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [12]),
       new DiagnosticTestArgs('function() use($a,', 'should not parse trailing comma in closure use list', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists, ErrorCode.ERR_IncompleteClosureUseList], [17, 18]),
       new DiagnosticTestArgs('function() use($a,)', 'should not parse trailing comma in closure use list (completed)', [ErrorCode.ERR_FeatureTrailingCommasInClosureUseLists], [17]),
     ];
@@ -736,7 +709,7 @@ describe('PhpParser', function() {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true, 'ArrowFunctionSyntaxNode');
         assert.strictEqual(closure.staticKeyword, null);
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
@@ -747,7 +720,7 @@ describe('PhpParser', function() {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true, 'ArrowFunctionSyntaxNode');
         assert.strictEqual(closure.staticKeyword, null);
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
@@ -758,7 +731,7 @@ describe('PhpParser', function() {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true, 'ArrowFunctionSyntaxNode');
         assert.strictEqual(closure.staticKeyword, null);
         assert.notStrictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
@@ -769,7 +742,7 @@ describe('PhpParser', function() {
         let exprNode = <ExpressionStatementSyntaxNode>statements[0];
         assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
         let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
-        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true);
+        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true, 'ArrowFunctionSyntaxNode');
         assert.notStrictEqual(closure.staticKeyword, null);
         assert.strictEqual(closure.ampersand, null);
         assert.strictEqual(closure.parameters, null);
@@ -779,15 +752,46 @@ describe('PhpParser', function() {
     ];
     Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP7_4);
 
+    let syntaxTests8_0 = [
+      new ParserTestArgs('fn(): A | callable => $a;', 'should parse an arrow function with type union', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let closure = <ArrowFunctionSyntaxNode>exprNode.expression;
+        assert.strictEqual(closure instanceof ArrowFunctionSyntaxNode, true, 'ArrowFunctionSyntaxNode');
+        assert.strictEqual(closure.staticKeyword, null);
+        assert.strictEqual(closure.ampersand, null);
+        assert.strictEqual(closure.parameters, null);
+        assert.strictEqual(closure.returnType instanceof CompositeTypeSyntaxNode, true, 'CompositeTypeSyntaxNode');
+        let types = (<CompositeTypeSyntaxNode>closure.returnType).types.childNodes();
+        assert.strictEqual(types.length, 2);
+        assert.strictEqual(types[0] instanceof NamedTypeSyntaxNode, true);
+        assert.strictEqual(types[1] instanceof PredefinedTypeSyntaxNode, true);
+        assert.strictEqual(closure.expression instanceof LocalVariableSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
     let diagnosticTests = [
       new DiagnosticTestArgs('fn', 'missing ampersand or open paren', [ErrorCode.ERR_IncompleteArrowFunction], [2]),
       new DiagnosticTestArgs('fn()', 'missing colon or double arrow', [ErrorCode.ERR_ColonOrDoubleArrowExpected], [4]),
       new DiagnosticTestArgs('fn() =>', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
       new DiagnosticTestArgs('fn():', 'missing type', [ErrorCode.ERR_TypeExpected], [5]),
-      new DiagnosticTestArgs('fn(): A', 'missing double arrow', [ErrorCode.ERR_Syntax], [7]),
       new DiagnosticTestArgs('fn(): A =>', 'missing expression (after type)', [ErrorCode.ERR_ExpressionExpectedEOF], [10]),
     ];
     Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP7_4);
+
+    let diagnosticTests8_0 = [
+      new DiagnosticTestArgs('fn(): A', 'missing double arrow or vertical bar', [ErrorCode.ERR_Syntax], [7]),
+      new DiagnosticTestArgs('fn(): A |', 'missing type', [ErrorCode.ERR_TypeExpected], [9]),
+      new DiagnosticTestArgs('fn(): A | B', 'missing double arrow or vertical bar (multiple types)', [ErrorCode.ERR_Syntax], [11]),
+    ];
+    Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+    let diagnosticRegressionTests8_0 = [
+      new DiagnosticTestArgs('fn(): A', 'missing double arrow', [ErrorCode.ERR_Syntax], [7]),
+      new DiagnosticTestArgs('fn(): A | B => $c;', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [6]),
+    ];
+    Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
   });
 
   describe('object-creation-expression (new-expression)', function() {
