@@ -71,6 +71,8 @@ diagnostics:
   text: "The feature 'static return type' requires PHP 8.0 or later"
 - name: ERR_FeatureTrailingCommasInClosureUseLists
   text: "The feature 'trailing commas in closure use lists' requires PHP 8.0 or later"
+- name: ERR_FeatureTrailingCommasInParameterLists
+  text: "The feature 'trailing commas in parameter lists' requires PHP 8.0 or later"
 - name: ERR_FeatureUnionTypes
   text: "The feature 'union types' requires PHP 8.0 or later"
 

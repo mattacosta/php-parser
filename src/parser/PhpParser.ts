@@ -3024,7 +3024,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     if (this.isParameterStart(this.currentToken.kind, allowModifiers) || this.currentToken.kind === TokenKind.Comma) {
       let parameter = this.parseParameter(allowModifiers);
       parameters.push(parameter);
-      if (parameter.ellipsis) {
+      if (parameter.ellipsis !== null) {
         variadicIndex = 0;
       }
     }
@@ -3032,25 +3032,33 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // @todo Replace with tokenEndsContext()?
     while (this.currentToken.kind !== TokenKind.CloseParen && this.currentToken.kind !== TokenKind.EOF) {
       if (this.isParameterStart(this.currentToken.kind, allowModifiers) || this.currentToken.kind === TokenKind.Comma) {
-        parameters.push(this.eat(TokenKind.Comma));
+        let comma = this.eat(TokenKind.Comma);
+
+        if (!this.isParameterStart(this.currentToken.kind, allowModifiers)) {
+          if (!this.isSupportedVersion(PhpVersion.PHP8_0)) {
+            comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInParameterLists);
+          }
+          parameters.push(comma);
+          break;
+        }
+        parameters.push(comma);
 
         let parameter = this.parseParameter(allowModifiers);
         parameters.push(parameter);
         if (parameter.ellipsis !== null && variadicIndex === -1) {
           variadicIndex = parameters.length - 1;
         }
-
         continue;
       }
 
       if (this.isTokenValidInContexts(this.currentToken.kind)) {
         break;
       }
-
       this.skipBadParameterListTokens(allowModifiers);
     }
 
-    if (variadicIndex !== -1 && variadicIndex < parameters.length - 1) {
+    let lastParameterIndex = parameters.length & 1 ? parameters.length - 1 : parameters.length - 2;
+    if (variadicIndex !== -1 && variadicIndex < lastParameterIndex) {
       parameters[variadicIndex] = this.addError(parameters[variadicIndex], ErrorCode.ERR_VariadicIsNotLastParameter);
     }
 
@@ -3066,7 +3074,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     else {
       let code: ErrorCode;
       if (parameters.length > 0) {
-        let lastParameter = <ParameterNode>parameters[parameters.length - 1];
+        let lastParameter = <ParameterNode>parameters[lastParameterIndex];
         if (lastParameter.ellipsis !== null) {
           code = ErrorCode.ERR_CloseParenExpected;
         }
@@ -3074,7 +3082,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
           code = ErrorCode.ERR_CommaOrCloseParenExpected;
         }
         else {
-          code = ErrorCode.ERR_IncompleteParameterList;
+          code = parameters.length & 1 ? ErrorCode.ERR_IncompleteParameterList : ErrorCode.ERR_ParameterOrCloseParenExpected;
         }
       }
       else {

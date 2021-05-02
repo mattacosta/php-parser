@@ -309,6 +309,17 @@ describe('PhpParser', function() {
     Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
     let syntaxTests8_0 = [
+      new ParserTestArgs('function a($b,) {}', 'should parse a parameter with trailing comma', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.strictEqual(parameters.length, 1);
+        assertParameter(parameters[0], false, false, false, false);
+      }),
+      new ParserTestArgs('function a($b, $c,) {}', 'should parse multiple parameters with trailing comma', (statements) => {
+        let parameters = assertFunctionWithParameters(statements);
+        assert.strictEqual(parameters.length, 2);
+        assertParameter(parameters[0], false, false, false, false);
+        assertParameter(parameters[1], false, false, false, false);
+      }),
       new ParserTestArgs('function a(B | callable $d) {}', 'should parse a parameter with type union', (statements) => {
         let parameters = assertFunctionWithParameters(statements);
         assert.strictEqual(parameters.length, 1);
@@ -329,9 +340,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('function a($b', 'missing comma, close paren, or equals', [ErrorCode.ERR_IncompleteParameterList], [13]),
       new DiagnosticTestArgs('function a($b =', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [15]),
       new DiagnosticTestArgs('function a($b = 1', 'missing comma or close paren', [ErrorCode.ERR_CommaOrCloseParenExpected], [17]),
-      new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_ParameterExpected], [14]),
       new DiagnosticTestArgs('function a(...', 'missing variable', [ErrorCode.ERR_VariableExpected], [14]),
-      new DiagnosticTestArgs('function a(...$b', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
 
       new DiagnosticTestArgs('function a(...$b = []) {}', 'should not parse variadic parameter with default value', [ErrorCode.ERR_VariadicHasDefaultValue], [17]),
       new DiagnosticTestArgs('function a(...$b, $c) {}', 'should not parse parameter after variadic parameter', [ErrorCode.ERR_VariadicIsNotLastParameter], [11]),
@@ -355,6 +364,9 @@ describe('PhpParser', function() {
     Test.assertDiagnostics(diagnosticRegressionTests7_1, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
 
     let diagnosticTests8_0 = [
+      new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [14]),
+      new DiagnosticTestArgs('function a(...$b', 'missing comma or close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
+      new DiagnosticTestArgs('function a(...$b,', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [17]),
       new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, variable, or vertical bar', [ErrorCode.ERR_IncompleteParameter], [12]),
       new DiagnosticTestArgs('function a(B |', 'missing type', [ErrorCode.ERR_TypeExpected], [14]),
       new DiagnosticTestArgs('function a(B | C', 'missing ampersand, ellipsis, variable, or vertical bar (after multiple types)', [ErrorCode.ERR_IncompleteParameter], [16]),
@@ -364,6 +376,10 @@ describe('PhpParser', function() {
     Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
 
     let diagnosticRegressionTests8_0 = [
+      new DiagnosticTestArgs('function a($b,', 'missing ampersand, ellipsis, question, type, or variable', [ErrorCode.ERR_FeatureTrailingCommasInParameterLists, ErrorCode.ERR_ParameterOrCloseParenExpected], [13, 14]),
+      new DiagnosticTestArgs('function a($b,) {}', 'should not parse trailing comma in parameter list', [ErrorCode.ERR_FeatureTrailingCommasInParameterLists], [13]),
+      new DiagnosticTestArgs('function a(...$b', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [16]),
+      new DiagnosticTestArgs('function a(...$b,', 'should not parse trailing comma in parameter list (variadic)', [ErrorCode.ERR_FeatureTrailingCommasInParameterLists, ErrorCode.ERR_CloseParenExpected], [16, 17]),
       new DiagnosticTestArgs('function a(B', 'missing ampersand, ellipsis, or variable', [ErrorCode.ERR_IncompleteParameter], [12]),
       new DiagnosticTestArgs('function a(B | C $d) {}', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [11]),
     ];
