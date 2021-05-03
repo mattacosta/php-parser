@@ -747,6 +747,14 @@ nodes:
   - name: closeQuote
     type: TokenNode
   visitorName: visitStringTemplate
+- name: ThrowExpression
+  extends: Expression
+  properties:
+  - name: throwKeyword
+    type: TokenNode
+  - name: expression
+    type: Expression
+  visitorName: visitThrowExpression
 - name: Unary
   extends: Expression
   properties:

@@ -134,6 +134,7 @@ import {
   SwitchBlockNode,
   SwitchCaseNode,
   SwitchNode,
+  ThrowExpressionNode,
   ThrowNode,
   TraitAliasNode,
   TraitDeclarationNode,
@@ -967,6 +968,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.MagicNamespace:
       case TokenKind.MagicTrait:
         return true;
+
+      case TokenKind.Throw:
+        return this.isSupportedVersion(PhpVersion.PHP8_0);
+
       default:
         return false;
     }
@@ -1188,7 +1193,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Semicolon:        // Expression statement.
       case TokenKind.Static:
       case TokenKind.Switch:
-      case TokenKind.Throw:
+      case TokenKind.Throw:            // Same result for throw expressions.
       case TokenKind.Try:
       case TokenKind.Unset:
       case TokenKind.While:
@@ -1526,8 +1531,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return this.parseExpressionOrTopStatement();
       case TokenKind.Switch:
         return this.parseSwitch();
-      case TokenKind.Throw:
-        return this.parseThrow();
       case TokenKind.Try:
         return this.parseTry();
       case TokenKind.Unset:
@@ -1547,6 +1550,9 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         return new ExpressionStatementNode(null, semicolon);
       // Expressions.
       default:
+        if (this.currentToken.kind === TokenKind.Throw && this.isSupportedVersion(PhpVersion.PHP7_0, PhpVersion.PHP7_4)) {
+          return this.parseThrow();
+        }
         if (this.isExpressionStart(this.currentToken.kind)) {
           let expr = this.parseExpression();
           let exprSemicolon = this.parseStatementEnd();
@@ -4648,6 +4654,10 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
         expr = this.parseStringTemplate();
         type = ExpressionType.Implicit;
         break;
+      case TokenKind.Throw:
+        expr = this.parseThrowExpression();
+        type = ExpressionType.Implicit;
+        break;
       case TokenKind.Yield:
         expr = this.parseYield();
         type = ExpressionType.Implicit;
@@ -6623,6 +6633,17 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     else {
       return new LocalVariableNode(variable);
     }
+  }
+
+  /**
+   * Parses a throw expression.
+   *
+   * Syntax: `THROW expr`
+   */
+  protected parseThrowExpression(): ThrowExpressionNode {
+    let throwKeyword = this.eat(TokenKind.Throw);
+    let expr = this.parseExpression();
+    return new ThrowExpressionNode(throwKeyword, expr);
   }
 
   /**

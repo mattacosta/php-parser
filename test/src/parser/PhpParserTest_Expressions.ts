@@ -64,6 +64,7 @@ import {
   RelativeNameSyntaxNode,
   ScriptInclusionSyntaxNode,
   StaticPropertySyntaxNode,
+  ThrowExpressionSyntaxNode,
   UnarySyntaxNode,
   YieldFromSyntaxNode,
   YieldSyntaxNode,
@@ -1827,6 +1828,25 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
+  });
+
+  // See also 'throw-statement'.
+  describe('throw-expression', function() {
+    let syntaxTests = [
+      new ParserTestArgs('throw $e;', 'should parse a throw expression', (statements) => {
+        let exprNode = <ExpressionStatementSyntaxNode>statements[0];
+        assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
+        let throwExpr = <ThrowExpressionSyntaxNode>exprNode.expression;
+        assert.strictEqual(throwExpr instanceof ThrowExpressionSyntaxNode, true, 'ThrowExpressionSyntaxNode');
+        assert.strictEqual(throwExpr.expression instanceof LocalVariableSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests, PhpVersion.PHP8_0);
+
+    let diagnosticTests = [
+      new DiagnosticTestArgs('throw', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
+    ];
+    Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP8_0);
   });
 
 });
