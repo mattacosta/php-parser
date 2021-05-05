@@ -169,6 +169,7 @@ import { PhpLexerState } from './PhpLexerState';
 import { PhpParserOptions } from './PhpParserOptions';
 import { PhpVersion } from './PhpVersion';
 import { Precedence } from './Precedence';
+import { ResetPoint } from './ResetPoint';
 import { SourceTextNode } from '../language/node/SourceTextNode';
 import { SourceTextSyntaxNode } from '../language/syntax/SourceTextSyntaxNode';
 import { SyntaxDiagnostic } from '../diagnostics/SyntaxDiagnostic';
@@ -240,7 +241,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * A factory service for creating tokens, trivia, and node lists.
    */
-  protected factory: NodeFactory;
+  protected readonly factory: NodeFactory;
 
   /**
    * A list of trivia nodes that preceed the current token.
@@ -255,7 +256,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * A PHP tokenizer.
    */
-  protected lexer: PhpLexer;
+  protected readonly lexer: PhpLexer;
 
   /**
    * The current state of the PHP tokenizer.
@@ -265,7 +266,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   /**
    * An object containing configuration options for the parser.
    */
-  protected options: PhpParserOptions;
+  protected readonly options: PhpParserOptions;
 
   /**
    * Constructs a `PhpParser` object.
@@ -288,6 +289,14 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   public parse(): SourceTextSyntaxNode {
     this.nextToken();
     return this.parseSourceText().createSyntaxNode();
+  }
+
+  /**
+   * Creates a reset point at the current token's location.
+   */
+  protected createResetPoint(): ResetPoint<PhpLexerState> {
+    let offset = this.currentToken.offset - this.leadingTriviaWidth;
+    return new ResetPoint(this.currentContext, this.lexerState, offset);
   }
 
   /**
@@ -337,6 +346,19 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     let statements = this.parseList(ParseContext.SourceElements);
     let eofToken = this.eat(TokenKind.EOF);
     return new SourceTextNode(statements, eofToken);
+  }
+
+  /**
+   * Resets the parser to a previous state.
+   */
+  protected reset(point: ResetPoint<PhpLexerState>): void {
+    this.currentContext = point.context;
+    this.currentToken = new Token(TokenKind.Unknown, point.offset, 0);
+    this.lexerState = point.lexerState;
+    this.leadingTrivia = [];
+    this.leadingTriviaWidth = 0;
+    this.lexer.setPosition(point.offset);
+    this.nextToken();
   }
 
   // --------------------------------------------------------------------------
