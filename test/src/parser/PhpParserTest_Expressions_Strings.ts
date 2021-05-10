@@ -64,7 +64,7 @@ function assertFlexibleHeredocLine(node: ISyntaxNode, sourceText: string, indent
   }
   else {
     // Interpolations.
-    assert.notEqual(template.length, 0);
+    assert.notStrictEqual(template.length, 0);
   }
   return template;
 }
@@ -169,6 +169,18 @@ describe('PhpParser', function() {
       }),
     ];
     Test.assertSyntaxNodes(syntaxTests);
+
+    let syntaxTests8_0 = [
+      new ParserTestArgs('"$a?->b";', 'should parse a template using null-safe member access', (statements) => {
+        let contents = assertStringTemplate(statements);
+        assert.strictEqual(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
+      }),
+      new ParserTestArgs('"$a?->class";', 'should parse a template using null-safe member access with keyword (class)', (statements) => {
+        let contents = assertStringTemplate(statements);
+        assert.strictEqual(contents[0] instanceof NamedMemberAccessSyntaxNode, true);
+      }),
+    ];
+    Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
 
     let diagnosticTests = [
       // All incomplete variables are just plain variables followed by strings.

@@ -302,7 +302,7 @@ describe('PhpParser', function() {
     });
 
     describe('switch-statement', function() {
-      // Parse tests are handled by the case-statement and default-statement tests.
+      // Parse tests are handled by switch-case tests.
 
       let diagnosticTests = [
         new DiagnosticTestArgs('switch', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [6]),
@@ -310,45 +310,46 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('switch ($a', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [10]),
         new DiagnosticTestArgs('switch ($a)', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [11]),
         new DiagnosticTestArgs('switch ($a) {', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [13]),
+        new DiagnosticTestArgs('switch ($a) {}', 'empty switch block', [ErrorCode.WRN_EmptySwitchBlock], [12]),
+
         new DiagnosticTestArgs('switch ($a):', 'missing endswitch', [ErrorCode.ERR_Syntax], [12]),
         new DiagnosticTestArgs('switch ($a): default: endswitch', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [31]),
-        new DiagnosticTestArgs('switch ($a) {}', 'empty switch block', [ErrorCode.WRN_EmptySwitchBlock], [12]),
         new DiagnosticTestArgs('switch ($a): endswitch;', 'empty switch block (alternate syntax)', [ErrorCode.WRN_EmptySwitchBlock], [11]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
 
-    describe('case-statement', function() {
+    describe('switch-case', function() {
       let tests = [
-        new ParserTestArgs('switch ($a) { case 1: }', 'should parse a case statement', (statements) => {
+        new ParserTestArgs('switch ($a) { case 1: }', 'should parse a switch case', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
-        new ParserTestArgs('switch ($a) { case 1; }', 'should parse a case statement with semicolon', (statements) => {
+        new ParserTestArgs('switch ($a) { case 1; }', 'should parse a switch case with semicolon', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
-        new ParserTestArgs('switch ($a) { case 1: ; }', 'should parse a case statement with child statement', (statements) => {
+        new ParserTestArgs('switch ($a) { case 1: ; }', 'should parse a switch case with child statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
-        new ParserTestArgs('switch ($a) { case 1; ; }', 'should parse a case statement with semicolon and child statement', (statements) => {
+        new ParserTestArgs('switch ($a) { case 1; ; }', 'should parse a switch case with semicolon and child statement', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           let caseLabel = firstSwitchLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
-        new ParserTestArgs('switch ($a) { case 1: case 2: }', 'should parse multiple case statements', (statements) => {
+        new ParserTestArgs('switch ($a) { case 1: case 2: }', 'should parse multiple switch cases', (statements) => {
           let switchNode = <SwitchSyntaxNode>statements[0];
           assert.strictEqual(switchNode instanceof SwitchSyntaxNode, true, 'SwitchSyntaxNode');
           assert.strictEqual(switchNode.expression instanceof LocalVariableSyntaxNode, true);
@@ -359,45 +360,105 @@ describe('PhpParser', function() {
           assert.strictEqual(labels[0] instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(labels[1] instanceof SwitchCaseSyntaxNode, true);
         }),
+
+        new ParserTestArgs('switch ($a) { default: }', 'should parse a switch case (default)', (statements) => {
+          let switchNode = <SwitchSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements, null);
+        }),
+        new ParserTestArgs('switch ($a) { default; }', 'should parse a switch case with semicolon (default)', (statements) => {
+          let switchNode = <SwitchSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements, null);
+        }),
+        new ParserTestArgs('switch ($a) { default: ; }', 'should parse a switch case with child statement (default)', (statements) => {
+          let switchNode = <SwitchSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
+        }),
+        new ParserTestArgs('switch ($a) { default; ; }', 'should parse a switch case with semicolon and child statement (default)', (statements) => {
+          let switchNode = <SwitchSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
+        }),
       ];
       Test.assertSyntaxNodes(tests);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('switch ($a) { case }', 'missing expression and label separator', [ErrorCode.ERR_ExpressionExpected], [18]),
         new DiagnosticTestArgs('switch ($a) { case 1 }', 'missing colon or semicolon', [ErrorCode.ERR_CaseLabelSeparatorExpected], [20]),
+        new DiagnosticTestArgs('switch ($a) { default }', 'missing colon or semicolon (default)', [ErrorCode.ERR_CaseLabelSeparatorExpected], [21]),
+        new DiagnosticTestArgs('switch ($a) { default: default: }', 'multiple default labels', [ErrorCode.ERR_DuplicateSwitchDefaultLabel], [23]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });
 
-    describe('case-statement (within switch using alternate syntax)', function() {
+    describe('switch-case (alternate syntax)', function() {
       let tests = [
-        new ParserTestArgs('switch ($a): case 1: endswitch;', 'should parse a case statement', (statements) => {
+        new ParserTestArgs('switch ($a): case 1: endswitch;', 'should parse a switch case', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
-        new ParserTestArgs('switch ($a): case 1; endswitch;', 'should parse a case statement with semicolon', (statements) => {
+        new ParserTestArgs('switch ($a): case 1; endswitch;', 'should parse a switch case with semicolon', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements, null);
         }),
-        new ParserTestArgs('switch ($a): case 1: ; endswitch;', 'should parse a case statement with child statement', (statements) => {
+        new ParserTestArgs('switch ($a): case 1: ; endswitch;', 'should parse a switch case with child statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
         }),
-        new ParserTestArgs('switch ($a): case 1; ; endswitch;', 'should parse a case statement with semicolon and child statement', (statements) => {
+        new ParserTestArgs('switch ($a): case 1; ; endswitch;', 'should parse a switch case with semicolon and child statement', (statements) => {
           let switchNode = <SwitchBlockSyntaxNode>statements[0];
           let caseLabel = firstSwitchBlockLabel(switchNode);
           assert.strictEqual(caseLabel instanceof SwitchCaseSyntaxNode, true);
           assert.strictEqual(caseLabel.expression instanceof LiteralSyntaxNode, true);
           assert.strictEqual(caseLabel.statements instanceof SyntaxList, true);
+        }),
+
+        new ParserTestArgs('switch ($a): default: endswitch;', 'should parse a switch case (default)', (statements) => {
+          let switchNode = <SwitchBlockSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchBlockLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements, null);
+        }),
+        new ParserTestArgs('switch ($a): default; endswitch;', 'should parse a switch case with semicolon (default)', (statements) => {
+          let switchNode = <SwitchBlockSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchBlockLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements, null);
+        }),
+        new ParserTestArgs('switch ($a): default: ; endswitch;', 'should parse a switch case with child statement (default)', (statements) => {
+          let switchNode = <SwitchBlockSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchBlockLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
+        }),
+        new ParserTestArgs('switch ($a): default; ; endswitch;', 'should parse a switch case with semicolon and child statement (default)', (statements) => {
+          let switchNode = <SwitchBlockSyntaxNode>statements[0];
+          let defaultLabel = firstSwitchBlockLabel(switchNode);
+          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
+          assert.strictEqual(defaultLabel.expression, null);
+          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
         }),
       ];
       Test.assertSyntaxNodes(tests);
@@ -405,85 +466,7 @@ describe('PhpParser', function() {
       let diagnosticTests = [
         new DiagnosticTestArgs('switch ($a): case endswitch;', 'missing expression and label separator', [ErrorCode.ERR_ExpressionExpected], [17]),
         new DiagnosticTestArgs('switch ($a): case 1 endswitch;', 'missing colon or semicolon', [ErrorCode.ERR_CaseLabelSeparatorExpected], [19]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
-    describe('default-statement', function() {
-      let tests = [
-        new ParserTestArgs('switch ($a) { default: }', 'should parse a default statement', (statements) => {
-          let switchNode = <SwitchSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements, null);
-        }),
-        new ParserTestArgs('switch ($a) { default; }', 'should parse a default statement with semicolon', (statements) => {
-          let switchNode = <SwitchSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements, null);
-        }),
-        new ParserTestArgs('switch ($a) { default: ; }', 'should parse a default statement with child statement', (statements) => {
-          let switchNode = <SwitchSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
-        }),
-        new ParserTestArgs('switch ($a) { default; ; }', 'should parse a default statement with semicolon and child statement', (statements) => {
-          let switchNode = <SwitchSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(tests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('switch ($a) { default }', 'missing colon or semicolon', [ErrorCode.ERR_CaseLabelSeparatorExpected], [21]),
-        new DiagnosticTestArgs('switch ($a) { default: default: }', 'multiple default labels', [ErrorCode.ERR_DuplicateSwitchDefaultLabel], [23]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
-    describe('default-statement (within switch using alternate syntax)', function() {
-      let tests = [
-        new ParserTestArgs('switch ($a): default: endswitch;', 'should parse a default statement', (statements) => {
-          let switchNode = <SwitchBlockSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements, null);
-        }),
-        new ParserTestArgs('switch ($a): default; endswitch;', 'should parse a default statement with semicolon', (statements) => {
-          let switchNode = <SwitchBlockSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements, null);
-        }),
-        new ParserTestArgs('switch ($a): default: ; endswitch;', 'should parse a default statement with child statement', (statements) => {
-          let switchNode = <SwitchBlockSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
-        }),
-        new ParserTestArgs('switch ($a): default; ; endswitch;', 'should parse a default statement with semicolon and child statement', (statements) => {
-          let switchNode = <SwitchBlockSyntaxNode>statements[0];
-          let defaultLabel = firstSwitchBlockLabel(switchNode);
-          assert.strictEqual(defaultLabel instanceof SwitchCaseSyntaxNode, true);
-          assert.strictEqual(defaultLabel.expression, null);
-          assert.strictEqual(defaultLabel.statements instanceof SyntaxList, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(tests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('switch ($a): default endswitch;', 'missing colon or semicolon', [ErrorCode.ERR_CaseLabelSeparatorExpected], [20]),
+        new DiagnosticTestArgs('switch ($a): default endswitch;', 'missing colon or semicolon (default)', [ErrorCode.ERR_CaseLabelSeparatorExpected], [20]),
         new DiagnosticTestArgs('switch ($a): default: default: endswitch;', 'multiple default labels', [ErrorCode.ERR_DuplicateSwitchDefaultLabel], [22]),
       ];
       Test.assertDiagnostics(diagnosticTests);

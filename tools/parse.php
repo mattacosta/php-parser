@@ -27,4 +27,4 @@ if (file_exists($source)) {
   }
 }
 
-echo ast_dump(ast\parse_code($source, 50)) . PHP_EOL;
+echo ast_dump(ast\parse_code($source, 80)) . PHP_EOL;

@@ -41,8 +41,9 @@ export enum Precedence {
   BitwiseAnd,
   Equality,     // Is equal, is identical, spaceship, etc.
   Relational,   // Less than, greater than, etc.
+  Concatenate,
   Shift,
-  Add,          // Add, subtract, and concatenate.
+  Add,          // Add and subtract.
   Multiply,     // Multiply, divide, and modulus.
   LogicalNot,   // "!"
   InstanceOf,

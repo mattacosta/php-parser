@@ -44,7 +44,7 @@ import { SyntaxList } from '../../../src/language/syntax/SyntaxList';
 
 function assertForEach(statements: ISyntaxNode[], hasKey: boolean, hasAmpersand: boolean): ForEachSyntaxNode {
   let forEachNode = <ForEachSyntaxNode>statements[0];
-  assert.strictEqual(forEachNode instanceof ForEachSyntaxNode, true, 'is a ForEachSyntaxNode');
+  assert.strictEqual(forEachNode instanceof ForEachSyntaxNode, true, 'ForEachSyntaxNode');
   assert.strictEqual(forEachNode.source instanceof LocalVariableSyntaxNode, true);
   if (hasKey) {
     assert.strictEqual(forEachNode.key instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
@@ -66,47 +66,11 @@ describe('PhpParser', function() {
 
   describe('iteration-statement', function() {
 
-    describe('while-statement', function() {
-      let syntaxTests = [
-        new ParserTestArgs('while ($a) 1;', 'should parse a while statement', (statements) => {
-          let whileNode = <WhileSyntaxNode>statements[0];
-          assert.strictEqual(whileNode instanceof WhileSyntaxNode, true, 'is a WhileSyntaxNode');
-          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.strictEqual(whileNode.statement instanceof ExpressionStatementSyntaxNode, true);
-        }),
-        new ParserTestArgs('while ($a): endwhile;', 'should parse a while statement (alternate syntax)', (statements) => {
-          let whileNode = <WhileBlockSyntaxNode>statements[0];
-          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
-          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.strictEqual(whileNode.statements, null);
-        }),
-        new ParserTestArgs('while ($a): 1; endwhile;', 'should parse a while statement (alternate syntax; with child statement)', (statements) => {
-          let whileNode = <WhileBlockSyntaxNode>statements[0];
-          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'is a WhileBlockSyntaxNode');
-          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
-          assert.strictEqual(whileNode.statements instanceof SyntaxList, true);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('while', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
-        new DiagnosticTestArgs('while (', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
-        new DiagnosticTestArgs('while ($a', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [9]),
-        // NOTE: An open brace is NOT required, only an embedded statement.
-        new DiagnosticTestArgs('while ($a)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [10]),
-        new DiagnosticTestArgs('while ($a):', 'missing statement or endwhile', [ErrorCode.ERR_Syntax], [11]),
-        new DiagnosticTestArgs('while ($a): endwhile', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [20]),
-        new DiagnosticTestArgs('while ($a);', 'should warn if empty statement', [ErrorCode.WRN_PossibleMistakenEmptyStatement], [10]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
     describe('do-while-statement', function() {
       let syntaxTests = [
         new ParserTestArgs('do ; while ($a);', 'should parse a do-while statement', (statements) => {
           let doWhileNode = <DoWhileSyntaxNode>statements[0];
-          assert.strictEqual(doWhileNode instanceof DoWhileSyntaxNode, true, 'is a DoWhileSyntaxNode');
+          assert.strictEqual(doWhileNode instanceof DoWhileSyntaxNode, true, 'DoWhileSyntaxNode');
           assert.strictEqual(doWhileNode.statement instanceof ExpressionStatementSyntaxNode, true);
           assert.strictEqual(doWhileNode.condition instanceof LocalVariableSyntaxNode, true);
         }),
@@ -128,7 +92,7 @@ describe('PhpParser', function() {
       let syntaxTests = [
         new ParserTestArgs('for (;;) 1;', 'should parse a for statement', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
@@ -136,7 +100,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for ($i;;) 1;', 'should parse a for statement with single initializer expression', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           let initializers = forNode.initializers ? forNode.initializers.childNodes() : [];
           assert.strictEqual(initializers.length, 1);
           assert.strictEqual(initializers[0] instanceof LocalVariableSyntaxNode, true);
@@ -146,7 +110,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for ($i,$j;;) 1;', 'should parse a for statement with multiple initializer expressions', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           let initializers = forNode.initializers ? forNode.initializers.childNodes() : [];
           assert.strictEqual(initializers.length, 2);
           assert.strictEqual(initializers[0] instanceof LocalVariableSyntaxNode, true);
@@ -157,7 +121,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;$i;) 1;', 'should parse a for statement with single condition expression', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           let conditions = forNode.conditions ? forNode.conditions.childNodes() : [];
           assert.strictEqual(conditions.length, 1);
@@ -167,7 +131,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;$i,$j;) 1;', 'should parse a for statement with multiple condition expressions', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           let conditions = forNode.conditions ? forNode.conditions.childNodes() : [];
           assert.strictEqual(conditions.length, 2);
@@ -178,7 +142,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;;$i) 1;', 'should parse a for statement with single iteration expression', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           let incrementors = forNode.incrementors ? forNode.incrementors.childNodes() : [];
@@ -188,7 +152,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;;$i,$j) 1;', 'should parse a for statement with multiple iteration expressions', (statements) => {
           let forNode = <ForSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'is a ForSyntaxNode');
+          assert.strictEqual(forNode instanceof ForSyntaxNode, true, 'ForSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           let incrementors = forNode.incrementors ? forNode.incrementors.childNodes() : [];
@@ -199,7 +163,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;;): endfor;', 'should parse a for statement (alternate syntax)', (statements) => {
           let forNode = <ForBlockSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForBlockSyntaxNode, true, 'is a ForBlockSyntaxNode');
+          assert.strictEqual(forNode instanceof ForBlockSyntaxNode, true, 'ForBlockSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
@@ -207,7 +171,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('for (;;): ; endfor;', 'should parse a for statement (alternate syntax; with child statement)', (statements) => {
           let forNode = <ForBlockSyntaxNode>statements[0];
-          assert.strictEqual(forNode instanceof ForBlockSyntaxNode, true, 'is a ForBlockSyntaxNode');
+          assert.strictEqual(forNode instanceof ForBlockSyntaxNode, true, 'ForBlockSyntaxNode');
           assert.strictEqual(forNode.initializers, null);
           assert.strictEqual(forNode.conditions, null);
           assert.strictEqual(forNode.incrementors, null);
@@ -272,7 +236,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('foreach ($a as $v): endforeach;', 'should parse a foreach statement (alternate syntax)', (statements) => {
           let forEachNode = <ForEachBlockSyntaxNode>statements[0];
-          assert.strictEqual(forEachNode instanceof ForEachBlockSyntaxNode, true, 'is a ForEachBlockSyntaxNode');
+          assert.strictEqual(forEachNode instanceof ForEachBlockSyntaxNode, true, 'ForEachBlockSyntaxNode');
           assert.strictEqual(forEachNode.source instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forEachNode.key, null);
           assert.strictEqual(forEachNode.ampersand, null);
@@ -281,7 +245,7 @@ describe('PhpParser', function() {
         }),
         new ParserTestArgs('foreach ($a as $v): ; endforeach;', 'should parse a foreach statement (alternate syntax; with child statement)', (statements) => {
           let forEachNode = <ForEachBlockSyntaxNode>statements[0];
-          assert.strictEqual(forEachNode instanceof ForEachBlockSyntaxNode, true, 'is a ForEachBlockSyntaxNode');
+          assert.strictEqual(forEachNode instanceof ForEachBlockSyntaxNode, true, 'ForEachBlockSyntaxNode');
           assert.strictEqual(forEachNode.source instanceof LocalVariableSyntaxNode, true);
           assert.strictEqual(forEachNode.key, null);
           assert.strictEqual(forEachNode.ampersand, null);
@@ -307,6 +271,42 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('foreach ($a as list($k) =>', 'should not parse key-value pair with list key', [ErrorCode.ERR_CloseParenExpected], [23]),
         new DiagnosticTestArgs('foreach ($a as [$k] =>', 'should not parse key-value pair with list key (short syntax)', [ErrorCode.ERR_CloseParenExpected], [19]),
         new DiagnosticTestArgs('foreach ($a as $v);', 'should warn if empty statement', [ErrorCode.WRN_PossibleMistakenEmptyStatement], [18]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('while-statement', function() {
+      let syntaxTests = [
+        new ParserTestArgs('while ($a) 1;', 'should parse a while statement', (statements) => {
+          let whileNode = <WhileSyntaxNode>statements[0];
+          assert.strictEqual(whileNode instanceof WhileSyntaxNode, true, 'WhileSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statement instanceof ExpressionStatementSyntaxNode, true);
+        }),
+        new ParserTestArgs('while ($a): endwhile;', 'should parse a while statement (alternate syntax)', (statements) => {
+          let whileNode = <WhileBlockSyntaxNode>statements[0];
+          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'WhileBlockSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statements, null);
+        }),
+        new ParserTestArgs('while ($a): 1; endwhile;', 'should parse a while statement (alternate syntax; with child statement)', (statements) => {
+          let whileNode = <WhileBlockSyntaxNode>statements[0];
+          assert.strictEqual(whileNode instanceof WhileBlockSyntaxNode, true, 'WhileBlockSyntaxNode');
+          assert.strictEqual(whileNode.condition instanceof LocalVariableSyntaxNode, true);
+          assert.strictEqual(whileNode.statements instanceof SyntaxList, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('while', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [5]),
+        new DiagnosticTestArgs('while (', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
+        new DiagnosticTestArgs('while ($a', 'missing close paren', [ErrorCode.ERR_CloseParenExpected], [9]),
+        // NOTE: An open brace is NOT required, only an embedded statement.
+        new DiagnosticTestArgs('while ($a)', 'missing statement or colon', [ErrorCode.ERR_StatementOrColonExpected], [10]),
+        new DiagnosticTestArgs('while ($a):', 'missing statement or endwhile', [ErrorCode.ERR_Syntax], [11]),
+        new DiagnosticTestArgs('while ($a): endwhile', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [20]),
+        new DiagnosticTestArgs('while ($a);', 'should warn if empty statement', [ErrorCode.WRN_PossibleMistakenEmptyStatement], [10]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

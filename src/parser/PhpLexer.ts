@@ -123,6 +123,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     ['interface', TokenKind.Interface],
     ['isset', TokenKind.IsSet],
     ['list', TokenKind.List],
+    ['match', TokenKind.Match],
     ['namespace', TokenKind.Namespace],
     ['new', TokenKind.New],
     ['or', TokenKind.LogicalOr],
@@ -487,6 +488,19 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       return true;
     }
 
+    return false;
+  }
+
+  /**
+   * Determines if the text is a type used by a cast token.
+   */
+  protected isCastToken(text: string): boolean {
+    if (PhpLexer.CastTokens.has(text)) {
+      if (text === 'real' || text === 'unset') {
+        return this.phpVersion < PhpVersion.PHP8_0;
+      }
+      return true;
+    }
     return false;
   }
 
@@ -1059,6 +1073,10 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.offset = this.offset + 2;  // "??"
             this.tokenKind = TokenKind.Coalesce;
           }
+        }
+        else if (next === Character.Minus && this.peek(this.offset + 2) === Character.GreaterThan && this.phpVersion >= PhpVersion.PHP8_0) {
+          this.offset = this.offset + 3;  // "?->"
+          this.tokenKind = TokenKind.NullSafeObjectOperator;
         }
         else {
           this.offset++;
@@ -1711,9 +1729,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
             this.offset = this.offset + 2;  // "$a"
             this.scanIdentifierPart();
 
-            if (this.startsWithObjectProperty()) {
-              this.offset = this.offset + 3;
-              this.scanIdentifierPart();
+            if (this.tryScanInterpolatedObjectProperty()) {
               spans.push(new TemplateSpan(PhpLexerState.InScript, spanOffset - tokenOffset, this.offset - spanOffset));
             }
             else if (this.peek(this.offset) === Character.OpenBracket) {
@@ -2199,19 +2215,6 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
   }
 
   /**
-   * Determines if an object operator and property name are present at the
-   * scanner's current location.
-   */
-  protected startsWithObjectProperty(): boolean {
-    if (this.offset + 3 > this.end) {
-      return false;
-    }
-    return this.text.charCodeAt(this.offset) === Character.Minus &&
-      this.text.charCodeAt(this.offset + 1) === Character.GreaterThan &&
-      CharacterInfo.isIdentifierStart(this.text.charCodeAt(this.offset + 2), this.phpVersion);
-  }
-
-  /**
    * Returns a keyword or identifier token for the scanned text.
    */
   protected textToIdentifierToken(): TokenKind {
@@ -2219,10 +2222,15 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     const keyword = PhpLexer.KeywordTokens.get(tokenText);
     if (keyword !== undefined) {
       // Backward compatibility: Am I a joke to you?
-      if (tokenText === 'fn' && this.phpVersion < PhpVersion.PHP7_4) {
+      if (this.phpVersion < PhpVersion.PHP7_4 && tokenText === 'fn') {
         return TokenKind.Identifier;
       }
-      return keyword;
+      else if (this.phpVersion < PhpVersion.PHP8_0 && tokenText === 'match') {
+        return TokenKind.Identifier;
+      }
+      else {
+        return keyword;
+      }
     }
     return TokenKind.Identifier;
   }
@@ -2281,6 +2289,28 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
     }
 
     return this.offset - start;
+  }
+
+  /**
+   * Attempts to scan for an object operator and a property name in a string
+   * template. If not found, nothing is scanned.
+   */
+  protected tryScanInterpolatedObjectProperty(): number {
+    const start = this.offset;
+
+    let ch = this.peek(this.offset);
+    if (ch === Character.Question && this.phpVersion >= PhpVersion.PHP8_0) {
+      this.offset++;
+      ch = this.peek(this.offset);
+    }
+    if (ch === Character.Minus && this.peek(this.offset + 1) === Character.GreaterThan && CharacterInfo.isIdentifierStart(this.peek(this.offset + 2), this.phpVersion)) {
+      this.offset = this.offset + 3;
+      this.scanIdentifierPart();
+      return this.offset - start;
+    }
+
+    this.offset = start;
+    return 0;
   }
 
   /**
@@ -2379,7 +2409,7 @@ export class PhpLexer extends LexerBase<Token, PhpLexerState> {
       // It's still not a cast until we get a closing parenthesis.
       if (this.peek(this.offset) === Character.CloseParen) {
         let type = this.text.substring(typeStart, length).toLowerCase();
-        if (PhpLexer.CastTokens.has(type)) {
+        if (this.isCastToken(type)) {
           this.offset++;  // ")"
           // Suppress TS2322: Result cannot be undefined due to if-condition.
           this.tokenKind = <TokenKind>PhpLexer.CastTokens.get(type);

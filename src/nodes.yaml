@@ -132,6 +132,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: statements
     type: StatementBlock
@@ -184,6 +185,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: doubleArrow
     type: TokenNode
@@ -548,6 +550,25 @@ nodes:
   - name: variable
     type: TokenNode
   visitorName: visitLocalVariable
+- name: Match
+  extends: Expression
+  properties:
+  - name: matchKeyword
+    type: TokenNode
+  - name: openParen
+    type: TokenNode
+  - name: expression
+    type: Expression
+  - name: closeParen
+    type: TokenNode
+  - name: openBrace
+    type: TokenNode
+  - name: arms
+    type: NodeList
+    optional: true
+  - name: closeBrace
+    type: TokenNode
+  visitorName: visitMatch
 - name: NamedMemberAccess
   extends: MemberAccess
   properties:
@@ -726,6 +747,14 @@ nodes:
   - name: closeQuote
     type: TokenNode
   visitorName: visitStringTemplate
+- name: ThrowExpression
+  extends: Expression
+  properties:
+  - name: throwKeyword
+    type: TokenNode
+  - name: expression
+    type: Expression
+  visitorName: visitThrowExpression
 - name: Unary
   extends: Expression
   properties:
@@ -874,15 +903,6 @@ nodes:
   - name: semicolon
     type: TokenNode
   visitorName: visitContinue
-- name: ExpressionStatement
-  extends: Statement
-  properties:
-  - name: expression
-    type: Expression
-    optional: true
-  - name: semicolon
-    type: TokenNode
-  visitorName: visitExpressionStatement
 - name: Declare
   extends: Statement
   properties:
@@ -949,6 +969,15 @@ nodes:
     type: TokenNode
     optional: true
   visitorName: visitEcho
+- name: ExpressionStatement
+  extends: Statement
+  properties:
+  - name: expression
+    type: Expression
+    optional: true
+  - name: semicolon
+    type: TokenNode
+  visitorName: visitExpressionStatement
 - name: For
   extends: Iteration
   properties:
@@ -1095,6 +1124,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: statements
     type: StatementBlock
@@ -1244,6 +1274,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: statements
     type: StatementBlock
@@ -1288,6 +1319,7 @@ nodes:
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: properties
     type: NodeList
@@ -1526,12 +1558,28 @@ nodes:
 # Clauses
 # -----------------------------------------------------------------------------
 
+# Used by named and positional arguments.
+- name: Argument
+  abstract: true
+  properties:
+  - name: value
+    type: Expression
 # Used by fully qualified, partially qualified, and relative names.
 - name: Name
   abstract: true
   properties:
   - name: namespaceName
     type: NodeList
+# Used by named and predefined types.
+- name: NullableType
+  abstract: true
+  extends: Type
+  properties:
+  - name: question
+    type: TokenNode
+    optional: true
+- name: Pattern
+  abstract: true
 # Used by named and referenced trait aliases.
 - name: TraitAlias
   abstract: true
@@ -1548,10 +1596,6 @@ nodes:
     type: TokenNode
 - name: Type
   abstract: true
-  properties:
-  - name: question
-    type: TokenNode
-    optional: true
 
 # -----------------------------------------------------------------------------
 
@@ -1588,14 +1632,6 @@ nodes:
   - name: closeBrace
     type: TokenNode
   visitorName: visitAnonymousClass
-- name: Argument
-  properties:
-  - name: ellipsis
-    type: TokenNode
-    optional: true
-  - name: value
-    type: Expression
-  visitorName: visitArgument
 - name: ArrayElement
   properties:
   - name: key
@@ -1631,6 +1667,13 @@ nodes:
   - name: closeParen
     type: TokenNode
   visitorName: visitClosureUse
+- name: CompositeType
+  extends: Type
+  properties:
+  - name: types
+    type: NodeList
+  visitorName: visitType
+  visitorType: Type
 # Unlike ClassConstantElement, the name cannot be a semi-reserved keyword.
 - name: ConstantElement
   properties:
@@ -1641,6 +1684,16 @@ nodes:
   - name: expression
     type: Expression
   visitorName: visitConstantElement
+# This is also known as the discard pattern in other languages. Only time will
+# tell if PHP's maintainers consistently use the default keyword or adopt the
+# underscore token like those languages in future use-cases.
+- name: DefaultPattern
+  extends: Pattern
+  properties:
+  - name: defaultKeyword
+    type: TokenNode
+  visitorName: visitPattern
+  visitorType: Pattern
 - name: Else
   properties:
   - name: elseKeyword
@@ -1687,6 +1740,13 @@ nodes:
     type: NodeList
     optional: true
   visitorName: visitElseIfBlock
+- name: ExpressionPattern
+  extends: Pattern
+  properties:
+  - name: expression
+    type: Expression
+  visitorName: visitPattern
+  visitorType: Pattern
 - name: FlexibleHeredocElement
   properties:
   - name: indent
@@ -1742,6 +1802,15 @@ nodes:
     - Expression
     - ListDestructure
   visitorName: visitListDestructureElement
+- name: MatchArm
+  properties:
+  - name: patterns
+    type: NodeList
+  - name: doubleArrow
+    type: TokenNode
+  - name: expression
+    type: Expression
+  visitorName: visitMatchArm
 # See also: TraitAlias, TraitPrecedence
 - name: MethodReference
   properties:
@@ -1752,6 +1821,19 @@ nodes:
   - name: methodName
     type: TokenNode
   visitorName: visitMethodReference
+# See also: PositionalArgument
+- name: NamedArgument
+  extends: Argument
+  properties:
+  - name: identifier
+    type: TokenNode
+  - name: colon
+    type: TokenNode
+  - name: value
+    type: Expression
+    inherited: true
+  visitorName: visitArgument
+  visitorType: Argument
 # See also: ReferencedTraitAlias
 - name: NamedTraitAlias
   extends: TraitAlias
@@ -1776,7 +1858,7 @@ nodes:
   visitorType: TraitAlias
 # See also: PredefinedType
 - name: NamedType
-  extends: Type
+  extends: NullableType
   properties:
   - name: question
     type: TokenNode
@@ -1788,10 +1870,14 @@ nodes:
   visitorType: Type
 - name: Parameter
   properties:
+  - name: modifiers
+    type: NodeList
+    optional: true
   - name: type
     type:
     - NamedType
     - PredefinedType
+    - CompositeType
     optional: true
   - name: ampersand
     type: TokenNode
@@ -1816,9 +1902,21 @@ nodes:
     type: NodeList
     inherited: true
   visitorName: visitPartiallyQualifiedName
+# See also: NamedArgument
+- name: PositionalArgument
+  extends: Argument
+  properties:
+  - name: ellipsis
+    type: TokenNode
+    optional: true
+  - name: value
+    type: Expression
+    inherited: true
+  visitorName: visitArgument
+  visitorType: Argument
 # See also: NamedType
 - name: PredefinedType
-  extends: Type
+  extends: NullableType
   properties:
   - name: question
     type: TokenNode
@@ -1920,6 +2018,7 @@ nodes:
     type: NodeList
   - name: variable
     type: TokenNode
+    optional: true
   - name: closeParen
     type: TokenNode
   - name: statements

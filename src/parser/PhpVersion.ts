@@ -27,7 +27,8 @@ export enum PhpVersion {
   PHP7_2,
   PHP7_3,
   PHP7_4,
-  Latest = PHP7_4
+  PHP8_0,
+  Latest = PHP8_0
 
 }
 
@@ -51,6 +52,8 @@ export class PhpVersionInfo {
         return '7.3';
       case PhpVersion.PHP7_4:
         return '7.4';
+      case PhpVersion.PHP8_0:
+        return '8.0';
       default:
         return '';
     }

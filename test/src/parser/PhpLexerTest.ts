@@ -168,36 +168,19 @@ describe('PhpLexer', function() {
       Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
 
       let regressionTests7_4 = [
-        new LexerTestArgs('<?php fn', 'fn', [TokenKind.Identifier]),
+        new LexerTestArgs('<?php fn', 'fn (identifier)', [TokenKind.Identifier]),
       ];
       Test.assertTokens(regressionTests7_4, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
-    });
 
-    describe('string literals', function() {
-      let tests = [
-        new LexerTestArgs('<?php \'a\'', 'single quote', [TokenKind.StringLiteral], ['\'a\'']),
-        new LexerTestArgs('<?php \'$a\'', 'single quote with variable', [TokenKind.StringLiteral], ['\'$a\'']),
-        new LexerTestArgs('<?php \'\\\\\'', 'single quote with escaped backslash', [TokenKind.StringLiteral], ['\'\\\\\'']),
-        new LexerTestArgs('<?php \'\\\'\'', 'single quote with escaped single quote', [TokenKind.StringLiteral], ['\'\\\'\'']),
-        new LexerTestArgs('<?php \'\\n\'', 'single quote with escaped line feed (invalid)', [TokenKind.StringLiteral], ['\'\\n\'']),
-
-        new LexerTestArgs('<?php "a"', 'double quote', [TokenKind.StringLiteral], ['"a"']),
-        new LexerTestArgs('<?php "\\""', 'double quote with escaped double quote', [TokenKind.StringLiteral], ['"\\""']),
-        new LexerTestArgs('<?php "\\n"', 'double quote with escaped line feed', [TokenKind.StringLiteral], ['"\\n"']),
-        new LexerTestArgs('<?php "\\$a"', 'double quote with escaped variable sigil', [TokenKind.StringLiteral], ['"\\$a"']),
-        new LexerTestArgs('<?php "$1.00"', 'double quote with text containing variable sigil', [TokenKind.StringLiteral], ['"$1.00"']),
-        new LexerTestArgs('<?php "\\u110000"', 'double quote with JSON-encoded unicode escape sequence', [TokenKind.StringLiteral], ['"\\u110000"']),
+      let tests8_0 = [
+        new LexerTestArgs('<?php match', 'match', [TokenKind.Match]),
       ];
-      Test.assertTokens(tests);
+      Test.assertTokens(tests8_0, PhpVersion.PHP8_0);
 
-      let diagnosticTests = [
-        new LexerDiagnosticTestArgs('<?php \'a', 'unterminated string literal', TokenKind.StringLiteral, ErrorCode.ERR_UnterminatedStringConstant),
-        new LexerDiagnosticTestArgs('<?php "\\u{"', 'double quote with unterminated unicode escape sequence', TokenKind.StringLiteral, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence),
-        new LexerDiagnosticTestArgs('<?php "\\u{}"', 'double quote with empty unicode escape sequence', TokenKind.StringLiteral, ErrorCode.ERR_InvalidEscapeSequenceUnicode),
-        new LexerDiagnosticTestArgs('<?php "\\u{110000}"', 'double quote with unicode escape sequence overflow', TokenKind.StringLiteral, ErrorCode.ERR_UnicodeEscapeSequenceOverflow),
-        new LexerDiagnosticTestArgs('<?php "\\400"', 'double quote with octal escape sequence overflow', TokenKind.StringLiteral, ErrorCode.WRN_OctalEscapeSequenceOverflow),
+      let regressionTests8_0 = [
+        new LexerTestArgs('<?php match', 'match (identifier)', [TokenKind.Identifier]),
       ];
-      Test.assertTokenDiagnostics(diagnosticTests);
+      Test.assertTokens(regressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('numbers', function() {
@@ -372,6 +355,48 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php ??=', 'coalesce equal', [TokenKind.CoalesceEqual]),
       ];
       Test.assertTokens(tests7_4, PhpVersion.PHP7_4);
+
+      let regressionTests7_4 = [
+        new LexerTestArgs('<?php ??=', 'should not match coalesce equal', [TokenKind.Coalesce, TokenKind.Equal]),
+      ];
+      Test.assertTokens(regressionTests7_4, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
+
+      let tests8_0 = [
+        new LexerTestArgs('<?php ?->', 'null-safe object operator', [TokenKind.NullSafeObjectOperator]),
+      ];
+      Test.assertTokens(tests8_0, PhpVersion.PHP8_0);
+
+      let regressionTests8_0 = [
+        new LexerTestArgs('<?php ?->', 'should not match null-safe object operator', [TokenKind.Question, TokenKind.ObjectOperator]),
+      ];
+      Test.assertTokens(regressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    });
+
+    describe('string literals', function() {
+      let tests = [
+        new LexerTestArgs('<?php \'a\'', 'single quote', [TokenKind.StringLiteral], ['\'a\'']),
+        new LexerTestArgs('<?php \'$a\'', 'single quote with variable', [TokenKind.StringLiteral], ['\'$a\'']),
+        new LexerTestArgs('<?php \'\\\\\'', 'single quote with escaped backslash', [TokenKind.StringLiteral], ['\'\\\\\'']),
+        new LexerTestArgs('<?php \'\\\'\'', 'single quote with escaped single quote', [TokenKind.StringLiteral], ['\'\\\'\'']),
+        new LexerTestArgs('<?php \'\\n\'', 'single quote with escaped line feed (invalid)', [TokenKind.StringLiteral], ['\'\\n\'']),
+
+        new LexerTestArgs('<?php "a"', 'double quote', [TokenKind.StringLiteral], ['"a"']),
+        new LexerTestArgs('<?php "\\""', 'double quote with escaped double quote', [TokenKind.StringLiteral], ['"\\""']),
+        new LexerTestArgs('<?php "\\n"', 'double quote with escaped line feed', [TokenKind.StringLiteral], ['"\\n"']),
+        new LexerTestArgs('<?php "\\$a"', 'double quote with escaped variable sigil', [TokenKind.StringLiteral], ['"\\$a"']),
+        new LexerTestArgs('<?php "$1.00"', 'double quote with text containing variable sigil', [TokenKind.StringLiteral], ['"$1.00"']),
+        new LexerTestArgs('<?php "\\u110000"', 'double quote with JSON-encoded unicode escape sequence', [TokenKind.StringLiteral], ['"\\u110000"']),
+      ];
+      Test.assertTokens(tests);
+
+      let diagnosticTests = [
+        new LexerDiagnosticTestArgs('<?php \'a', 'unterminated string literal', TokenKind.StringLiteral, ErrorCode.ERR_UnterminatedStringConstant),
+        new LexerDiagnosticTestArgs('<?php "\\u{"', 'double quote with unterminated unicode escape sequence', TokenKind.StringLiteral, ErrorCode.ERR_UnterminatedUnicodeEscapeSequence),
+        new LexerDiagnosticTestArgs('<?php "\\u{}"', 'double quote with empty unicode escape sequence', TokenKind.StringLiteral, ErrorCode.ERR_InvalidEscapeSequenceUnicode),
+        new LexerDiagnosticTestArgs('<?php "\\u{110000}"', 'double quote with unicode escape sequence overflow', TokenKind.StringLiteral, ErrorCode.ERR_UnicodeEscapeSequenceOverflow),
+        new LexerDiagnosticTestArgs('<?php "\\400"', 'double quote with octal escape sequence overflow', TokenKind.StringLiteral, ErrorCode.WRN_OctalEscapeSequenceOverflow),
+      ];
+      Test.assertTokenDiagnostics(diagnosticTests);
     });
 
     describe('type casts', function() {
@@ -385,9 +410,7 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php (integer)', 'to integer (integer)', [TokenKind.IntegerCast]),
         new LexerTestArgs('<?php (float)', 'to float (float)', [TokenKind.FloatCast]),
         new LexerTestArgs('<?php (object)', 'to object (object)', [TokenKind.ObjectCast]),
-        new LexerTestArgs('<?php (real)', 'to float (real)', [TokenKind.RealCast]),
         new LexerTestArgs('<?php (string)', 'to string (string)', [TokenKind.StringCast]),
-        new LexerTestArgs('<?php (unset)', 'type unset', [TokenKind.UnsetCast]),
         new LexerTestArgs('<?php (  int)', 'should match with leading spaces', [TokenKind.IntCast]),
         new LexerTestArgs('<?php (int  )', 'should match with trailing spaces', [TokenKind.IntCast]),
         new LexerTestArgs('<?php (\tint)', 'should match with leading tab', [TokenKind.IntCast]),
@@ -395,6 +418,18 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php (\nint)', 'should not match with new lines', [TokenKind.OpenParen, TokenKind.Identifier, TokenKind.CloseParen]),
       ];
       Test.assertTokens(tests);
+
+      let tests8_0 = [
+        new LexerTestArgs('<?php (real)', 'should not match real type cast', [TokenKind.OpenParen, TokenKind.Identifier, TokenKind.CloseParen]),
+        new LexerTestArgs('<?php (unset)', 'should not match unset type cast', [TokenKind.OpenParen, TokenKind.Unset, TokenKind.CloseParen]),
+      ];
+      Test.assertTokens(tests8_0, PhpVersion.PHP8_0);
+
+      let regressionTests8_0 = [
+        new LexerTestArgs('<?php (real)', 'to float (real)', [TokenKind.RealCast]),
+        new LexerTestArgs('<?php (unset)', 'to null (unset)', [TokenKind.UnsetCast]),
+      ];
+      Test.assertTokens(regressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('variables', function() {
@@ -406,13 +441,11 @@ describe('PhpLexer', function() {
         new LexerTestArgs('<?php $1', 'should not start with a number', [TokenKind.Dollar, TokenKind.LNumber], ['$', '1']),
       ];
       Test.assertTokens(tests);
-    });
 
-    describe('variables (7.0)', function() {
-      let tests = [
+      let regressionTests7_1 = [
         new LexerTestArgs('<?php $\x7F', 'variable (lowest extended character)', [TokenKind.Variable], ['$\x7F']),
       ];
-      Test.assertTokens(tests, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
+      Test.assertTokens(regressionTests7_1, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
     describe('unexpected characters', function() {

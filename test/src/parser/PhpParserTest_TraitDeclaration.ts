@@ -25,12 +25,14 @@ import {
 } from '../Test';
 
 import {
+  CompositeTypeSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   LiteralSyntaxNode,
   MethodDeclarationSyntaxNode,
   MethodReferenceSyntaxNode,
   NamedTraitAliasSyntaxNode,
   NamedTypeSyntaxNode,
+  ParameterSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   PropertyDeclarationSyntaxNode,
@@ -42,7 +44,6 @@ import {
   TraitPrecedenceSyntaxNode,
   TraitUseGroupSyntaxNode,
   TraitUseSyntaxNode,
-  TypeSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
@@ -56,8 +57,45 @@ function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSy
   let members = traitNode.members ? traitNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let method = <MethodDeclarationSyntaxNode>members[0];
-  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true);
+  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true, 'MethodDeclarationSyntaxNode');
   return method;
+}
+
+function assertMethodDeclarationWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let method = assertMethodDeclaration(statements);
+  assert.strictEqual(method.modifiers, null);
+  assert.strictEqual(method.ampersand, null);
+  assert.strictEqual(method.returnType, null);
+  let parameters = method.parameters ? method.parameters.childNodes() : [];
+  return parameters;
+}
+
+function assertMethodParameter(node: ISyntaxNode, hasModifiers: boolean, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
+  let parameter = <ParameterSyntaxNode>node;
+  assert.strictEqual(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  if (!hasModifiers) {
+    assert.strictEqual(parameter.modifiers, null);
+  }
+  if (!hasType) {
+    assert.strictEqual(parameter.type, null);
+  }
+  if (hasAmpersand) {
+    assert.notStrictEqual(parameter.ampersand, null);
+  }
+  else {
+    assert.strictEqual(parameter.ampersand, null);
+  }
+  if (hasEllipsis) {
+    assert.notStrictEqual(parameter.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(parameter.ellipsis, null);
+  }
+  if (!hasDefaultValue) {
+    assert.strictEqual(parameter.equal, null);
+    assert.strictEqual(parameter.expression, null);
+  }
+  return parameter;
 }
 
 function assertPropertyDeclaration(statements: ISyntaxNode[]): PropertyDeclarationSyntaxNode {
@@ -66,8 +104,19 @@ function assertPropertyDeclaration(statements: ISyntaxNode[]): PropertyDeclarati
   let members = traitNode.members ? traitNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let property = <PropertyDeclarationSyntaxNode>members[0];
-  assert.strictEqual(property instanceof PropertyDeclarationSyntaxNode, true);
+  assert.strictEqual(property instanceof PropertyDeclarationSyntaxNode, true, 'PropertyDeclarationSyntaxNode');
   return property;
+}
+
+function assertPropertyElements(node: PropertyDeclarationSyntaxNode, text: string, expected: string[]): void {
+  let elements = node.properties.childNodes();
+  assert.strictEqual(elements.length, expected.length);
+  for (let i = 0; i < elements.length; i++) {
+    let element = <PropertyElementSyntaxNode>elements[i];
+    assert.strictEqual(element instanceof PropertyElementSyntaxNode, true, 'PropertyElementSyntaxNode');
+    Test.assertSyntaxToken(element.variable, text, TokenKind.Variable, expected[i]);
+    assert.strictEqual(element.expression, null);
+  }
 }
 
 function assertTraitUse(statements: ISyntaxNode[]): TraitUseSyntaxNode {
@@ -76,7 +125,7 @@ function assertTraitUse(statements: ISyntaxNode[]): TraitUseSyntaxNode {
   let members = traitNode.members ? traitNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let traitUse = <TraitUseSyntaxNode>members[0];
-  assert.strictEqual(traitUse instanceof TraitUseSyntaxNode, true);
+  assert.strictEqual(traitUse instanceof TraitUseSyntaxNode, true, 'TraitUseSyntaxNode');
   return traitUse;
 }
 
@@ -86,7 +135,7 @@ function assertTraitUseGroup(statements: ISyntaxNode[]): TraitUseGroupSyntaxNode
   let members = traitNode.members ? traitNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let traitUseGroup = <TraitUseGroupSyntaxNode>members[0];
-  assert.strictEqual(traitUseGroup instanceof TraitUseGroupSyntaxNode, true);
+  assert.strictEqual(traitUseGroup instanceof TraitUseGroupSyntaxNode, true, 'TraitUseGroupSyntaxNode');
   return traitUseGroup;
 }
 
@@ -102,7 +151,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('{ trait A {} }', 'should parse a trait declaration in statement block', (statements) => {
         let block = <StatementBlockSyntaxNode>statements[0];
-        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
         let innerStatements = block.childNodes();
         assert.strictEqual(innerStatements.length, 1);
         assert.strictEqual(innerStatements[0] instanceof TraitDeclarationSyntaxNode, true);
@@ -153,243 +202,6 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(diagnosticTests);
     });
 
-    describe('property-declaration', function() {
-      let syntaxTests = [
-        new ParserTestArgs('trait A { public $b; }', 'should parse a property declaration', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { var $b; }', 'should parse a property declaration (var)', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { public $b = 1; }', 'should parse a property declaration with assignment', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression instanceof LiteralSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { public $b, $c; }', 'should parse a property declaration with multiple properties', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 2);
-          let firstProperty = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(firstProperty instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(firstProperty.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(firstProperty.expression, null);
-          let secondProperty = <PropertyElementSyntaxNode>elements[1];
-          assert.strictEqual(secondProperty instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(secondProperty.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(secondProperty.expression, null);
-        }),
-        new ParserTestArgs('trait A { protected $b; }', 'should parse a protected property declaration', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { private $b; }', 'should parse a private property declaration', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { static $b; }', 'should parse a static property declaration', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { public static $b; }', 'should parse a static property declaration with visibility modifier (before)', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { static public $b; }', 'should parse a static property declaration with visibility modifier (after)', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
-          assert.strictEqual(declNode.type, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests);
-
-      let syntaxTests7_4 = [
-        new ParserTestArgs('trait A { public B $c; }', 'should parse a typed property declaration', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { var B $c; }', 'should parse a typed property declaration (var)', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
-          assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { public \\B $c; }', 'should parse a typed property declaration with fully qualified name', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { public namespace\\B $c; }', 'should parse a typed property declaration with relative name', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { public array $c; }', 'should parse a property declaration with predefined type', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.notStrictEqual(declNode.type, null);
-          assert.strictEqual(declNode.type ? declNode.type.question : false, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-        new ParserTestArgs('trait A { public ?B $c; }', 'should parse a property declaration with nullable type', (statements, text) => {
-          let declNode = assertPropertyDeclaration(statements);
-          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.notStrictEqual(declNode.type, null);
-          assert.notStrictEqual(declNode.type ? declNode.type.question : false, null);
-          let elements = declNode.properties ? declNode.properties.childNodes() : [];
-          assert.strictEqual(elements.length, 1);
-          let propertyNode = <PropertyElementSyntaxNode>elements[0];
-          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
-          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$c');
-          assert.strictEqual(propertyNode.expression, null);
-        }),
-      ];
-      Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
-
-      let diagnosticTests = [
-        new DiagnosticTestArgs('trait A { var }', 'missing property', [ErrorCode.ERR_PropertyExpected], [13]),
-
-        new DiagnosticTestArgs('trait A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadPropertyModifier], [10]),
-        new DiagnosticTestArgs('trait A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadPropertyModifier], [10]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-
-      let diagnosticTests7_4 = [
-        new DiagnosticTestArgs('trait A { public B }', 'missing property after type', [ErrorCode.ERR_PropertyExpected], [18]),
-      ];
-      Test.assertDiagnostics(diagnosticTests7_4, PhpVersion.PHP7_4);
-
-      let featureTypedProperties = [
-        new DiagnosticTestArgs('trait A { public B $c; }', 'should not parse a typed property', [ErrorCode.ERR_FeatureTypedProperties], [17]),
-      ];
-      Test.assertDiagnostics(featureTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
-    });
-
-    // Everything except for the parameter list and statement block needs full
-    // testing since it uses a different implementation than `function-declaration`.
     describe('method-declaration', function() {
       let syntaxTests = [
         new ParserTestArgs('trait A { function b() {} }', 'should parse a method declaration', (statements, text) => {
@@ -414,6 +226,122 @@ describe('PhpParser', function() {
           assert.strictEqual(method.returnType, null);
         }),
 
+        // See modifier tests below.
+
+        // See parameter tests below.
+
+        // Return types.
+        new ParserTestArgs('trait A { function b(): C {} }', 'should parse a method declaration with return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_1 = [
+        new ParserTestArgs('trait A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <NamedTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.notStrictEqual(returnType.question, null);
+          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+
+      let syntaxTests8_0 = [
+        new ParserTestArgs('trait A { function b(): static {} }', 'should parse a method declaration with static return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        }),
+        new ParserTestArgs('trait A { function b(): array | C {} }', 'should parse a method declaration with type union', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <CompositeTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof CompositeTypeSyntaxNode, true, 'CompositeTypeSyntaxNode');
+          let types = returnType.types.childNodes();
+          assert.strictEqual(types.length, 2);
+          assert.strictEqual(types[0] instanceof PredefinedTypeSyntaxNode, true);
+          assert.strictEqual(types[1] instanceof NamedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticTests = [
+        new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
+        new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
+        new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
+        new DiagnosticTestArgs('trait A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('trait A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+        new DiagnosticTestArgs('trait A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
+        new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
+
+        new DiagnosticTestArgs('trait A { function b() { public $c; }', 'should not parse trailing class member as method statement', [ErrorCode.ERR_CloseBraceExpected], [24]),
+        new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('trait A { function b(): C }', 'missing open brace or vertical bar', [ErrorCode.ERR_OpenBraceExpected], [25]),
+        new DiagnosticTestArgs('trait A { function b(): C | }', 'missing type', [ErrorCode.ERR_TypeExpected], [27]),
+        new DiagnosticTestArgs('trait A { function b(): C | D }', 'missing open brace or vertical bar (after multiple types)', [ErrorCode.ERR_OpenBraceExpected], [29]),
+        new DiagnosticTestArgs('trait A { abstract function b(): C }', 'missing semicolon or vertical bar', [ErrorCode.ERR_SemicolonExpected], [34]),
+
+        new DiagnosticTestArgs('trait A { function b(): ?C | D {} }', 'should not parse nullable type in type union', [ErrorCode.ERR_TypeUnionHasNullableType], [24]),
+        new DiagnosticTestArgs('trait A { function b(): ?C | ?D {} }', 'should not parse nullable type in type union (multiple)', [ErrorCode.ERR_TypeUnionHasNullableType, ErrorCode.ERR_TypeUnionHasNullableType], [24, 29]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('trait A { function b(): C }', 'missing open brace', [ErrorCode.ERR_OpenBraceExpected], [25]),
+        new DiagnosticTestArgs('trait A { function b(): C | D {} }', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [24]),
+        new DiagnosticTestArgs('trait A { function b(): static {} }', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [24]),
+        new DiagnosticTestArgs('trait A { abstract function b(): C }', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [34]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    });
+
+    describe('method-declaration (modifiers)', function() {
+      let syntaxTests = [
         // Modifiers.
         new ParserTestArgs('trait A { abstract function b(); }', 'should parse an abstract method declaration', (statements, text) => {
           let method = assertMethodDeclaration(statements);
@@ -541,82 +469,221 @@ describe('PhpParser', function() {
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
           assert.strictEqual(method.returnType, null);
         }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
 
-        // Return types.
-        new ParserTestArgs('trait A { function b(): C {} }', 'should parse a method declaration with return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): \\C {} }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): namespace\\C {} }', 'should parse a method declaration with relative return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): array {} }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
-        }),
-        new ParserTestArgs('trait A { function b(): callable {} }', 'should parse a method declaration with predefined return type (callable)', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true);
+      let diagnosticTests = [
+        new DiagnosticTestArgs('trait A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
+        new DiagnosticTestArgs('trait A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
+        new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('method-declaration (parameters)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('trait A { function b($c) {} }', 'should parse a method parameter', (statements) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          assertMethodParameter(parameters[0], false, false, false, false, false);
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests);
 
-      let syntaxTests7_1 = [
-        new ParserTestArgs('trait A { function b(): ? C {} }', 'should parse a method declaration with nullable return type', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          assert.strictEqual(method.modifiers, null);
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          let returnType = <NamedTypeSyntaxNode>method.returnType;
-          assert.strictEqual(returnType instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
-          assert.notStrictEqual(returnType.question, null);
-          assert.strictEqual(returnType.typeName instanceof PartiallyQualifiedNameSyntaxNode, true);
+      let syntaxTests8_0 = [
+        // NOTE: Promoted parameters are allowed on all methods, not just constructors.
+        new ParserTestArgs('trait A { function __construct(public $c) {} }', 'should parse a method parameter with modifier', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+        }),
+        new ParserTestArgs('trait A { function b(public static $c) {} }', 'should parse a method parameter with multiple modifiers', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
         }),
       ];
-      Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('trait A { function b(', 'missing ampersand, ellipsis, question, modifier, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('trait A { function b(public', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterExpected], [27]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('trait A { function b(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
+        new DiagnosticTestArgs('trait A { function b(public', 'should not parse a modifier', [ErrorCode.ERR_FeatureConstructorParameterPromotion, ErrorCode.ERR_ParameterExpected], [21, 27]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    });
+
+    describe('property-declaration', function() {
+      let syntaxTests = [
+        new ParserTestArgs('trait A { public $b; }', 'should parse a property declaration', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+        new ParserTestArgs('trait A { var $b; }', 'should parse a property declaration (var)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+        new ParserTestArgs('trait A { public $b = 1; }', 'should parse a property declaration with assignment', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
+          let elements = declNode.properties ? declNode.properties.childNodes() : [];
+          assert.strictEqual(elements.length, 1);
+          let propertyNode = <PropertyElementSyntaxNode>elements[0];
+          assert.strictEqual(propertyNode instanceof PropertyElementSyntaxNode, true);
+          Test.assertSyntaxToken(propertyNode.variable, text, TokenKind.Variable, '$b');
+          assert.strictEqual(propertyNode.expression instanceof LiteralSyntaxNode, true);
+        }),
+        new ParserTestArgs('trait A { public $b, $c; }', 'should parse a property declaration with multiple properties', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b', '$c']);
+        }),
+        new ParserTestArgs('trait A { protected $b; }', 'should parse a protected property declaration', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Protected, 'protected');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+        new ParserTestArgs('trait A { private $b; }', 'should parse a private property declaration', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Private, 'private');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+        new ParserTestArgs('trait A { static $b; }', 'should parse a static property declaration', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+        new ParserTestArgs('trait A { public static $b; }', 'should parse a static property declaration with visibility modifier (before)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+        new ParserTestArgs('trait A { static public $b; }', 'should parse a static property declaration with visibility modifier (after)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type, null);
+          assertPropertyElements(declNode, text, ['$b']);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests7_4 = [
+        new ParserTestArgs('trait A { public B $c; }', 'should parse a typed property declaration', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.strictEqual((<NamedTypeSyntaxNode>declNode.type).question, null);
+          assertPropertyElements(declNode, text, ['$c']);
+        }),
+        new ParserTestArgs('trait A { var B $c; }', 'should parse a typed property declaration (var)', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Var, 'var');
+          assert.strictEqual(declNode.type instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.strictEqual((<NamedTypeSyntaxNode>declNode.type).question, null);
+          assertPropertyElements(declNode, text, ['$c']);
+        }),
+        new ParserTestArgs('trait A { public \\B $c; }', 'should parse a typed property declaration with fully qualified name', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.strictEqual((<NamedTypeSyntaxNode>declNode.type).question, null);
+          assertPropertyElements(declNode, text, ['$c']);
+        }),
+        new ParserTestArgs('trait A { public namespace\\B $c; }', 'should parse a typed property declaration with relative name', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.strictEqual((<NamedTypeSyntaxNode>declNode.type).question, null);
+          assertPropertyElements(declNode, text, ['$c']);
+        }),
+        new ParserTestArgs('trait A { public array $c; }', 'should parse a property declaration with predefined type', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+          assert.strictEqual((<PredefinedTypeSyntaxNode>declNode.type).question, null);
+          assertPropertyElements(declNode, text, ['$c']);
+        }),
+        new ParserTestArgs('trait A { public ?B $c; }', 'should parse a property declaration with nullable type', (statements, text) => {
+          let declNode = assertPropertyDeclaration(statements);
+          let modifiers = declNode.modifiers ? declNode.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(declNode.type instanceof NamedTypeSyntaxNode, true, 'NamedTypeSyntaxNode');
+          assert.notStrictEqual((<NamedTypeSyntaxNode>declNode.type).question, null);
+          assertPropertyElements(declNode, text, ['$c']);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests7_4, PhpVersion.PHP7_4);
 
       let diagnosticTests = [
-        new DiagnosticTestArgs('trait A { function }', 'missing method name or ampersand', [ErrorCode.ERR_MethodNameOrAmpersandExpected], [18]),
-        new DiagnosticTestArgs('trait A { function &', 'missing method name (after ampersand)', [ErrorCode.ERR_MethodNameExpected], [20]),
-        new DiagnosticTestArgs('trait A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [20]),
-        new DiagnosticTestArgs('trait A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [21]),
-        new DiagnosticTestArgs('trait A { function b() }', 'missing open brace or colon', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
+        new DiagnosticTestArgs('trait A { var }', 'missing property', [ErrorCode.ERR_PropertyExpected], [13]),
 
-        new DiagnosticTestArgs('trait A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [23]),
-        new DiagnosticTestArgs('trait A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [26]),
-        new DiagnosticTestArgs('trait A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [25]),
-        new DiagnosticTestArgs('trait A { function b(); }', 'should not expect a semicolon after a non-abstract method declaration', [ErrorCode.ERR_OpenBraceOrColonExpected], [22]),
-
-        new DiagnosticTestArgs('trait A { abstract function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [31]),
-        new DiagnosticTestArgs('trait A { abstract function b() {} }', 'should not expect method body on abstract method', [ErrorCode.ERR_AbstractMethodHasBody], [32]),
-        new DiagnosticTestArgs('trait A { abstract final function b(); }', 'should not expect abstract and final modifiers', [ErrorCode.ERR_AbstractMemberIsFinal], [19]),
-        new DiagnosticTestArgs('trait A { abstract private function b(); }', 'should not expect abstract and private modifiers', [ErrorCode.ERR_AbstractMemberIsPrivate], [19]),
-
-        // @todo These should be recovery tests.
-        new DiagnosticTestArgs('trait A { function b() { }', 'missing close brace', [ErrorCode.ERR_CloseBraceExpected], [26]),
-        new DiagnosticTestArgs('trait A { function b() { public $c; }', 'missing close brace with trailing class member', [ErrorCode.ERR_CloseBraceExpected], [24]),
+        new DiagnosticTestArgs('trait A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadPropertyModifier], [10]),
+        new DiagnosticTestArgs('trait A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadPropertyModifier], [10]),
       ];
       Test.assertDiagnostics(diagnosticTests);
+
+      let diagnosticTests7_4 = [
+        new DiagnosticTestArgs('trait A { public B }', 'missing property after type', [ErrorCode.ERR_PropertyExpected], [18]),
+      ];
+      Test.assertDiagnostics(diagnosticTests7_4, PhpVersion.PHP7_4);
+
+      let featureTypedProperties = [
+        new DiagnosticTestArgs('trait A { public B $c; }', 'should not parse a typed property', [ErrorCode.ERR_FeatureTypedProperties], [17]),
+      ];
+      Test.assertDiagnostics(featureTypedProperties, PhpVersion.PHP7_0, PhpVersion.PHP7_3);
     });
 
     describe('trait-use-clause', function() {

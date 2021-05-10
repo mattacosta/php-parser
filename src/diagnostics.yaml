@@ -64,6 +64,20 @@ diagnostics:
 - name: ERR_FeatureTypedProperties
   text: "The feature 'typed properties' requires PHP 7.4 or later"
 
+# --- PHP 8.0 -----------------------------------------------------------------
+- name: ERR_FeatureConstructorParameterPromotion
+  text: "The feature 'constructor parameter promotion' requires PHP 8.0 or later"
+- name: ERR_FeatureNamedArguments
+  text: "The feature 'named arguments' requires PHP 8.0 or later"
+- name: ERR_FeatureStaticReturnType
+  text: "The feature 'static return type' requires PHP 8.0 or later"
+- name: ERR_FeatureTrailingCommasInClosureUseLists
+  text: "The feature 'trailing commas in closure use lists' requires PHP 8.0 or later"
+- name: ERR_FeatureTrailingCommasInParameterLists
+  text: "The feature 'trailing commas in parameter lists' requires PHP 8.0 or later"
+- name: ERR_FeatureUnionTypes
+  text: "The feature 'union types' requires PHP 8.0 or later"
+
 # -----------------------------------------------------------------------------
 # Lexer diagnostics
 # -----------------------------------------------------------------------------
@@ -124,7 +138,7 @@ diagnostics:
 - name: ERR_AbstractMethodHasBody
   text: "An abstract method cannot have a body"
 - name: ERR_ArgumentAfterUnpack
-  text: "A positional argument must be used prior to unpacked arguments"
+  text: "Positional and named arguments must be used prior to unpacked arguments"
 - name: ERR_BadConstantModifier
   text: "Class constants cannot be abstract, final, or static"
 - name: ERR_BadInterfaceModifier
@@ -355,3 +369,11 @@ diagnostics:
 - name: WRN_UnsetCast
   text: "The '(unset)' type cast is deprecated, use 'null' instead"
   severity: 2
+
+# --- PHP 8.0 -----------------------------------------------------------------
+- name: ERR_IncompleteClosureUseList
+  text: "Variable, '&' or ')' expected"
+- name: ERR_TryCatchUnionOrOptionalVariableExpected
+  text: "Type union, variable, or ')' expected"
+- name: ERR_TypeUnionHasNullableType
+  text: "Nullable types cannot be used in a type union"

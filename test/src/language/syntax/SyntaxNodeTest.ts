@@ -27,6 +27,7 @@ import {
   LocalVariableSyntaxNode
 } from '../../../../src/language/syntax/SyntaxNode.Generated';
 
+import { ErrorCode } from '../../../../src/diagnostics/ErrorCode.Generated';
 import { PhpSyntaxTree } from '../../../../src/parser/PhpSyntaxTree';
 import { SyntaxList } from '../../../../src/language/syntax/SyntaxList';
 import { TextSpan } from '../../../../src/text/TextSpan';
@@ -52,16 +53,24 @@ describe('SyntaxNode', function() {
   describe('#hasError', function() {
     it('no diagnostic', () => {
       let tree = PhpSyntaxTree.fromText('<?php $a;');
+      let diagnostics = Array.from(tree.getDiagnostics());
+      assert.strictEqual(diagnostics.length, 0);
       assert.strictEqual(tree.root.hasError, false);
     });
     it('error diagnostic', () => {
       // ERR_SemicolonExpected: ';' expected
       let tree = PhpSyntaxTree.fromText('<?php $a');
+      let diagnostics = Array.from(tree.getDiagnostics());
+      assert.strictEqual(diagnostics.length, 1);
+      assert.strictEqual(diagnostics[0].code, ErrorCode.ERR_SemicolonExpected);
       assert.strictEqual(tree.root.hasError, true);
     });
     it('warning diagnostic', () => {
-      // WRN_UnsetCast: The '(unset)' type cast is deprecated, use 'null' instead
-      let tree = PhpSyntaxTree.fromText('<?php (unset)$a;');
+      // WRN_EmptySwitchBlock: Empty switch block
+      let tree = PhpSyntaxTree.fromText('<?php switch ($a) {}');
+      let diagnostics = Array.from(tree.getDiagnostics());
+      assert.strictEqual(diagnostics.length, 1);
+      assert.strictEqual(diagnostics[0].code, ErrorCode.WRN_EmptySwitchBlock);
       assert.strictEqual(tree.root.hasError, false);
     });
   });

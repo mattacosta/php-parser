@@ -27,16 +27,17 @@ import {
 import {
   ClassConstantDeclarationSyntaxNode,
   ClassConstantElementSyntaxNode,
+  CompositeTypeSyntaxNode,
   FullyQualifiedNameSyntaxNode,
   InterfaceDeclarationSyntaxNode,
   LiteralSyntaxNode,
   MethodDeclarationSyntaxNode,
   NamedTypeSyntaxNode,
+  ParameterSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
   PredefinedTypeSyntaxNode,
   RelativeNameSyntaxNode,
   StatementBlockSyntaxNode,
-  TypeSyntaxNode,
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
@@ -46,22 +47,59 @@ import { TokenKind } from '../../../src/language/TokenKind';
 
 function assertClassConstantDeclaration(statements: ISyntaxNode[]): ClassConstantDeclarationSyntaxNode {
   let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+  assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
   let members = interfaceNode.members ? interfaceNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let classConstant = <ClassConstantDeclarationSyntaxNode>members[0];
-  assert.strictEqual(classConstant instanceof ClassConstantDeclarationSyntaxNode, true);
+  assert.strictEqual(classConstant instanceof ClassConstantDeclarationSyntaxNode, true, 'ClassConstantDeclarationSyntaxNode');
   return classConstant;
 }
 
 function assertMethodDeclaration(statements: ISyntaxNode[]): MethodDeclarationSyntaxNode {
   let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-  assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+  assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
   let members = interfaceNode.members ? interfaceNode.members.childNodes() : [];
   assert.strictEqual(members.length, 1);
   let method = <MethodDeclarationSyntaxNode>members[0];
-  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true);
+  assert.strictEqual(method instanceof MethodDeclarationSyntaxNode, true, 'MethodDeclarationSyntaxNode');
   return method;
+}
+
+function assertMethodDeclarationWithParameters(statements: ISyntaxNode[]): ISyntaxNode[] {
+  let method = assertMethodDeclaration(statements);
+  assert.strictEqual(method.modifiers, null);
+  assert.strictEqual(method.ampersand, null);
+  assert.strictEqual(method.returnType, null);
+  let parameters = method.parameters ? method.parameters.childNodes() : [];
+  return parameters;
+}
+
+function assertMethodParameter(node: ISyntaxNode, hasModifiers: boolean, hasType: boolean, hasAmpersand: boolean, hasEllipsis: boolean, hasDefaultValue: boolean): ParameterSyntaxNode {
+  let parameter = <ParameterSyntaxNode>node;
+  assert.strictEqual(parameter instanceof ParameterSyntaxNode, true, 'ParameterSyntaxNode');
+  if (!hasModifiers) {
+    assert.strictEqual(parameter.modifiers, null);
+  }
+  if (!hasType) {
+    assert.strictEqual(parameter.type, null);
+  }
+  if (hasAmpersand) {
+    assert.notStrictEqual(parameter.ampersand, null);
+  }
+  else {
+    assert.strictEqual(parameter.ampersand, null);
+  }
+  if (hasEllipsis) {
+    assert.notStrictEqual(parameter.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(parameter.ellipsis, null);
+  }
+  if (!hasDefaultValue) {
+    assert.strictEqual(parameter.equal, null);
+    assert.strictEqual(parameter.expression, null);
+  }
+  return parameter;
 }
 
 describe('PhpParser', function() {
@@ -70,14 +108,14 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('interface A {}', 'should parse an interface declaration', (statements, text) => {
         let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
         Test.assertSyntaxToken(interfaceNode.identifier, text, TokenKind.Identifier, 'A');
         assert.strictEqual(interfaceNode.baseInterfaces, null);
         assert.strictEqual(interfaceNode.members, null);
       }),
       new ParserTestArgs('{ interface A {} }', 'should parse an interface declaration in statement block', (statements) => {
         let block = <StatementBlockSyntaxNode>statements[0];
-        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'is a StatementBlockSyntaxNode');
+        assert.strictEqual(block instanceof StatementBlockSyntaxNode, true, 'StatementBlockSyntaxNode');
         let innerStatements = block.childNodes();
         assert.strictEqual(innerStatements.length, 1);
         assert.strictEqual(innerStatements[0] instanceof InterfaceDeclarationSyntaxNode, true);
@@ -103,7 +141,7 @@ describe('PhpParser', function() {
     let syntaxTests = [
       new ParserTestArgs('interface A extends B {}', 'should parse an interface declaration with single base type', (statements) => {
         let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
         let interfaces = interfaceNode.baseInterfaces ? interfaceNode.baseInterfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 1);
         assert.strictEqual(interfaces[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
@@ -111,7 +149,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('interface A extends B, C {}', 'should parse an interface declaration with multiple base types', (statements) => {
         let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
         let interfaces = interfaceNode.baseInterfaces ? interfaceNode.baseInterfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 2);
         assert.strictEqual(interfaces[0] instanceof PartiallyQualifiedNameSyntaxNode, true);
@@ -120,7 +158,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('interface A extends \\B {}', 'should parse an interface declaration with fully qualified base type', (statements) => {
         let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
         let interfaces = interfaceNode.baseInterfaces ? interfaceNode.baseInterfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 1);
         assert.strictEqual(interfaces[0] instanceof FullyQualifiedNameSyntaxNode, true);
@@ -128,7 +166,7 @@ describe('PhpParser', function() {
       }),
       new ParserTestArgs('interface A extends namespace\\B {}', 'should parse an interface declaration with relative base type', (statements) => {
         let interfaceNode = <InterfaceDeclarationSyntaxNode>statements[0];
-        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'is a InterfaceDeclarationSyntaxNode');
+        assert.strictEqual(interfaceNode instanceof InterfaceDeclarationSyntaxNode, true, 'InterfaceDeclarationSyntaxNode');
         let interfaces = interfaceNode.baseInterfaces ? interfaceNode.baseInterfaces.childNodes() : [];
         assert.strictEqual(interfaces.length, 1);
         assert.strictEqual(interfaces[0] instanceof RelativeNameSyntaxNode, true);
@@ -242,22 +280,6 @@ describe('PhpParser', function() {
       Test.assertDiagnostics(featureClassConstantModifiers, PhpVersion.PHP7_0, PhpVersion.PHP7_0);
     });
 
-    describe('property-declaration', function() {
-      let diagnosticTests = [
-        new DiagnosticTestArgs('interface A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 23]),
-        new DiagnosticTestArgs('interface A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 20]),
-        new DiagnosticTestArgs('interface A { public $b; }', 'should not parse a public property', [ErrorCode.ERR_InterfaceProperty], [21]),
-        new DiagnosticTestArgs('interface A { protected $b; }', 'should not parse a protected property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 24]),
-        new DiagnosticTestArgs('interface A { private $b; }', 'should not parse a private property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 22]),
-        new DiagnosticTestArgs('interface A { static $b; }', 'should not parse a static property', [ErrorCode.ERR_InterfaceProperty], [21]),
-        // For consistency, defer this error to the variable instead of 'var'.
-        new DiagnosticTestArgs('interface A { var $b; }', 'should not parse a var property', [ErrorCode.ERR_InterfaceProperty], [18]),
-      ];
-      Test.assertDiagnostics(diagnosticTests);
-    });
-
-    // Everything except for the parameter list and statement block needs full
-    // testing since it uses a different implementation than `function-declaration`.
     describe('method-declaration', function() {
       let syntaxTests = [
         new ParserTestArgs('interface A { function b(); }', 'should parse a method declaration', (statements, text) => {
@@ -285,40 +307,9 @@ describe('PhpParser', function() {
           assert.strictEqual(method.statements, null);
         }),
 
-        // Modifiers.
-        new ParserTestArgs('interface A { public function b(); }', 'should parse a public method declaration without body', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-          assert.strictEqual(method.statements, null);
-        }),
-        new ParserTestArgs('interface A { static function b(); }', 'should parse a static method declaration without body', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 1);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-          assert.strictEqual(method.statements, null);
-        }),
+        // See modifier tests below.
 
-        // Modifiers (mixed).
-        new ParserTestArgs('interface A { static public function b(); }', 'should parse a static and public method declaration', (statements, text) => {
-          let method = assertMethodDeclaration(statements);
-          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
-          assert.strictEqual(modifiers.length, 2);
-          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
-          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
-          assert.strictEqual(method.ampersand, null);
-          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType, null);
-          assert.strictEqual(method.statements, null);
-        }),
+        // See parameter tests below.
 
         // Return types.
         new ParserTestArgs('interface A { function b(): C; }', 'should parse a method declaration with return type', (statements, text) => {
@@ -326,7 +317,7 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
           assert.strictEqual(method.statements, null);
         }),
         new ParserTestArgs('interface A { function b(): \\C; }', 'should parse a method declaration with fully qualified return type', (statements, text) => {
@@ -334,7 +325,7 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
           assert.strictEqual(method.statements, null);
         }),
         new ParserTestArgs('interface A { function b(): namespace\\C; }', 'should parse a method declaration with relative return type', (statements, text) => {
@@ -342,7 +333,7 @@ describe('PhpParser', function() {
           assert.strictEqual(method.modifiers, null);
           assert.strictEqual(method.ampersand, null);
           Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
-          assert.strictEqual(method.returnType instanceof TypeSyntaxNode, true);
+          assert.strictEqual(method.returnType instanceof NamedTypeSyntaxNode, true);
           assert.strictEqual(method.statements, null);
         }),
         new ParserTestArgs('interface A { function b(): array; }', 'should parse a method declaration with predefined return type (array)', (statements, text) => {
@@ -378,6 +369,29 @@ describe('PhpParser', function() {
       ];
       Test.assertSyntaxNodes(syntaxTests7_1, PhpVersion.PHP7_1);
 
+      let syntaxTests8_0 = [
+        new ParserTestArgs('interface A { function b(): static; }', 'should parse a method declaration with static return type', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType instanceof PredefinedTypeSyntaxNode, true, 'PredefinedTypeSyntaxNode');
+        }),
+        new ParserTestArgs('interface A { function b(): array | C; }', 'should parse a method declaration with type union', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          assert.strictEqual(method.modifiers, null);
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          let returnType = <CompositeTypeSyntaxNode>method.returnType;
+          assert.strictEqual(returnType instanceof CompositeTypeSyntaxNode, true, 'CompositeTypeSyntaxNode');
+          let types = returnType.types.childNodes();
+          assert.strictEqual(types.length, 2);
+          assert.strictEqual(types[0] instanceof PredefinedTypeSyntaxNode, true);
+          assert.strictEqual(types[1] instanceof NamedTypeSyntaxNode, true);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
       // @todo Recovery tests:
       //   'interface A { function b() { }'
       //   'interface A { function b() { public $c; }'
@@ -388,15 +402,71 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { function b }', 'missing open paren', [ErrorCode.ERR_OpenParenExpected], [24]),
         new DiagnosticTestArgs('interface A { function b( }', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
         new DiagnosticTestArgs('interface A { function b() }', 'missing colon or semicolon', [ErrorCode.ERR_ColonOrSemicolonExpected], [26]),
-
         new DiagnosticTestArgs('interface A { function b():', 'missing return type', [ErrorCode.ERR_TypeExpected], [27]),
-        new DiagnosticTestArgs('interface A { function b(): C\\ }', 'missing identifier in return type', [ErrorCode.ERR_IdentifierExpected], [30]),
-        new DiagnosticTestArgs('interface A { function b(): \\ }', 'missing identifier in return type (fully qualified name)', [ErrorCode.ERR_IdentifierExpected], [29]),
 
         new DiagnosticTestArgs('interface A { function b() {} }', 'should not expect a method body', [ErrorCode.ERR_InterfaceMethodDefinition], [27]),
         new DiagnosticTestArgs('interface A { public function b() {} }', 'should not expect a method body on public method', [ErrorCode.ERR_InterfaceMethodDefinition], [34]),
         new DiagnosticTestArgs('interface A { static function b() {} }', 'should not expect a method body on static method', [ErrorCode.ERR_InterfaceMethodDefinition], [34]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
 
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(): C }', 'missing semicolon or vertical bar', [ErrorCode.ERR_SemicolonExpected], [29]),
+        new DiagnosticTestArgs('interface A { function b(): C | }', 'missing type', [ErrorCode.ERR_TypeExpected], [31]),
+        new DiagnosticTestArgs('interface A { function b(): C | D }', 'missing semicolon or vertical bar (after multiple types)', [ErrorCode.ERR_SemicolonExpected], [33]),
+
+        new DiagnosticTestArgs('interface A { function b(): ?C | D {} }', 'should not parse nullable type in type union', [ErrorCode.ERR_TypeUnionHasNullableType], [28]),
+        new DiagnosticTestArgs('interface A { function b(): ?C | ?D {} }', 'should not parse nullable type in type union (multiple)', [ErrorCode.ERR_TypeUnionHasNullableType, ErrorCode.ERR_TypeUnionHasNullableType], [28, 33]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(): C }', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [29]),
+        new DiagnosticTestArgs('interface A { function b(): C | D; }', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [28]),
+        new DiagnosticTestArgs('interface A { function b(): static; }', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [28]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    });
+
+    describe('method-declaration (modifiers)', function() {
+      let syntaxTests = [
+        // Modifiers.
+        new ParserTestArgs('interface A { public function b(); }', 'should parse a public method declaration without body', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+          assert.strictEqual(method.statements, null);
+        }),
+        new ParserTestArgs('interface A { static function b(); }', 'should parse a static method declaration without body', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+          assert.strictEqual(method.statements, null);
+        }),
+        // Modifiers (mixed).
+        new ParserTestArgs('interface A { static public function b(); }', 'should parse a static and public method declaration', (statements, text) => {
+          let method = assertMethodDeclaration(statements);
+          let modifiers = method.modifiers ? method.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Static, 'static');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Public, 'public');
+          assert.strictEqual(method.ampersand, null);
+          Test.assertSyntaxToken(method.identifierOrKeyword, text, TokenKind.Identifier, 'b');
+          assert.strictEqual(method.returnType, null);
+          assert.strictEqual(method.statements, null);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let diagnosticTests = [
         new DiagnosticTestArgs('interface A { protected function b(); }', 'should not parse a protected method declaration', [ErrorCode.ERR_InterfaceMemberNotPublic], [14]),
         new DiagnosticTestArgs('interface A { private function b(); }', 'should not parse a private method declaration', [ErrorCode.ERR_InterfaceMemberNotPublic], [14]),
 
@@ -418,6 +488,65 @@ describe('PhpParser', function() {
         new DiagnosticTestArgs('interface A { static final function b(); }', 'should not expect static and final modifiers', [ErrorCode.ERR_BadInterfaceModifier], [21]),
         new DiagnosticTestArgs('interface A { static protected function b(); }', 'should not expect static and protected modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic], [21]),
         new DiagnosticTestArgs('interface A { static private function b(); }', 'should not expect static and private modifiers', [ErrorCode.ERR_InterfaceMemberNotPublic], [21]),
+      ];
+      Test.assertDiagnostics(diagnosticTests);
+    });
+
+    describe('method-declaration (parameters)', function() {
+      let syntaxTests = [
+        new ParserTestArgs('interface A { function b($c); }', 'should parse a method parameter', (statements) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          assertMethodParameter(parameters[0], false, false, false, false, false);
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests);
+
+      let syntaxTests8_0 = [
+        // NOTE: Promoted parameters are allowed on all methods, not just constructors.
+        new ParserTestArgs('interface A { function __construct(public $c); }', 'should parse a method parameter with modifier', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 1);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+        }),
+        new ParserTestArgs('interface A { function b(public static $c); }', 'should parse a method parameter with multiple modifiers', (statements, text) => {
+          let parameters = assertMethodDeclarationWithParameters(statements);
+          assert.strictEqual(parameters.length, 1);
+          let param = assertMethodParameter(parameters[0], true, false, false, false, false);
+          let modifiers = param.modifiers ? param.modifiers.childTokens() : [];
+          assert.strictEqual(modifiers.length, 2);
+          Test.assertSyntaxToken(modifiers[0], text, TokenKind.Public, 'public');
+          Test.assertSyntaxToken(modifiers[1], text, TokenKind.Static, 'static');
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(', 'missing ampersand, ellipsis, question, modifier, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
+        new DiagnosticTestArgs('interface A { function b(public', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterExpected], [31]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('interface A { function b(', 'missing ampersand, ellipsis, question, type, variable, or close paren', [ErrorCode.ERR_ParameterOrCloseParenExpected], [25]),
+        new DiagnosticTestArgs('interface A { function b(public', 'should not parse a modifier', [ErrorCode.ERR_FeatureConstructorParameterPromotion, ErrorCode.ERR_ParameterExpected], [25, 31]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    });
+
+    describe('property-declaration', function() {
+      let diagnosticTests = [
+        new DiagnosticTestArgs('interface A { abstract $b; }', 'should not parse an abstract property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 23]),
+        new DiagnosticTestArgs('interface A { final $b; }', 'should not parse a final property', [ErrorCode.ERR_BadInterfaceModifier, ErrorCode.ERR_InterfaceProperty], [14, 20]),
+        new DiagnosticTestArgs('interface A { public $b; }', 'should not parse a public property', [ErrorCode.ERR_InterfaceProperty], [21]),
+        new DiagnosticTestArgs('interface A { protected $b; }', 'should not parse a protected property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 24]),
+        new DiagnosticTestArgs('interface A { private $b; }', 'should not parse a private property', [ErrorCode.ERR_InterfaceMemberNotPublic, ErrorCode.ERR_InterfaceProperty], [14, 22]),
+        new DiagnosticTestArgs('interface A { static $b; }', 'should not parse a static property', [ErrorCode.ERR_InterfaceProperty], [21]),
+        // For consistency, defer this error to the variable instead of 'var'.
+        new DiagnosticTestArgs('interface A { var $b; }', 'should not parse a var property', [ErrorCode.ERR_InterfaceProperty], [18]),
       ];
       Test.assertDiagnostics(diagnosticTests);
     });

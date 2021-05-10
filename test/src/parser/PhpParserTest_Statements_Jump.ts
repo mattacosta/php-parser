@@ -36,6 +36,7 @@ import {
 } from '../../../src/language/syntax/SyntaxNode.Generated';
 
 import { ErrorCode } from '../../../src/diagnostics/ErrorCode.Generated';
+import { PhpVersion } from '../../../src/parser/PhpVersion';
 
 describe('PhpParser', function() {
 
@@ -155,13 +156,13 @@ describe('PhpParser', function() {
           assert.strictEqual(throwNode.expression instanceof LocalVariableSyntaxNode, true);
         }),
       ];
-      Test.assertSyntaxNodes(tests);
+      Test.assertSyntaxNodes(tests, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
 
       let diagnosticTests = [
         new DiagnosticTestArgs('throw', 'missing expression', [ErrorCode.ERR_ExpressionExpectedEOF], [5]),
         new DiagnosticTestArgs('throw $e', 'missing semicolon', [ErrorCode.ERR_SemicolonExpected], [8]),
       ];
-      Test.assertDiagnostics(diagnosticTests);
+      Test.assertDiagnostics(diagnosticTests, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
   });
