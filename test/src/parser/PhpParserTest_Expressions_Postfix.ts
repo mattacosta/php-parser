@@ -25,7 +25,7 @@ import {
 } from '../Test';
 
 import {
-  ArgumentSyntaxNode,
+  AnonymousFunctionSyntaxNode,
   ArraySyntaxNode,
   ClassConstantSyntaxNode,
   ConstantSyntaxNode,
@@ -39,11 +39,13 @@ import {
   IndirectVariableSyntaxNode,
   LiteralSyntaxNode,
   LocalVariableSyntaxNode,
+  NamedArgumentSyntaxNode,
   NamedMemberAccessSyntaxNode,
   NamedMethodInvocationSyntaxNode,
   NamedScopedInvocationSyntaxNode,
   NameSyntaxNode,
   PartiallyQualifiedNameSyntaxNode,
+  PositionalArgumentSyntaxNode,
   PostfixUnarySyntaxNode,
   RelativeNameSyntaxNode,
   StaticPropertySyntaxNode,
@@ -77,20 +79,6 @@ function assertElementAccess(statements: ISyntaxNode[], hasOffset: boolean): Ele
   return elementAccess;
 }
 
-function assertFunctionArgument(argument: ISyntaxNode, hasEllipsis = false): LocalVariableSyntaxNode {
-  let argumentNode = <ArgumentSyntaxNode>argument;
-  assert.strictEqual(argumentNode instanceof ArgumentSyntaxNode, true, 'ArgumentSyntaxNode');
-  if (hasEllipsis) {
-    assert.notStrictEqual(argumentNode.ellipsis, null);
-  }
-  else {
-    assert.strictEqual(argumentNode.ellipsis, null);
-  }
-  let variable = <LocalVariableSyntaxNode>argumentNode.value;
-  assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
-  return variable;
-}
-
 function assertFunctionInvocation(statements: ISyntaxNode[]): FunctionInvocationSyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
@@ -108,6 +96,13 @@ function assertIndirectMemberAccess(statements: ISyntaxNode[]): IndirectMemberAc
   return memberAccess;
 }
 
+function assertNamedArgument(argument: ISyntaxNode, text: string, expectedKind: TokenKind, name: string) {
+  let argumentNode = <NamedArgumentSyntaxNode>argument;
+  assert.strictEqual(argumentNode instanceof NamedArgumentSyntaxNode, true, 'NamedArgumentSyntaxNode');
+  Test.assertSyntaxToken(argumentNode.identifier, text, expectedKind, name);
+  assert.strictEqual(argumentNode.value instanceof LiteralSyntaxNode, true, 'LiteralSyntaxNode');
+}
+
 function assertNamedMemberAccess(statements: ISyntaxNode[], text: string, name: string): NamedMemberAccessSyntaxNode {
   let exprNode = <ExpressionStatementSyntaxNode>statements[0];
   assert.strictEqual(exprNode instanceof ExpressionStatementSyntaxNode, true, 'ExpressionStatementSyntaxNode');
@@ -115,6 +110,20 @@ function assertNamedMemberAccess(statements: ISyntaxNode[], text: string, name: 
   assert.strictEqual(memberAccess instanceof NamedMemberAccessSyntaxNode, true, 'NamedMemberAccessSyntaxNode');
   Test.assertSyntaxToken(memberAccess.member, text, TokenKind.Identifier, name);
   return memberAccess;
+}
+
+function assertPositionalArgument(argument: ISyntaxNode, hasEllipsis = false): LocalVariableSyntaxNode {
+  let argumentNode = <PositionalArgumentSyntaxNode>argument;
+  assert.strictEqual(argumentNode instanceof PositionalArgumentSyntaxNode, true, 'PositionalArgumentSyntaxNode');
+  if (hasEllipsis) {
+    assert.notStrictEqual(argumentNode.ellipsis, null);
+  }
+  else {
+    assert.strictEqual(argumentNode.ellipsis, null);
+  }
+  let variable = <LocalVariableSyntaxNode>argumentNode.value;
+  assert.strictEqual(variable instanceof LocalVariableSyntaxNode, true, 'LocalVariableSyntaxNode');
+  return variable;
 }
 
 function assertStaticProperty(statements: ISyntaxNode[]): StaticPropertySyntaxNode {
@@ -561,7 +570,7 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 1);
-          let firstArgument = assertFunctionArgument(args[0], false);
+          let firstArgument = assertPositionalArgument(args[0], false);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
         }),
         new ParserTestArgs('a($b, $c);', 'should parse multiple arguments', (statements, text) => {
@@ -569,9 +578,9 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 2);
-          let firstArgument = assertFunctionArgument(args[0], false);
+          let firstArgument = assertPositionalArgument(args[0], false);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
-          let secondArgument = assertFunctionArgument(args[1], false);
+          let secondArgument = assertPositionalArgument(args[1], false);
           Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
         }),
         new ParserTestArgs('a(...$b);', 'should parse an unpacked argument', (statements, text) => {
@@ -579,7 +588,7 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 1);
-          let firstArgument = assertFunctionArgument(args[0], true);
+          let firstArgument = assertPositionalArgument(args[0], true);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
         }),
         new ParserTestArgs('a(...$b, ...$c);', 'should parse multiple unpacked arguments', (statements, text) => {
@@ -587,9 +596,9 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 2);
-          let firstArgument = assertFunctionArgument(args[0], true);
+          let firstArgument = assertPositionalArgument(args[0], true);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
-          let secondArgument = assertFunctionArgument(args[1], true);
+          let secondArgument = assertPositionalArgument(args[1], true);
           Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
         }),
         new ParserTestArgs('a($b, ...$c);', 'should parse an unpacked argument after a positional argument', (statements, text) => {
@@ -597,9 +606,9 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 2);
-          let firstArgument = assertFunctionArgument(args[0], false);
+          let firstArgument = assertPositionalArgument(args[0], false);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
-          let secondArgument = assertFunctionArgument(args[1], true);
+          let secondArgument = assertPositionalArgument(args[1], true);
           Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
         }),
       ];
@@ -611,7 +620,7 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 1);
-          let firstArgument = assertFunctionArgument(args[0], false);
+          let firstArgument = assertPositionalArgument(args[0], false);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
         }),
         new ParserTestArgs('a($b, $c,);', 'should parse multiple arguments with a trailing comma', (statements, text) => {
@@ -619,9 +628,9 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 2);
-          let firstArgument = assertFunctionArgument(args[0], false);
+          let firstArgument = assertPositionalArgument(args[0], false);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
-          let secondArgument = assertFunctionArgument(args[1], false);
+          let secondArgument = assertPositionalArgument(args[1], false);
           Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
         }),
         new ParserTestArgs('a(...$b,);', 'should parse an unpacked argument with a trailing comma', (statements, text) => {
@@ -629,7 +638,7 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 1);
-          let firstArgument = assertFunctionArgument(args[0], true);
+          let firstArgument = assertPositionalArgument(args[0], true);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
         }),
         new ParserTestArgs('a(...$b, ...$c,);', 'should parse multiple unpacked arguments with a trailing comma', (statements, text) => {
@@ -637,13 +646,83 @@ describe('PhpParser', function() {
           assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
           let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
           assert.strictEqual(args.length, 2);
-          let firstArgument = assertFunctionArgument(args[0], true);
+          let firstArgument = assertPositionalArgument(args[0], true);
           Test.assertSyntaxToken(firstArgument.variable, text, TokenKind.Variable, '$b');
-          let secondArgument = assertFunctionArgument(args[1], true);
+          let secondArgument = assertPositionalArgument(args[1], true);
           Test.assertSyntaxToken(secondArgument.variable, text, TokenKind.Variable, '$c');
         }),
       ];
       Test.assertSyntaxNodes(syntaxTests7_3, PhpVersion.PHP7_3);
+
+      let syntaxTests8_0 = [
+        new ParserTestArgs('a(b: 1);', 'should parse a named argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 1);
+          assertNamedArgument(args[0], text, TokenKind.Identifier, 'b');
+        }),
+        new ParserTestArgs('a(function: 1);', 'should parse a named argument (expression keyword)', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 1);
+          assertNamedArgument(args[0], text, TokenKind.Function, 'function');
+        }),
+        new ParserTestArgs('a(abstract: 1);', 'should parse a named argument (statement keyword)', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 1);
+          assertNamedArgument(args[0], text, TokenKind.Abstract, 'abstract');
+        }),
+        new ParserTestArgs('a(b: 1, c: 2);', 'should parse multiple named arguments', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 2);
+          assertNamedArgument(args[0], text, TokenKind.Identifier, 'b');
+          assertNamedArgument(args[1], text, TokenKind.Identifier, 'c');
+        }),
+        // NOTE: Not semantically valid.
+        new ParserTestArgs('a(b: 1, $c);', 'should parse a named argument before positional argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 2);
+          assertNamedArgument(args[0], text, TokenKind.Identifier, 'b');
+          assertPositionalArgument(args[1], false);
+        }),
+        new ParserTestArgs('a($b, c: 1);', 'should parse a named argument after positional argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 2);
+          assertPositionalArgument(args[0], false);
+          assertNamedArgument(args[1], text, TokenKind.Identifier, 'c');
+        }),
+        new ParserTestArgs('a(b: 1, ...$c);', 'should parse a named argument before variadic argument', (statements, text) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 2);
+          assertNamedArgument(args[0], text, TokenKind.Identifier, 'b');
+          assertPositionalArgument(args[1], true);
+        }),
+
+        // This is currently being used to test that the parser eats 'function',
+        // sees the missing ':', and then backtracks and parses an expression.
+        new ParserTestArgs('a(function(): B {});', 'should parse expression starting with keyword', (statements) => {
+          let invocation = assertFunctionInvocation(statements);
+          assert.strictEqual(invocation.reference instanceof NameSyntaxNode, true);
+          let args = invocation.argumentList ? invocation.argumentList.childNodes() : [];
+          assert.strictEqual(args.length, 1);
+          let firstArg = <PositionalArgumentSyntaxNode>args[0];
+          assert.strictEqual(firstArg instanceof PositionalArgumentSyntaxNode, true, 'PositionalArgumentSyntaxNode');
+          assert.strictEqual(firstArg.value instanceof AnonymousFunctionSyntaxNode, true, 'AnonymousFunctionSyntaxNode');
+        }),
+      ];
+      Test.assertSyntaxNodes(syntaxTests8_0, PhpVersion.PHP8_0);
 
       let diagnosticsTests = [
         // While not an exact match, this error code is a) not overly complex
@@ -665,13 +744,31 @@ describe('PhpParser', function() {
       ];
       Test.assertDiagnostics(diagnosticTests7_3, PhpVersion.PHP7_3);
 
-      let featureTrailingCommas = [
+      let diagnosticRegressionTests7_3 = [
         new DiagnosticTestArgs('a($b,', 'shoud not parse trailing comma in argument list', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists, ErrorCode.ERR_ExpressionOrCloseParenExpected], [4, 5]),
         new DiagnosticTestArgs('a($b,);', 'shoud not parse trailing comma in argument list (completed)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [4]),
         new DiagnosticTestArgs('a($b, $c,);', 'shoud not parse trailing comma in argument list (multiple arguments)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [8]),
         new DiagnosticTestArgs('a(...$b,);', 'shoud not parse trailing comma in argument list (after unpacked argument)', [ErrorCode.ERR_FeatureTrailingCommasInArgumentLists], [7]),
       ];
-      Test.assertDiagnostics(featureTrailingCommas, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
+      Test.assertDiagnostics(diagnosticRegressionTests7_3, PhpVersion.PHP7_0, PhpVersion.PHP7_2);
+
+      let diagnosticTests8_0 = [
+        new DiagnosticTestArgs('a(b', 'missing comma or close paren (after identifier)', [ErrorCode.ERR_CommaOrCloseParenExpected], [3]),
+        new DiagnosticTestArgs('a(...$b, c: 1);', 'should not parse a named argument after an unpacked argument', [ErrorCode.ERR_ArgumentAfterUnpack], [9]),
+
+        new DiagnosticTestArgs('a(while', 'should parse ambiguous keyword for statement as named argument', [ErrorCode.ERR_Syntax, ErrorCode.ERR_ExpressionExpectedEOF], [7, 7]),
+        new DiagnosticTestArgs('a(\nwhile', 'should not parse ambiguous keyword for statement as named argument', [ErrorCode.ERR_ExpressionOrCloseParenExpected], [2]),
+        new DiagnosticTestArgs('a(clone', 'should parse ambiguous keyword for expression as positional argument', [ErrorCode.ERR_ExpressionExpectedEOF], [7]),
+        new DiagnosticTestArgs('a(\nclone', 'should parse ambiguous keyword for expression as positional argument (with line break)', [ErrorCode.ERR_ExpressionExpectedEOF], [8]),
+        new DiagnosticTestArgs('a(as', 'should parse non-ambiguous keyword as named argument', [ErrorCode.ERR_Syntax, ErrorCode.ERR_ExpressionExpectedEOF], [4, 4]),
+        new DiagnosticTestArgs('a(\nas', 'should parse non-ambiguous keyword as named argument (with line break)', [ErrorCode.ERR_Syntax, ErrorCode.ERR_ExpressionExpectedEOF], [5, 5]),
+      ];
+      Test.assertDiagnostics(diagnosticTests8_0, PhpVersion.PHP8_0);
+
+      let diagnosticRegressionTests8_0 = [
+        new DiagnosticTestArgs('a(b: 1);', 'should not parse a named argument', [ErrorCode.ERR_FeatureNamedArguments], [2]),
+      ];
+      Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
     });
 
     describe('object-access-expression', function() {

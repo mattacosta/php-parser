@@ -99,6 +99,7 @@ import {
   MemberInvocationNode,
   MethodDeclarationNode,
   MethodReferenceNode,
+  NamedArgumentNode,
   NamedMemberAccessNode,
   NamedMethodInvocationNode,
   NamedObjectCreationNode,
@@ -112,6 +113,7 @@ import {
   ParameterNode,
   PartiallyQualifiedNameNode,
   PatternNode,
+  PositionalArgumentNode,
   PostfixUnaryNode,
   PredefinedTypeNode,
   PrintIntrinsicNode,
@@ -180,20 +182,20 @@ import { TokenNode } from '../language/node/TokenNode';
 import { TriviaNode } from '../language/node/TriviaNode';
 
 /**
+ * A container for the arguments of an invocation expression.
+ */
+ export class Arguments {
+
+  constructor(public readonly openParen: TokenNode, public readonly argumentList: NodeList | null, public readonly closeParen: TokenNode) {}
+
+}
+
+/**
  * A container for a parsed expression (or statement) node and its type.
  */
 export class Expression {
 
   constructor(public readonly node: ExpressionNode | StatementNode, public readonly type: ExpressionType) {}
-
-}
-
-/**
- * A container for the arguments of an invocation expression.
- */
-export class InvocationArguments {
-
-  constructor(public readonly openParen: TokenNode, public readonly argumentList: NodeList | null, public readonly closeParen: TokenNode) {}
 
 }
 
@@ -757,13 +759,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   // --------------------------------------------------------------------------
 
   /**
-   * Determines if a token starts an argument in an invocation expression.
-   */
-  protected isArgumentStart(kind: TokenKind): boolean {
-    return this.isExpressionStart(kind) || kind === TokenKind.Ellipsis;
-  }
-
-  /**
    * Determines if a token starts an element within an array.
    */
   protected isArrayElementStart(kind: TokenKind): boolean {
@@ -1093,6 +1088,13 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       default:
         return false;
     }
+  }
+
+  /**
+   * Determines if a token is a valid identifier for a parameter.
+   */
+  protected isParameterIdentifier(kind: TokenKind): boolean {
+    return kind === TokenKind.Identifier || TokenKindInfo.isSemiReservedKeyword(kind);
   }
 
   /**
@@ -3119,8 +3121,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       closeParen = this.createMissingTokenWithError(TokenKind.CloseParen, code);
     }
 
-    // NOTE: Just like `InvocationArguments`, this temporary object is used to
-    // standardize how parameter lists are parsed.
     return new Parameters(
       openParen,
       parameters.length > 0 ? this.factory.createList(parameters) : null,
@@ -4803,6 +4803,48 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
+   * Parses an argument.
+   *
+   * Syntax:
+   * - `positional-argument`
+   * - `named-argument`
+   *
+   * Where `positional-argument` is:
+   * - `ELLIPSIS expr`
+   * - `expr`
+   *
+   * Where `named-argument` is:
+   * - `IDENTIFIER : expr`
+   * - `keyword : expr`
+   */
+  protected parseArgument(): PositionalArgumentNode | NamedArgumentNode {
+    if (this.currentToken.kind === TokenKind.Ellipsis) {
+      let ellipsis = this.eat(TokenKind.Ellipsis);
+      let value = this.parseExpression();
+      return new PositionalArgumentNode(ellipsis, value);
+    }
+    else if (this.isParameterIdentifier(this.currentToken.kind)) {
+      // Instead of manually trying to parse every possible case, always parse
+      // a named argument. If that fails, reset and try again as an expression.
+      let beforeIdentifier = this.createResetPoint();
+      let identifier = this.eat(this.currentToken.kind);
+      // The caller is responsible for checking non-expression keywords.
+      if (this.currentToken.kind === TokenKind.Colon || !this.isExpressionStart(identifier.kind)) {
+        let colon = this.eat(TokenKind.Colon);
+        let value = this.parseExpression();
+        let argument = new NamedArgumentNode(identifier, colon, value);
+        if (!this.isSupportedVersion(PhpVersion.PHP8_0)) {
+          argument = this.addError(argument, ErrorCode.ERR_FeatureNamedArguments);
+        }
+        return argument;
+      }
+      this.reset(beforeIdentifier);
+    }
+    let value = this.parseExpression();
+    return new PositionalArgumentNode(null, value);
+  }
+
+  /**
    * Parses a list of arguments in an anonymous class, invocation, or object
    * creation expression.
    *
@@ -4811,65 +4853,67 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    * Where `argument-list` is:
    * - `argument-list , argument`
    * - `argument`
-   *
-   * Where `argument` is:
-   * - `ELLIPSIS expr`
-   * - `expr`
    */
-  protected parseArgumentList(): InvocationArguments {
+  protected parseArgumentList(): Arguments {
     let args: Array<ArgumentNode | TokenNode> = [];
     let hasUnpack = false;
 
     let openParen = this.eat(TokenKind.OpenParen);
+    if (openParen.isMissing) {
+      let closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
+      return new Arguments(openParen, null, closeParen);
+    }
 
-    if (!openParen.isMissing) {
-      if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind === TokenKind.Comma) {
-        let ellipsis = this.eatOptional(TokenKind.Ellipsis);
-        let value = this.parseExpression();
-        args.push(new ArgumentNode(ellipsis, value));
+    if (this.shouldParseArgument() || this.currentToken.kind === TokenKind.Comma) {
+      let argument = this.parseArgument();
+      args.push(argument);
+      if (argument instanceof PositionalArgumentNode && argument.ellipsis !== null) {
+        hasUnpack = true;
+      }
+    }
 
-        if (ellipsis !== null) {
-          hasUnpack = true;
-        }
+    while (this.currentToken.kind !== TokenKind.CloseParen && this.currentToken.kind !== TokenKind.EOF) {
+      let comma: TokenNode | null = null;
+      if (this.currentToken.kind === TokenKind.Comma) {
+        comma = this.eat(TokenKind.Comma);
       }
 
-      while (this.currentToken.kind !== TokenKind.CloseParen && this.currentToken.kind !== TokenKind.EOF) {
-        if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind === TokenKind.Comma) {
-          let comma = this.eat(TokenKind.Comma);
-
-          if (!this.isArgumentStart(this.currentToken.kind)) {
-            if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
-              comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
-            }
-            args.push(comma);
+      if (!this.shouldParseArgument()) {
+        if (comma !== null) {
+          if (!this.isSupportedVersion(PhpVersion.PHP7_3)) {
+            comma = this.addError(comma, ErrorCode.ERR_FeatureTrailingCommasInArgumentLists);
+          }
+          args.push(comma);
+        }
+        else {
+          if (this.isTokenValidInContexts(this.currentToken.kind)) {
             break;
           }
+          this.skipToken();
+        }
+      }
+      else {
+        comma ??= this.eat(TokenKind.Comma);
+        args.push(comma);
 
-          args.push(comma);
-
-          let ellipsis = this.eatOptional(TokenKind.Ellipsis);
-          let value = this.parseExpression();
-          if (ellipsis === null && hasUnpack) {
-            value = this.addError(value, ErrorCode.ERR_ArgumentAfterUnpack);
-          }
-          args.push(new ArgumentNode(ellipsis, value));
-
-          if (ellipsis !== null) {
+        let argument = this.parseArgument();
+        if (argument instanceof PositionalArgumentNode) {
+          if (argument.ellipsis !== null) {
             hasUnpack = true;
           }
-
-          continue;
+          else if (hasUnpack) {
+            argument = this.addError(argument, ErrorCode.ERR_ArgumentAfterUnpack);
+          }
         }
-
-        this.skipBadArgumentListTokens();
+        else if (hasUnpack) {
+          argument = this.addError(argument, ErrorCode.ERR_ArgumentAfterUnpack);
+        }
+        args.push(argument);
       }
     }
 
     let closeParen: TokenNode;
-    if (openParen.isMissing) {
-      closeParen = this.createMissingToken(TokenKind.CloseParen, this.currentToken.kind, false);
-    }
-    else if (this.currentToken.kind === TokenKind.CloseParen) {
+    if (this.currentToken.kind === TokenKind.CloseParen) {
       closeParen = this.eat(TokenKind.CloseParen);
     }
     else {
@@ -4888,7 +4932,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
     // NOTE: It is not ideal to create these short-lived objects during a parse,
     // but it also allows the current node structure to remain, while also
     // standardizing how argument lists are parsed.
-    return new InvocationArguments(
+    return new Arguments(
       openParen,
       args.length > 0 ? this.factory.createList(args) : null,
       closeParen
@@ -6898,19 +6942,70 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
-   * @todo Document skipBadArgumentListTokens().
+   * Determines if the next token is a positional argument or should be parsed
+   * as a named argument.
    */
-  protected skipBadArgumentListTokens(): void {
-    this.skipToken();  // @todo Invalid token '%s' in argument list
+  protected shouldParseArgument(): boolean {
+    // Starting with all possible tokens, determine if the token is:
+    // 1. An ellipsis.
+    // 2. A token that starts an expression (positional arguments).
+    // 3. An identifier or keyword (named arguments).
+    // 4. Any remaining token.
 
-    while (this.currentToken.kind !== TokenKind.EOF) {
-      if (this.isArgumentStart(this.currentToken.kind) || this.currentToken.kind === TokenKind.Comma) {
-        break;  // @todo continue
+    // Always a positional argument (1).
+    if (this.currentToken.kind === TokenKind.Ellipsis) {
+      return true;
+    }
+    // Either a positional argument (2) or a named argument (a subset of 3).
+    if (this.isExpressionStart(this.currentToken.kind)) {
+      return true;
+    }
+    // Not an argument (4).
+    if (!this.isParameterIdentifier(this.currentToken.kind)) {
+      return false;
+    }
+
+    // This just leaves parameter identifiers (3) below this point.
+    //
+    // Unfortunately, PHP's grammar has another ambiguity that prevents the
+    // parser from determining if the next token was intended to be a
+    // parameter name or one of the many keywords that start an expression if
+    // the colon is missing.
+    //
+    // To make an educated guess, categorize tokens into the following groups:
+    // 3a. Keywords that start statements.
+    // 3b. Keywords that start expressions (already handled above).
+    // 3c. Keywords that don't start either.
+
+    // A keyword that doesn't start anything is likely a name (3c).
+    if (!this.isTopStatementStart(this.currentToken.kind)) {
+      return true;
+    }
+
+    let hasLineBreak = false;
+    for (let i = 0; i < this.leadingTrivia.length; i++) {
+      if (this.leadingTrivia[i].kind === TokenKind.LineBreak) {
+        hasLineBreak = true;
+        break;
       }
-      if (this.currentToken.kind === TokenKind.CloseParen) {
-        break;  // @todo abort
-      }
-      this.skipToken();
+    }
+
+    let beforeIdentifier = this.createResetPoint();
+    let unused = this.eat(this.currentToken.kind);
+    if (this.currentToken.kind === TokenKind.Colon) {
+      // Non-ambiguous keyword.
+      this.reset(beforeIdentifier);
+      return true;
+    }
+    else {
+      // Only ambiguous statement keywords remain, but consider the following
+      // scenario:
+      //
+      //   f(| <-- cursor here
+      //   <statement>
+      //
+      this.reset(beforeIdentifier);
+      return !hasLineBreak;
     }
   }
 
