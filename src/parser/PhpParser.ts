@@ -1872,7 +1872,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
    */
   protected parseClassMemberDeclaration(context: ParseContext): StatementNode {
     // Anything that is not a modifier should have been handled by the caller.
-    Debug.assert(this.getModifierFlag(this.currentToken.kind) !== ModifierFlags.None);
+    Debug.assert(this.isModifier(this.currentToken.kind));
 
     let modifiers: TokenNode[] = [];
     let modifierFlags = this.parseClassMemberModifiers(modifiers, context);
@@ -6910,7 +6910,7 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
       case TokenKind.Function:
         return true;
       default:
-        return this.getModifierFlag(this.currentToken.kind) !== ModifierFlags.None;
+        return this.isModifier(this.currentToken.kind);
     }
   }
 
