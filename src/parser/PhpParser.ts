@@ -6889,13 +6889,6 @@ export class PhpParser implements IParser<SourceTextSyntaxNode> {
   }
 
   /**
-   * Determines if a parameter is entirely missing.
-   */
-  protected isParameterMissing(parameter: ParameterNode): boolean {
-    return parameter.ampersand === null && parameter.ellipsis === null && parameter.variable.isMissing;
-  }
-
-  /**
    * Determines if the next token may start a member declaration and is on a
    * different line.
    */
