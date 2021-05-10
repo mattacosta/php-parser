@@ -808,7 +808,7 @@ describe('PhpParser', function() {
       new DiagnosticTestArgs('fn(): A | B => $c;', 'should not parse a type union', [ErrorCode.ERR_FeatureUnionTypes], [6]),
       new DiagnosticTestArgs('fn(): static => $a;', 'should not parse a static return type', [ErrorCode.ERR_FeatureStaticReturnType], [6]),
     ];
-    Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_0, PhpVersion.PHP7_4);
+    Test.assertDiagnostics(diagnosticRegressionTests8_0, PhpVersion.PHP7_4, PhpVersion.PHP7_4);
   });
 
   describe('object-creation-expression (new-expression)', function() {
